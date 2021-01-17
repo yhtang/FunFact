@@ -1,88 +1,71 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import types
 from abc import ABC, abstractmethod
 import torch
 from deap import gp
 
 
-def instantiate(prefix_expr, pset, random_state=None):
-    s = prefix_expr[0]
-    node_cls = pset.context[s.name]
-    args = []
-    prefix_expr = prefix_expr[1:]
-    for i in range(s.arity):
-        t, prefix_expr = instantiate(prefix_expr, pset)
-        args.append(t)
-    node = node_cls(*args)
-    return node, prefix_expr
+class FactorizationPrimitiveSet:
 
+    class PrimitiveABC:
 
-class Types:
+        @property
+        @abstractmethod
+        def action(self):
+            pass
 
-    class Matrix:
-        pass
+        def __init__(self, shape, *operands):
+            self.operands = tuple(operands)
 
-    class RowVector:
-        pass
+        def forward(self, grad=False):
+            return self.action(*[o.forward(grad=grad) for o in self.operands])
 
-    class ColVector:
-        pass
+    class TerminalABC:
 
+        @property
+        @abstractmethod
+        def action(self):
+            pass
 
-class Primitive(ABC):
-    pass
+        def __init__(self, shape):
+            self._value = self.action(shape)
 
+        def forward(self, grad=False):
+            return self._value
 
-class Terminal(Primitive):
-    pass
+    def __init__(self, ret_type):
+        self.pset = gp.PrimitiveSetTyped(
+            'factorization', [], ret_type
+        )
 
+    def gen_expr(self, t=None):
+        return gp.genGrow(self.pset, min_=0, max_=99, type_=t)
 
-class MatrixAdd(Primitive):
+    def instantiate(self, expr, shape, random_state=None):
+        s = expr.pop(0)
+        node_cls = self.pset.context[s.name]
+        args = []
+        for _ in range(s.arity):
+            t, expr = self.instantiate(expr, shape, random_state)
+            args.append(t)
+        node = node_cls(shape, *args)
+        return node, expr
 
-    in_types = [Types.Matrix, Types.Matrix]
-    ret_type = Types.Matrix
+    def add_primitive(self, name, action, in_types, ret_type):
 
-    @classmethod
-    def add_to_pset(cls, pset: gp.PrimitiveSetTyped):
-        pset.addPrimitive(cls, cls.in_types, cls.ret_type)
+        class Primitive(self.PrimitiveABC):
+            @property
+            def action(self):
+                return action
 
-    # def __init__(self, operand1, operand2):
-    #     self.op
+        self.pset.addPrimitive(Primitive, in_types, ret_type, name=name)
 
-    # @classmethod
-    # def instantiate(cls, random_state=None):
-    #     return cls()
+    def add_terminal(self, name, action, ret_type):
 
+        class Terminal(self.TerminalABC):
+            @property
+            def action(self):
+                return action
 
-class RandomRowVector(Terminal):
-
-    ret_type = Types.RowVector
-
-    @classmethod
-    def add_to_pset(cls, pset: gp.PrimitiveSetTyped):
-        pset.addTerminal(cls, cls.ret_type)
-
-
-class RandomColVector(Terminal):
-
-    ret_type = Types.ColVector
-
-    @classmethod
-    def add_to_pset(cls, pset: gp.PrimitiveSetTyped):
-        pset.addTerminal(cls, cls.ret_type)
-
-    
-
-
-class OuterProduct(Primitive):
-
-    in_types = [Types.ColVector, Types.RowVector]
-    ret_type = Types.Matrix
-
-    @classmethod
-    def add_to_pset(cls, pset: gp.PrimitiveSetTyped):
-        pset.addPrimitive(cls, cls.in_types, cls.ret_type)
-
-    def __init__(self, op1, op2):
-        self.op1 = op1
-        self.op2 = op2
+        self.pset.addTerminal(Terminal, ret_type, name=name)
