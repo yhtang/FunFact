@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import time
 from abc import ABC
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 import torch
 from deap import gp
 import ntf.primitives as P
 
 
-def draw_tree(expr):
+def draw_tree(expr, ax=None):
     nodes, edges, labels = gp.graph(expr)
 
     g = nx.Graph()
@@ -63,36 +65,48 @@ pset.add_terminal(
     ret_type=ColVecExpr
 )
 
-while True:
-    try:
-        expr = pset.gen_expr()
-        break
-    except:
-        sys.stdout.write('.')
-        sys.stdout.flush()
+
+np.random.seed(int(time.time()))
+
+nrow = 4
+ncol = 4
+
+fig, axs = plt.subplots(nrow, ncol, figsize=(16, 16))
+for i, row in enumerate(axs):
+    for j, ax in enumerate(row):
+        expr = pset.gen_expr(MatExpr)
+        ax.draw_tree(expr)
+
+# while True:
+#     try:
+#         expr = pset.gen_expr()
+#         break
+#     except:
+#         sys.stdout.write('.')
+#         sys.stdout.flush()
 
 
-print(expr)
-print(type(expr))
-for symbol in expr:
-    print(type(symbol))
+# print(expr)
+# print(type(expr))
+# for symbol in expr:
+#     print(type(symbol))
 
-# draw_tree(expr)
 
-factorization, _ = pset.instantiate(expr, (2, 2), random_state=0)
 
-print(factorization)
+# factorization, _ = pset.instantiate(expr, (2, 2), random_state=0)
 
-M = factorization.forward()
+# print(factorization)
 
-print(M)
+# M = factorization.forward()
 
-loss = torch.nn.MSELoss()
+# print(M)
 
-L = loss(M, torch.zeros(M.shape))
+# loss = torch.nn.MSELoss()
 
-L.backward()
+# L = loss(M, torch.zeros(M.shape))
 
-# for optimizable in factorization:
-#     for dof in optimizable.state:
-#         dof -= alpha * dof.grad
+# L.backward()
+
+# # for optimizable in factorization:
+# #     for dof in optimizable.state:
+# #         dof -= alpha * dof.grad

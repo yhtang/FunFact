@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import types
+import itertools as it
 from abc import ABC, abstractmethod
+import numpy as np
 import torch
 from deap import gp
 
@@ -40,7 +42,17 @@ class FactorizationPrimitiveSet:
         )
 
     def gen_expr(self, t=None):
-        return gp.genGrow(self.pset, min_=0, max_=99, type_=t)
+        candidates = self.pset.primitives[t] + self.pset.terminals[t]
+        if len(candidates) == 0:
+            raise IndexError(f'Cannot complete generation request for {t}')
+        choice = np.random.choice(candidates, 1).item()
+        if isinstance(choice, gp.Terminal):
+            return [choice]
+        else:
+            return [choice, *list(it.chain.from_iterable([
+                self.gen_expr(a) for a in choice.args
+            ]))]
+        # return gp.genGrow(self.pset, min_=0, max_=99, type_=t)
 
     def instantiate(self, expr, shape, random_state=None):
         s = expr.pop(0)
