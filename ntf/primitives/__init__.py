@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import types
-import itertools as it
 from abc import ABC, abstractmethod
-import numpy as np
 import torch
+import numpy as np
 from deap import gp
+from ntf.util.iterable import flatten, map_or_call
 
 
 class FactorizationPrimitiveSet:
 
-    class PrimitiveABC:
+    class PrimitiveBase(ABC):
 
         @property
         @abstractmethod
@@ -23,7 +22,7 @@ class FactorizationPrimitiveSet:
         def forward(self, grad=False):
             return self.action(*[o.forward(grad=grad) for o in self.operands])
 
-    class TerminalABC:
+    class TerminalBase(ABC):
 
         @property
         @abstractmethod
@@ -41,18 +40,31 @@ class FactorizationPrimitiveSet:
             'factorization', [], ret_type
         )
 
-    def gen_expr(self, t=None):
-        candidates = self.pset.primitives[t] + self.pset.terminals[t]
-        if len(candidates) == 0:
-            raise IndexError(f'Cannot complete generation request for {t}')
-        choice = np.random.choice(candidates, 1).item()
+    def gen_expr(self, ret_type, max_depth, p=None):
+        return self._gen_expr(
+            ret_type,
+            p if p is not None else lambda _: 1.0,
+            max_depth
+        )
+
+    def _gen_expr(self, t=None, p=None, d=0):
+        if d <= 0:  # try to terminate ASAP
+            try:
+                choice = np.random.choice(self.pset.terminals[t], 1).item()
+            except ValueError:
+                choice = np.random.choice(self.pset.primitives[t], 1).item()
+        else:  # normal growth
+            candidates = self.pset.primitives[t] + self.pset.terminals[t]
+            prob = np.fromiter(map_or_call(candidates, p), dtype=np.float)
+            choice = np.random.choice(
+                candidates, 1, p=prob / prob.sum()
+            ).item()
+
         if isinstance(choice, gp.Terminal):
             return [choice]
         else:
-            return [choice, *list(it.chain.from_iterable([
-                self.gen_expr(a) for a in choice.args
-            ]))]
-        # return gp.genGrow(self.pset, min_=0, max_=99, type_=t)
+            return [choice, *flatten([self._gen_expr(a, p=p, d=d-1)
+                                      for a in choice.args])]
 
     def instantiate(self, expr, shape, random_state=None):
         s = expr.pop(0)
@@ -66,7 +78,7 @@ class FactorizationPrimitiveSet:
 
     def add_primitive(self, name, action, in_types, ret_type):
 
-        class Primitive(self.PrimitiveABC):
+        class Primitive(self.PrimitiveBase):
             @property
             def action(self):
                 return action
@@ -75,7 +87,7 @@ class FactorizationPrimitiveSet:
 
     def add_terminal(self, name, action, ret_type):
 
-        class Terminal(self.TerminalABC):
+        class Terminal(self.TerminalBase):
             @property
             def action(self):
                 return action

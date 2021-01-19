@@ -19,11 +19,12 @@ def draw_tree(expr, ax=None):
     g.add_edges_from(edges)
     pos = nx.drawing.nx_agraph.graphviz_layout(g, prog="dot")
 
-    plt.figure(figsize=(9, 9))
-    nx.draw_networkx_nodes(g, pos)
-    nx.draw_networkx_edges(g, pos)
-    nx.draw_networkx_labels(g, pos, labels)
-    plt.show()
+    if ax is None:
+        plt.figure(figsize=(9, 9))
+        ax = plt.gca()
+    nx.draw_networkx_nodes(g, pos, ax=ax)
+    nx.draw_networkx_edges(g, pos, ax=ax)
+    nx.draw_networkx_labels(g, pos, labels, ax=ax)
 
 
 class MatExpr(ABC):
@@ -74,8 +75,10 @@ ncol = 4
 fig, axs = plt.subplots(nrow, ncol, figsize=(16, 16))
 for i, row in enumerate(axs):
     for j, ax in enumerate(row):
-        expr = pset.gen_expr(MatExpr)
-        ax.draw_tree(expr)
+        expr = pset.gen_expr(MatExpr, 5)
+        draw_tree(expr, ax=ax)
+
+plt.show()
 
 # while True:
 #     try:
