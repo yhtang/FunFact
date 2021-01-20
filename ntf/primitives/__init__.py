@@ -8,6 +8,17 @@ from ntf.util.iterable import flatten, map_or_call
 
 
 class FactorizationPrimitiveSet:
+    '''A DEAP primitive set for nonlinear tensor factorization.
+
+    Parameters
+    ----------
+    ret_type: type
+        Type of the overall factorization expression.
+    rank_types: list
+        The types of the vectors that make up one 'rank'.
+    k: int
+        Maximum number of ranks to be sought in the factorization.
+    '''
 
     class PrimitiveBase(ABC):
 
@@ -35,14 +46,32 @@ class FactorizationPrimitiveSet:
         def forward(self, grad=False):
             return self._value
 
-    def __init__(self, ret_type):
+    def __init__(self, ret_type: type, rank_types: list, k=10):
+        self.ret_type = ret_type
+        self.rank_types = rank_types
+        self.k = k
         self.pset = gp.PrimitiveSetTyped(
-            'factorization', [], ret_type
+            'factorization', rank_types * k, ret_type
         )
 
-    def gen_expr(self, ret_type, max_depth, p=None):
+    def gen_expr(self, max_depth: int, p=None):
+        '''Propose a candidate nonlinear factorization expression.
+
+        Parameters
+        ----------
+        max_depth: int
+            Maximum depth (number of layers) of the expression.
+        p: dict or callable
+            A lookup table of the relative frequencies of the primitives in the
+            generated expression.
+
+        Returns
+        -------
+        expr: list
+            A factorization in the form of a prefix expression.
+        '''
         return self._gen_expr(
-            ret_type,
+            self.ret_type,
             p if p is not None else lambda _: 1.0,
             max_depth
         )

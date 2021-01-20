@@ -39,7 +39,11 @@ class RowVecExpr(ABC):
     pass
 
 
-pset = P.FactorizationPrimitiveSet(MatExpr)
+pset = P.FactorizationPrimitiveSet(
+    ret_type=MatExpr,
+    rank_types=[ColVecExpr, RowVecExpr],
+    k=2
+)
 pset.add_primitive(
     name='matrix_add',
     action=lambda x, y: x + y,
@@ -55,22 +59,22 @@ pset.add_primitive(
     action=lambda x, y: x[:, None] - y[None, :],
     in_types=[ColVecExpr, RowVecExpr], ret_type=MatExpr
 )
-pset.add_terminal(
-    name='random_row_vector',
-    action=lambda shape: torch.rand(shape[0], requires_grad=True),
-    ret_type=RowVecExpr
-)
-pset.add_terminal(
-    name='random_col_vector',
-    action=lambda shape: torch.rand(shape[1], requires_grad=True),
-    ret_type=ColVecExpr
-)
+# pset.add_terminal(
+#     name='random_row_vector',
+#     action=lambda shape: torch.rand(shape[0], requires_grad=True),
+#     ret_type=RowVecExpr
+# )
+# pset.add_terminal(
+#     name='random_col_vector',
+#     action=lambda shape: torch.rand(shape[1], requires_grad=True),
+#     ret_type=ColVecExpr
+# )
 
 
 np.random.seed(int(time.time()))
 
-nrow = 4
-ncol = 4
+nrow = 2
+ncol = 2
 
 fig, axs = plt.subplots(nrow, ncol, figsize=(16, 16))
 for i, row in enumerate(axs):
