@@ -55,6 +55,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude='test'),
+    package_data={'': ['README.md']},
     platforms='any',
     classifiers=[
         'Programming Language :: Python',
