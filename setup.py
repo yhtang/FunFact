@@ -36,7 +36,7 @@ class Tox(TestCommand):
 setup(
     name='ntf',
     version=__version__,
-    python_requires='>=3.8',
+    python_requires='>=3.6',
     url='https://gitlab.com/yhtang/ntf',
     license='BSD',
     author='Yu-Hang Tang',
@@ -55,7 +55,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude='test'),
-    package_data={'': ['*.md']},
+    package_data={'': ['README.md']},
     platforms='any',
     classifiers=[
         'Programming Language :: Python',
