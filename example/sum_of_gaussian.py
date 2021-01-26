@@ -3,28 +3,12 @@
 import sys
 import time
 from abc import ABC
-import matplotlib.pyplot as plt
-import networkx as nx
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
 from deap import gp
-import ntf.primitives as P
-
-
-def draw_tree(expr, ax=None):
-    nodes, edges, labels = gp.graph(expr)
-
-    g = nx.Graph()
-    g.add_nodes_from(nodes)
-    g.add_edges_from(edges)
-    pos = nx.drawing.nx_agraph.graphviz_layout(g, prog="dot")
-
-    if ax is None:
-        plt.figure(figsize=(9, 9))
-        ax = plt.gca()
-    nx.draw_networkx_nodes(g, pos, ax=ax)
-    nx.draw_networkx_edges(g, pos, ax=ax)
-    nx.draw_networkx_labels(g, pos, labels, ax=ax)
+from ntf.primitives import FactorizationPrimitiveSet
+from ntf.visualization import draw_deap_expression
 
 
 class MatExpr(ABC):
@@ -39,52 +23,74 @@ class RowVecExpr(ABC):
     pass
 
 
-pset = P.FactorizationPrimitiveSet(
+class ColRowVecPair:
+    def __init__(self):
+
+
+class Node(ABC):
+
+    @property
+    @abstractmethod
+    def parameters
+
+    @property
+    def parameters
+
+class GassianOuterProduct(Node):
+    def __init__(self, U, V):
+        self.U = U
+        self.V = V
+        self.subtree = [self.U, self.V]
+
+    def init():
+        self.a = torch.rand(1, requires_grad=True)
+        self.b = torch.rand(1, requires_grad=True)
+        for x in self.subtree:
+            x.randomize()
+
+    def eval(self):
+        u = U.eval()
+        v = V.eval()
+        return torch.exp(
+            -0.5 * torch.square(
+                u.forward()[:, None] - v[None, :])
+        )
+
+    @property
+    def paramemters(self):
+        return (self.a, self.b, self.U.parameters, self.V.parameters)
+
+
+class ColVector:
+    def __init__(self):
+        
+
+pset = FactorizationPrimitiveSet(
     ret_type=MatExpr,
     rank_types=[ColVecExpr, RowVecExpr],
     k=2
 )
+
 pset.add_primitive(
     name='matrix_add',
     action=lambda x, y: x + y,
     in_types=[MatExpr, MatExpr], ret_type=MatExpr
 )
 pset.add_primitive(
-    name='matrix_mul_ewise',
-    action=lambda x, y: x * y,
-    in_types=[MatExpr, MatExpr], ret_type=MatExpr
-)
-pset.add_primitive(
-    name='matrix_exp_ewise',
-    action=lambda m: torch.exp(m),
-    in_types=[MatExpr], ret_type=MatExpr
-)
-pset.add_primitive(
-    name='vector_outer_add',
-    action=lambda x, y: x[:, None] + y[None, :],
+    name='gauss_outer',
+    action=lambda u, v:
+        torch.exp(-0.5 * torch.square(u[:, None] - v[None, :])),
     in_types=[ColVecExpr, RowVecExpr], ret_type=MatExpr
 )
-pset.add_primitive(
-    name='vector_outer_sub',
-    action=lambda x, y: x[:, None] - y[None, :],
-    in_types=[ColVecExpr, RowVecExpr], ret_type=MatExpr
+pset.add_ephemeral(
+
 )
-# pset.add_terminal(
-#     name='random_row_vector',
-#     action=lambda shape: torch.rand(shape[0], requires_grad=True),
-#     ret_type=RowVecExpr
-# )
-# pset.add_terminal(
-#     name='random_col_vector',
-#     action=lambda shape: torch.rand(shape[1], requires_grad=True),
-#     ret_type=ColVecExpr
-# )
 
 
 np.random.seed(int(time.time()))
 
 expr = pset.gen_expr(5)
-draw_tree(expr)
+draw_deap_expression(expr)
 
 # nrow = 2
 # ncol = 2

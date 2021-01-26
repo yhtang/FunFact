@@ -27,7 +27,7 @@ class FactorizationPrimitiveSet:
         def action(self):
             pass
 
-        def __init__(self, shape, *operands):
+        def __init__(self, *operands, shape=None):
             self.operands = tuple(operands)
 
         def forward(self, grad=False):
@@ -95,14 +95,14 @@ class FactorizationPrimitiveSet:
             return [choice, *flatten([self._gen_expr(a, p=p, d=d-1)
                                       for a in choice.args])]
 
-    def instantiate(self, expr, shape, random_state=None):
+    def instantiate(self, expr, extra_args={}, random_state=None, ):
         s = expr.pop(0)
         node_cls = self.pset.context[s.name]
         args = []
         for _ in range(s.arity):
             t, expr = self.instantiate(expr, shape, random_state)
             args.append(t)
-        node = node_cls(shape, *args)
+        node = node_cls(shape, *args, **extra_args)
         return node, expr
 
     def add_primitive(self, name, action, in_types, ret_type):
