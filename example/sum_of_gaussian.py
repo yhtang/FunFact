@@ -53,8 +53,11 @@ expr = pset.from_string(
 # draw_deap_expression(expr)
 # plt.show()
 
-factorization, _ = pset.instantiate(expr, shape=(10, 10))
+factorization = pset.instantiate(expr, shape=(10, 10))
 
+print(factorization())
+
+print(factorization.flat_params)
 
 # nrow = 2
 # ncol = 2

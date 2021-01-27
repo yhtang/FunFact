@@ -99,15 +99,17 @@ class PrimitiveSet:
             return [choice, *flatten([self._gen_expr(a, p=p, d=d-1)
                                       for a in choice.args])]
 
-    def instantiate(self, expr, **kwargs):
-        s, expr = expr[0], expr[1:]
-        node_cls = self.pset.context[s.name]
+    def instantiate(self, expr, **hyper_params):
+        return self._instantiate(expr, **hyper_params)[0]
+
+    def _instantiate(self, expr, **hyper_params):
+        primitive, tail_expr = expr[0], expr[1:]
         children = []
-        for _ in range(s.arity):
-            t, expr = self.instantiate(expr, **kwargs)
-            children.append(t)
-        node = node_cls(*children, **kwargs)
-        return node, expr
+        for _ in range(primitive.arity):
+            child, tail_expr = self._instantiate(tail_expr, **hyper_params)
+            children.append(child)
+        primitive_impl = self.pset.context[primitive.name]
+        return primitive_impl(*children, **hyper_params), tail_expr
 
     def add_primitive(self, ret_type, in_types=None, name=None, params=None,
                       hyper_params=None):
