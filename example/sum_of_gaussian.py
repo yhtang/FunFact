@@ -1,96 +1,60 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import itertools as it
 import sys
 import time
-from abc import ABC
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 from deap import gp
-from ntf.primitives import FactorizationPrimitiveSet
+from ntf.geneprog import PrimitiveSet
 from ntf.visualization import draw_deap_expression
 
 
-class MatExpr(ABC):
-    pass
+Matrix = PrimitiveSet.new_type()
+ColRowPair = PrimitiveSet.new_type()
+
+pset = PrimitiveSet(Matrix)
+
+'''create inputs according to the target rank of the factorization'''
+for i in range(3):
+    @pset.add_terminal(
+        name=f'rank_{i}', ret_type=ColRowPair,
+        params=['col', 'row'], hyper_params=['shape']
+    )
+    def random_col_row_pair(self, shape):
+        self.col = torch.normal(0.0, 1.0, shape[1:], requires_grad=True)
+        self.row = torch.normal(0.0, 1.0, shape[:1], requires_grad=True)
+        return lambda: (self.col, self.row)
 
 
-class ColVecExpr(ABC):
-    pass
+@pset.add_primitive(ret_type=Matrix, in_types=[ColRowPair])
+def gauss(self):
+    return lambda uv: torch.exp(
+        -0.5 * torch.square(uv[0][:, None] - uv[1][None, :])
+    )
 
 
-class RowVecExpr(ABC):
-    pass
+@pset.add_primitive(ret_type=Matrix, in_types=[Matrix], params=['a', 'b'])
+def scale(self):
+    self.a = torch.normal(0.0, 1.0, [1], requires_grad=True)
+    self.b = torch.normal(0.0, 1.0, [1], requires_grad=True)
+    return lambda M: M * self.a + self.b
 
 
-class ColRowVecPair:
-    def __init__(self):
+@pset.add_primitive(ret_type=Matrix, in_types=[Matrix, Matrix])
+def matrix_add(self):
+    return lambda M1, M2: M1 + M2
 
 
-class Node(ABC):
-
-    @property
-    @abstractmethod
-    def parameters
-
-    @property
-    def parameters
-
-class GassianOuterProduct(Node):
-    def __init__(self, U, V):
-        self.U = U
-        self.V = V
-        self.subtree = [self.U, self.V]
-
-    def init():
-        self.a = torch.rand(1, requires_grad=True)
-        self.b = torch.rand(1, requires_grad=True)
-        for x in self.subtree:
-            x.randomize()
-
-    def eval(self):
-        u = U.eval()
-        v = V.eval()
-        return torch.exp(
-            -0.5 * torch.square(
-                u.forward()[:, None] - v[None, :])
-        )
-
-    @property
-    def paramemters(self):
-        return (self.a, self.b, self.U.parameters, self.V.parameters)
-
-
-class ColVector:
-    def __init__(self):
-        
-
-pset = FactorizationPrimitiveSet(
-    ret_type=MatExpr,
-    rank_types=[ColVecExpr, RowVecExpr],
-    k=2
+expr = pset.from_string(
+    'matrix_add(matrix_add(scale(gauss(rank_0)), gauss(rank_1)), gauss(rank_2))'
 )
+# draw_deap_expression(expr)
+# plt.show()
 
-pset.add_primitive(
-    name='matrix_add',
-    action=lambda x, y: x + y,
-    in_types=[MatExpr, MatExpr], ret_type=MatExpr
-)
-pset.add_primitive(
-    name='gauss_outer',
-    action=lambda u, v:
-        torch.exp(-0.5 * torch.square(u[:, None] - v[None, :])),
-    in_types=[ColVecExpr, RowVecExpr], ret_type=MatExpr
-)
-pset.add_ephemeral(
+factorization, _ = pset.instantiate(expr, shape=(10, 10))
 
-)
-
-
-np.random.seed(int(time.time()))
-
-expr = pset.gen_expr(5)
-draw_deap_expression(expr)
 
 # nrow = 2
 # ncol = 2
@@ -101,7 +65,6 @@ draw_deap_expression(expr)
 #         expr = pset.gen_expr(5)
 #         draw_tree(expr, ax=ax)
 
-plt.show()
 
 # while True:
 #     try:

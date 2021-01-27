@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import uuid
 from abc import ABC, abstractmethod
-import torch
 import numpy as np
 from deap import gp
-from ntf.util.iterable import flatten, map_or_call
+from ntf.util.iterable import flatten, flatten_if, map_or_call
 
 
-class FactorizationPrimitiveSet:
+class PrimitiveSet:
     '''A DEAP primitive set for nonlinear tensor factorization.
 
     Parameters
@@ -19,6 +19,11 @@ class FactorizationPrimitiveSet:
     k: int
         Maximum number of ranks to be sought in the factorization.
     '''
+
+    @staticmethod
+    def new_type(name=None, bases=()):
+        name = name or f'type{uuid.uuid4().hex}'
+        return type(name, bases, {})
 
     class PrimitiveBase(ABC):
 
@@ -46,13 +51,12 @@ class FactorizationPrimitiveSet:
         def forward(self, grad=False):
             return self._value
 
-    def __init__(self, ret_type: type, rank_types: list, k=10):
+    def __init__(self, ret_type):
         self.ret_type = ret_type
-        self.rank_types = rank_types
-        self.k = k
-        self.pset = gp.PrimitiveSetTyped(
-            'factorization', rank_types * k, ret_type
-        )
+        self.pset = gp.PrimitiveSetTyped('factorization', [], ret_type)
+
+    def from_string(self, string):
+        return gp.PrimitiveTree.from_string(string, self.pset)
 
     def gen_expr(self, max_depth: int, p=None):
         '''Propose a candidate nonlinear factorization expression.
@@ -95,30 +99,60 @@ class FactorizationPrimitiveSet:
             return [choice, *flatten([self._gen_expr(a, p=p, d=d-1)
                                       for a in choice.args])]
 
-    def instantiate(self, expr, extra_args={}, random_state=None, ):
-        s = expr.pop(0)
+    def instantiate(self, expr, **kwargs):
+        s, expr = expr[0], expr[1:]
         node_cls = self.pset.context[s.name]
-        args = []
+        children = []
         for _ in range(s.arity):
-            t, expr = self.instantiate(expr, shape, random_state)
-            args.append(t)
-        node = node_cls(shape, *args, **extra_args)
+            t, expr = self.instantiate(expr, **kwargs)
+            children.append(t)
+        node = node_cls(*children, **kwargs)
         return node, expr
 
-    def add_primitive(self, name, action, in_types, ret_type):
+    def add_primitive(self, ret_type, in_types=None, name=None, params=None,
+                      hyper_params=None):
 
-        class Primitive(self.PrimitiveBase):
-            @property
-            def action(self):
-                return action
+        def decorator(f):
 
-        self.pset.addPrimitive(Primitive, in_types, ret_type, name=name)
+            _params = params or []
+            _hyper_params = hyper_params or []
 
-    def add_terminal(self, name, action, ret_type):
+            class Primitive:
 
-        class Terminal(self.TerminalBase):
-            @property
-            def action(self):
-                return action
+                def __init__(self, *children, **kwargs):
+                    self.__f = f(self, **{k: kwargs[k] for k in _hyper_params})
+                    self.__c = children
 
-        self.pset.addTerminal(Terminal, ret_type, name=name)
+                def __call__(self):
+                    return self.__f(*[c() for c in self.__c])
+
+                @property
+                def params(self):
+                    return [
+                        getattr(self, p) for p in _params
+                    ] + [
+                        c.params for c in self.__c
+                    ]
+
+                @property
+                def flat_params(self):
+                    return flatten_if(
+                        self.params,
+                        lambda i: isinstance(i, list)
+                    )
+
+            if in_types is None:
+                self.pset.addTerminal(Primitive, ret_type,
+                                      name=name or f.__name__)
+            else:
+                self.pset.addPrimitive(Primitive, in_types, ret_type,
+                                       name=name or f.__name__)
+
+        return decorator
+
+    def add_terminal(self, ret_type, name=None, params=None,
+                     hyper_params=None):
+        return self.add_primitive(
+            ret_type, in_types=None, name=name, params=params,
+            hyper_params=hyper_params
+        )
