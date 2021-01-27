@@ -22,6 +22,16 @@ def flatten_if(iterable, pred):
     return list(_flatten_if(iterable))
 
 
+def flatten_dict(iterable):
+    def _flatten_dict(_iterable):
+        for _, item in _iterable.items():
+            if isinstance(item, dict):
+                yield from _flatten_dict(item)
+            else:
+                yield item
+    return list(_flatten_dict(iterable))
+
+
 def map_or_call(iterable, mapping):
     for item in iterable:
         try:

@@ -4,7 +4,7 @@ import uuid
 from abc import ABC, abstractmethod
 import numpy as np
 from deap import gp
-from ntf.util.iterable import flatten, flatten_if, map_or_call
+from ntf.util.iterable import flatten, flatten_dict, map_or_call
 
 
 class PrimitiveSet:
@@ -116,6 +116,7 @@ class PrimitiveSet:
 
         def decorator(f):
 
+            _name = name or f.__name__
             _params = params or []
             _hyper_params = hyper_params or []
 
@@ -129,26 +130,32 @@ class PrimitiveSet:
                     return self.__f(*[c() for c in self.__c])
 
                 @property
-                def params(self):
-                    return [
-                        getattr(self, p) for p in _params
-                    ] + [
-                        c.params for c in self.__c
-                    ]
+                def name(self):
+                    return _name
 
                 @property
-                def flat_params(self):
-                    return flatten_if(
-                        self.params,
-                        lambda i: isinstance(i, list)
+                def children(self):
+                    return self.__c
+
+                @property
+                def param_dict(self):
+                    return dict(
+                        **{p: getattr(self, p) for p in _params},
+                        **{c.name: c.param_dict for c in self.children}
                     )
 
+                @property
+                def parameters(self):
+                    return flatten_dict(self.param_dict)
+
             if in_types is None:
-                self.pset.addTerminal(Primitive, ret_type,
-                                      name=name or f.__name__)
+                self.pset.addTerminal(
+                    Primitive, ret_type, name=_name
+                )
             else:
-                self.pset.addPrimitive(Primitive, in_types, ret_type,
-                                       name=name or f.__name__)
+                self.pset.addPrimitive(
+                    Primitive, in_types, ret_type, name=_name
+                )
 
         return decorator
 
