@@ -160,6 +160,9 @@ class PrimitiveSet:
                     self.__f = f(self, **self._make_hargs(kwargs))
                     self.__c = children
 
+                def __repr__(self):
+                    return f'<{self.name} object #{id(self):x}>'
+
                 def _make_hargs(self, kwargs):
                     hargs = {}
                     for k in self.hyperparams:
@@ -182,6 +185,10 @@ class PrimitiveSet:
                     return _name
 
                 @property
+                def unique_name(self):
+                    return f'{self.name}_{id(self):x}'
+
+                @property
                 def children(self):
                     return self.__c
 
@@ -189,7 +196,8 @@ class PrimitiveSet:
                     if deep is True:
                         return dict(
                             **{p: getattr(self, p) for p in _params},
-                            **{c.name: c.dparam(True) for c in self.children}
+                            **{c.unique_name: c.dparam(True)
+                               for c in self.children}
                         )
                     else:
                         return {p: getattr(self, p) for p in _params}
