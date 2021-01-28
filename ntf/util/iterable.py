@@ -9,7 +9,7 @@ def flatten(iterable):
                 yield from _flatten(item)
             except TypeError:
                 yield item
-    return list(_flatten(iterable))
+    return tuple(_flatten(iterable))
 
 
 def flatten_if(iterable, pred):
@@ -19,7 +19,7 @@ def flatten_if(iterable, pred):
                 yield from _flatten_if(item)
             else:
                 yield item
-    return list(_flatten_if(iterable))
+    return tuple(_flatten_if(iterable))
 
 
 def flatten_dict(iterable):
@@ -29,7 +29,7 @@ def flatten_dict(iterable):
                 yield from _flatten_dict(item)
             else:
                 yield item
-    return list(_flatten_dict(iterable))
+    return tuple(_flatten_dict(iterable))
 
 
 def map_or_call(iterable, mapping):

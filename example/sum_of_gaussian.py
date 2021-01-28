@@ -29,10 +29,7 @@ pset = PrimitiveSet(Matrix)
 
 
 for i in range(3):
-    @pset.add_terminal(
-        name=f'rank_{i}', ret_type=RowCol,
-        params=['col', 'row']
-    )
+    @pset.add_terminal(name=f'rank{i}', ret_type=RowCol, params=['col', 'row'])
     def random_col_row_pair(p, n, m):
         # p.row = torch.normal(0.0, 1.0, [n], requires_grad=True)
         # p.col = torch.normal(0.0, 1.0, [m], requires_grad=True)
@@ -70,8 +67,8 @@ def matrix_add(p):
 
 expr = pset.from_string('''
 matrix_add(
-    gauss(rank_0),
-    gauss(rank_1)
+    gauss(rank0),
+    gauss(rank1)
 )''')
 
 
@@ -113,7 +110,7 @@ K0 = f(
 
 # create initial guesses
 plt.figure(figsize=(15, 10))
-lr = 1.0
+lr = 0.1
 for optname, optcls in [# ('SGD', optim.SGD),
                         ('Adam', optim.Adam),
                         # ('Adadelta', optim.Adadelta),
