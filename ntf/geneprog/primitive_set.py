@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
+import inspect
 from abc import ABC, abstractmethod
 import numpy as np
 from deap import gp
@@ -54,6 +55,7 @@ class PrimitiveSet:
     def __init__(self, ret_type):
         self.ret_type = ret_type
         self.pset = gp.PrimitiveSetTyped('factorization', [], ret_type)
+        self.hyperdep = {}
 
     def from_string(self, string):
         return gp.PrimitiveTree.from_string(string, self.pset)
@@ -111,20 +113,66 @@ class PrimitiveSet:
         primitive_impl = self.pset.context[primitive.name]
         return primitive_impl(*children, **hyper_params), tail_expr
 
-    def add_primitive(self, ret_type, in_types=None, name=None, params=None,
-                      hyper_params=None):
+    @staticmethod
+    def _get_hyperspecs(f, name):
+        arg_spec = inspect.getfullargspec(f)
+
+        assert arg_spec.varargs is None, f'Variable-length hyperparameter \
+            *{arg_spec.varargs} is not allowed for primitive {name}.'
+        assert arg_spec.varkw is None, f'Variable-length keyword \
+            hyperparameter **{arg_spec.varkw} is not allowed for primitive \
+            {name}.'
+
+        hyperparams = arg_spec.args[1:] + arg_spec.kwonlyargs
+        hyperdefaults = {}
+        if arg_spec.defaults is not None:
+            for key, value in zip(arg_spec.defaults[-1::-1],
+                                  arg_spec.args[-1::-1]):
+                hyperdefaults[key] = value
+        if arg_spec.kwonlydefaults is not None:
+            hyperdefaults.update(**arg_spec.kwonlydefaults)
+
+        return hyperparams, hyperdefaults
+
+    def add_primitive(self, ret_type, in_types=None, name=None, params=None):
 
         def decorator(f):
 
-            _name = name or f.__name__
+            try:
+                _name = name or f.__name__
+            except AttributeError:
+                raise AttributeError(
+                    f'Primitive {f} does not have the `__name__` attribute. '
+                    f'Please specify one using the `name` argument.'
+                )
+
             _params = params or []
-            _hyper_params = hyper_params or []
+            _hyperparams, _hyperdefaults = self._get_hyperspecs(f, _name)
+
+            for h in _hyperparams:
+                if h not in self.hyperdep:
+                    self.hyperdep[h] = []
+                self.hyperdep[h].append(_name)
 
             class Primitive:
 
                 def __init__(self, *children, **kwargs):
-                    self.__f = f(self, **{k: kwargs[k] for k in _hyper_params})
+                    self.__f = f(self, **self._make_hargs(kwargs))
                     self.__c = children
+
+                def _make_hargs(self, kwargs):
+                    hargs = {}
+                    for k in self.hyperparams:
+                        if k in kwargs:
+                            hargs[k] = kwargs.pop(k)
+                        elif k in self.hyperdefaults:
+                            hargs[k] = self.hyperdefaults[k]
+                        else:
+                            raise RuntimeError(
+                                f'Hyperparameter {k} of primitive {self.name} '
+                                f'not provided.'
+                            )
+                    return hargs
 
                 def __call__(self):
                     return self.__f(*[c() for c in self.__c])
@@ -137,16 +185,26 @@ class PrimitiveSet:
                 def children(self):
                     return self.__c
 
-                @property
-                def param_dict(self):
-                    return dict(
-                        **{p: getattr(self, p) for p in _params},
-                        **{c.name: c.param_dict for c in self.children}
-                    )
+                def dparam(self, deep=False):
+                    if deep is True:
+                        return dict(
+                            **{p: getattr(self, p) for p in _params},
+                            **{c.name: c.dparam(True) for c in self.children}
+                        )
+                    else:
+                        return {p: getattr(self, p) for p in _params}
 
                 @property
                 def parameters(self):
-                    return flatten_dict(self.param_dict)
+                    return flatten_dict(self.dparam(deep=True))
+
+                @property
+                def hyperparams(self):
+                    return _hyperparams
+
+                @property
+                def hyperdefaults(self):
+                    return _hyperdefaults
 
             if in_types is None:
                 self.pset.addTerminal(
@@ -159,9 +217,7 @@ class PrimitiveSet:
 
         return decorator
 
-    def add_terminal(self, ret_type, name=None, params=None,
-                     hyper_params=None):
+    def add_terminal(self, ret_type, name=None, params=None):
         return self.add_primitive(
-            ret_type, in_types=None, name=name, params=params,
-            hyper_params=hyper_params
+            ret_type, in_types=None, name=name, params=params
         )
