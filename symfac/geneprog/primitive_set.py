@@ -5,7 +5,7 @@ import inspect
 from abc import ABC, abstractmethod
 import numpy as np
 from deap import gp
-from ntf.util.iterable import flatten, flatten_dict, map_or_call
+from symfac.util.iterable import flatten, flatten_dict, map_or_call
 
 
 class PrimitiveSet:

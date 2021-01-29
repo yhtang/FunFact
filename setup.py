@@ -4,7 +4,7 @@ import re
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
-with open('ntf/__init__.py') as fd:
+with open('symfac/__init__.py') as fd:
     __version__ = re.search("__version__ = '(.*)'", fd.read()).group(1)
 
 
@@ -34,10 +34,10 @@ class Tox(TestCommand):
 
 
 setup(
-    name='ntf',
+    name='symfac',
     version=__version__,
     python_requires='>=3.6',
-    url='https://gitlab.com/yhtang/ntf',
+    url='TBD',
     license='BSD',
     author='Yu-Hang Tang',
     tests_require=['tox'],

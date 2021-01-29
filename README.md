@@ -1,3 +1,3 @@
-# NTF
+# SymFac
 
 Internal use only.
