@@ -5,16 +5,16 @@ import torch
 from torch import optim
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from ntf.geneprog import PrimitiveSet
-from ntf.visualization import draw_deap_expression
+from symfac.geneprog import PrimitiveSet
+from symfac.visualization import draw_deap_expression
 
 
 # define abstract types used in the factorization
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-Matrix = PrimitiveSet.new_type()
-RowCol = PrimitiveSet.new_type()
+Matrix = PrimitiveSet.new_type('Matrix')
+RowCol = PrimitiveSet.new_type('RowCol')
 
 
 # create the primitive set envelop

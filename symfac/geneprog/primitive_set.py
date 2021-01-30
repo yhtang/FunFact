@@ -8,6 +8,90 @@ from deap import gp
 from symfac.util.iterable import flatten, flatten_dict, map_or_call
 
 
+class Primitive(ABC):
+    '''A primitive in the context of genetic programming is an element of an
+    arithmetic expression, such as a constant, an operation, a function, etc.
+    '''
+
+    def __repr__(self):
+        return f'<{self.name} object #{id(self):x}>'
+
+    def _make_hargs(self, kwargs):
+        hargs = {}
+        for k in self.hyperparams:
+            if k in kwargs:
+                hargs[k] = kwargs.pop(k)
+            elif k in self.hyperdefaults:
+                hargs[k] = self.hyperdefaults[k]
+            else:
+                raise RuntimeError(
+                    f'Hyperparameter {k} of primitive {self.name} '
+                    f'not provided.'
+                )
+        return hargs
+
+    def __call__(self):
+        '''Recursively evaluate the primitive and its children, and return
+        the output.'''
+        return self.action(*[c() for c in self.children])
+
+    @property
+    @abstractmethod
+    def name(self):
+        '''The primitive's name as it shows up in an abstract expression.'''
+
+    @property
+    @abstractmethod
+    def unique_name(self):
+        '''The name of the primitive as it shows up in a concrete
+        instance of an abstract expression. It consists of the name of the
+        primitive plus a unique ID in order to distinguish instances of the
+        same type.'''
+
+    @property
+    @abstractmethod
+    def action(self):
+        '''A callable that carries out the action of the primitive.'''
+
+    @property
+    @abstractmethod
+    def children(self):
+        '''A list of child primitive instances.'''
+
+    def dparam(self, deep=False):        
+        '''A recursive dictionary of name-value pairs of optimizable
+        parameters.'''
+        if deep is True:
+            return dict(
+                **{p: getattr(self, p) for p in self.parameter_name},
+                **{c.unique_name: c.dparam(True)
+                    for c in self.children}
+            )
+        else:
+            return {p: getattr(self, p) for p in self.parameter_name}
+
+    @property
+    def parameters(self):
+        '''A flattened list of optimizable parameters of the primitive and all
+        its children. It can be directly plugged into a PyTorch optimizer.'''
+        return flatten_dict(self.dparam(deep=True))
+
+    @property
+    @abstractmethod
+    def parameter_name(self):
+        '''The names of the optimizable paramters of the primitive.'''
+
+    @property
+    @abstractmethod
+    def hyperparams(self):
+        '''The names of the hyperparamters of the primitive.'''
+
+    @property
+    @abstractmethod
+    def hyperdefaults(self):
+        '''The default values to the hyperparamters of the primitive.'''
+
+
 class PrimitiveSet:
     '''A primitive set, i.e. a realization of a factorzation context-free
     grammar (CFG), for nonlinear tensor factorization. This is built on top of the
@@ -44,6 +128,18 @@ class PrimitiveSet:
         self.ret_type = ret_type
         self.pset = gp.PrimitiveSetTyped('factorization', [], ret_type)
         self.hyperdep = {}
+
+    @property
+    def primitives(self):
+        return self.pset.primitives
+
+    @property
+    def terminals(self):
+        return self.pset.terminals
+
+    @property
+    def context(self):
+        return self.pset.context
 
     def from_string(self, string):
         '''Converts a character string into a tree of primitives using the
@@ -115,9 +211,10 @@ class PrimitiveSet:
 
         Returns
         -------
-        f: callable
-            An object that when evaluated returns a reconstructed matrix from
-            the given factorization.
+        f: :py:class:`Primitive`
+            A primitive object, which serves as the root of the abstract syntax
+            tree, which when evaluated returns a reconstructed matrix given
+            the factorization.
         '''
         try:
             return self._instantiate_LL1(expr, **hyper_params)[0]
@@ -204,31 +301,13 @@ class PrimitiveSet:
                     self.hyperdep[h] = []
                 self.hyperdep[h].append(_name)
 
-            class Primitive:
+            class Prim(Primitive):
+
+                __qualname__ = _name
 
                 def __init__(self, *children, **kwargs):
                     self.__f = f(self, **self._make_hargs(kwargs))
                     self.__c = children
-
-                def __repr__(self):
-                    return f'<{self.name} object #{id(self):x}>'
-
-                def _make_hargs(self, kwargs):
-                    hargs = {}
-                    for k in self.hyperparams:
-                        if k in kwargs:
-                            hargs[k] = kwargs.pop(k)
-                        elif k in self.hyperdefaults:
-                            hargs[k] = self.hyperdefaults[k]
-                        else:
-                            raise RuntimeError(
-                                f'Hyperparameter {k} of primitive {self.name} '
-                                f'not provided.'
-                            )
-                    return hargs
-
-                def __call__(self):
-                    return self.__f(*[c() for c in self.__c])
 
                 @property
                 def name(self):
@@ -239,22 +318,16 @@ class PrimitiveSet:
                     return f'{self.name}_{id(self):x}'
 
                 @property
+                def action(self):
+                    return self.__f
+
+                @property
                 def children(self):
                     return self.__c
 
-                def dparam(self, deep=False):
-                    if deep is True:
-                        return dict(
-                            **{p: getattr(self, p) for p in _params},
-                            **{c.unique_name: c.dparam(True)
-                               for c in self.children}
-                        )
-                    else:
-                        return {p: getattr(self, p) for p in _params}
-
                 @property
-                def parameters(self):
-                    return flatten_dict(self.dparam(deep=True))
+                def parameter_name(self):
+                    return _params
 
                 @property
                 def hyperparams(self):
@@ -266,11 +339,11 @@ class PrimitiveSet:
 
             if in_types is None:
                 self.pset.addTerminal(
-                    Primitive, ret_type, name=_name
+                    Prim, ret_type, name=_name
                 )
             else:
                 self.pset.addPrimitive(
-                    Primitive, in_types, ret_type, name=_name
+                    Prim, in_types, ret_type, name=_name
                 )
 
         return decorator
