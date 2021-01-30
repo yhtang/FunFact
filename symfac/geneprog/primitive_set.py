@@ -9,25 +9,27 @@ from symfac.util.iterable import flatten, flatten_dict, map_or_call
 
 
 class PrimitiveSet:
-    '''A DEAP primitive set for nonlinear tensor factorization.
+    '''A primitive set, i.e. a realization of a factorzation context-free
+    grammar (CFG), for nonlinear tensor factorization. This is built on top of the
+    `PrimitiveSetTyped` concept of the DEAP package.
 
     Parameters
     ----------
     ret_type: type
-        Type of the overall factorization expression.
+        The grammatical type of the overall factorization expression.
     '''
 
     @staticmethod
     def new_type(name=None, bases=()):
-        '''A utility to simplify the creation of abstract types. These abstract
-        types can be used to define the input and output of strong-typed GP
-        primitives.
+        '''A utility to simplify the creation of grammatical types. These
+        abstract types can be used to define the input and output of
+        strong-typed GP primitives.
 
         Parameters
         ----------
-        name (optional): str
+        name: str
             Name of the type. If None, a random identifier will be assigned.
-        bases (optional): tuple
+        bases: tuple
             A tuple of base classes that the new type will inherit from.
 
         Returns
@@ -44,8 +46,8 @@ class PrimitiveSet:
         self.hyperdep = {}
 
     def from_string(self, string):
-        '''Convert an expression in the form of a character string into a
-        tree of primitives using the current primitive set.
+        '''Converts a character string into a tree of primitives using the
+        current primitive set.
 
         Parameters
         ----------
@@ -61,7 +63,7 @@ class PrimitiveSet:
         return gp.PrimitiveTree.from_string(string, self.pset)
 
     def gen_expr(self, max_depth: int, p=None):
-        '''Propose a candidate nonlinear factorization expression.
+        '''Generate a random nonlinear factorization expression.
 
         Parameters
         ----------
@@ -157,6 +159,32 @@ class PrimitiveSet:
         return hyperparams, hyperdefaults
 
     def add_primitive(self, ret_type, in_types=None, name=None, params=None):
+        '''A decorator to turn a user-defined function into a non-terminal
+        primitive. The user-defined function should perform two tasks: 1)
+        initialize the primitive object (given as the first argument to the
+        user function) with optimizable parameters, and 2) return a callable
+        that accepts the inputs as specified by `in_types` and return an output
+        that grammatically conforms to the `ret_type`.
+
+        Parameters
+        ----------
+        ret_type: type
+            The grammatical type of the output of the primitive.
+        in_types: list of types
+            The grammatical types of the inputs to the primitive.
+        name: str
+            The name of the primitive as shown in serialized expressions. If
+            None, the ``__name__`` attribute of the decorated function will be
+            used.
+        params: list of strs
+            A list of attribute names that corresponds to the optimizable
+            parameters of a primitive instance.
+            These parameters must be initialized by the decorated user
+            function. They will show up in the ``.parameters`` property and
+            in the dictionary as returned by ``.dparam()`` method of an
+            instantiated expression, and can be conveniently feed into an
+            optimizer such as one of those provided by PyTorch.
+        '''
 
         def decorator(f):
 
@@ -248,6 +276,9 @@ class PrimitiveSet:
         return decorator
 
     def add_terminal(self, ret_type, name=None, params=None):
+        '''A decorator to turn a user-defined function into a terminal
+        primitive. This is essentially an alias of the
+        :py:meth:`add_primitive` method with ``ret_type`` being None.'''
         return self.add_primitive(
             ret_type, in_types=None, name=name, params=params
         )

@@ -6,6 +6,16 @@ from deap import gp
 
 
 def draw_deap_expression(expr, ax=None):
+    '''Plot the syntax tree of a prefix expression.
+
+    Parameters
+    ----------
+    expr: iterable
+        A prefix expression of grammatical primitives.
+    ax: :py:class:`matplotlib.axes.Axes`
+        The axes on which to draw the syntax tree. If None, a new figure and
+        axes will be created.
+    '''
     nodes, edges, labels = gp.graph(expr)
 
     g = nx.Graph()

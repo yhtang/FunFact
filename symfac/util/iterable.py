@@ -3,6 +3,19 @@
 
 
 def flatten(iterable):
+    '''Converts a nested iterable sequence of iterables and/or non-iterable
+    elements into a flat tuple in depth-first order.
+
+    Parameters
+    ----------    
+    iterable: iterable
+        The iterable to be flattened
+    
+    Returns
+    -------
+    flat: tuple
+        A flattened tuple.
+    '''
     def _flatten(_iterable):
         for item in _iterable:
             try:
@@ -13,6 +26,24 @@ def flatten(iterable):
 
 
 def flatten_if(iterable, pred):
+    '''Converts a nested iterable sequence of into a flat tuple in depth-first
+    order. Only flattens items recursively if ``pred`` evaluates to True for
+    the item.
+
+    Parameters
+    ----------    
+    iterable: iterable
+        The iterable to be flattened
+    pred: callable
+        A callable that returns True for elements that requires further
+        flattening.
+
+    Returns
+    -------
+    flat: tuple
+        A flattened tuple.
+
+    '''
     def _flatten_if(_iterable):
         for item in _iterable:
             if pred(item):
@@ -23,6 +54,19 @@ def flatten_if(iterable, pred):
 
 
 def flatten_dict(iterable):
+    '''Converts a nested dictionary of dinctionaries and/or non-iterable
+    elements into a flat tuple in depth-first order.
+
+    Parameters
+    ----------    
+    iterable: dict
+        The dictionary to be flattened
+    
+    Returns
+    -------
+    flat: tuple
+        A flattened tuple.
+    '''
     def _flatten_dict(_iterable):
         for _, item in _iterable.items():
             if isinstance(item, dict):
@@ -33,6 +77,9 @@ def flatten_dict(iterable):
 
 
 def map_or_call(iterable, mapping):
+    '''Apply ``mapping`` to each element of ``iterable`` using either key-based
+    lookup or function evaluation.
+    '''
     for item in iterable:
         try:
             yield mapping[item]
