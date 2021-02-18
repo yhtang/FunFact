@@ -29,6 +29,7 @@ Contents
 
    installation
    api
+   contribute
 
 
 Citation
