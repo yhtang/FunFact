@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from collections import namedtuple
 
 
 def flatten(iterable):
@@ -85,3 +86,7 @@ def map_or_call(iterable, mapping):
             yield mapping[item]
         except TypeError:
             yield mapping(item)
+
+
+def as_namedtuple(title, **kwargs):
+    return namedtuple(title, kwargs.keys())(*kwargs.values())
