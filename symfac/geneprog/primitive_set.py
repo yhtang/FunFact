@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
 import uuid
 import inspect
 from abc import ABC, abstractmethod
@@ -25,7 +26,7 @@ class Primitive(ABC):
                 hargs[k] = self.hyperdefaults[k]
             else:
                 raise RuntimeError(
-                    f'Hyperparameter {k} of primitive {self.name} '
+                    f'Hyperparameter `{k}` of primitive `{self.name}` '
                     f'not provided.'
                 )
         return hargs
@@ -41,12 +42,12 @@ class Primitive(ABC):
         '''The primitive's name as it shows up in an abstract expression.'''
 
     @property
-    @abstractmethod
     def unique_name(self):
         '''The name of the primitive as it shows up in a concrete
         instance of an abstract expression. It consists of the name of the
         primitive plus a unique ID in order to distinguish instances of the
         same type.'''
+        return f'{self.name}_{id(self):x}'
 
     @property
     @abstractmethod
@@ -69,6 +70,30 @@ class Primitive(ABC):
             )
         else:
             return {p: getattr(self, p) for p in self.parameter_name}
+
+    @staticmethod
+    def _match(pattern, target, regex):
+        if regex is True:
+            return (re.fullmatch(pattern, target) is not None)
+        else:
+            return target == pattern
+
+    def find(self, name, regex=True):
+        '''Return an iterable over all child primitives that matches the
+        name.
+        
+        Parameters
+        ----------
+        name: str
+            The name or pattern of name for the child primitives to loop over.
+        regex: bool
+            Whether or not to treat the name as a regular expression.
+        '''
+        for c in self.children:
+            if len(c.children) > 0:
+                yield from c.find(name, regex)
+            if self._match(name, c.name, regex):
+                yield c
 
     @property
     def parameters(self):
@@ -312,10 +337,6 @@ class PrimitiveSet:
                 @property
                 def name(self):
                     return _name
-
-                @property
-                def unique_name(self):
-                    return f'{self.name}_{id(self):x}'
 
                 @property
                 def action(self):
