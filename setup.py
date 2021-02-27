@@ -45,6 +45,7 @@ setup(
         'numpy>=1.17',
         'deap>=1.3',
         'torch>=1.7',
+        'treelib>=1.6'
     ],
     extras_require={
         'docs': ['sphinx', 'sphinx-rtd-theme'],
