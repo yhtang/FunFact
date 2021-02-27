@@ -294,10 +294,6 @@ class PrimitiveSet:
                     return self.__f
 
                 @property
-                def children(self):
-                    return self.__c
-
-                @property
                 def parameter_name(self):
                     return _params
 
