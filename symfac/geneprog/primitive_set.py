@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import re
 import uuid
 import inspect
 from abc import ABC, abstractmethod
 import numpy as np
 from deap import gp
-from symfac.util.iterable import flatten, flatten_dict, map_or_call
+from symfac.util.iterable import flatten, map_or_call
+from .factorization import Factorization
 
 
 class Primitive(ABC):
@@ -31,11 +31,6 @@ class Primitive(ABC):
                 )
         return hargs
 
-    def __call__(self):
-        '''Recursively evaluate the primitive and its children, and return
-        the output.'''
-        return self.action(*[c() for c in self.children])
-
     @property
     @abstractmethod
     def name(self):
@@ -56,55 +51,12 @@ class Primitive(ABC):
 
     @property
     @abstractmethod
-    def children(self):
-        '''A list of child primitive instances.'''
-
-    def dparam(self, deep=False):        
-        '''A recursive dictionary of name-value pairs of optimizable
-        parameters.'''
-        if deep is True:
-            return dict(
-                **{p: getattr(self, p) for p in self.parameter_name},
-                **{c.unique_name: c.dparam(True)
-                    for c in self.children}
-            )
-        else:
-            return {p: getattr(self, p) for p in self.parameter_name}
-
-    @staticmethod
-    def _match(pattern, target, regex):
-        if regex is True:
-            return (re.fullmatch(pattern, target) is not None)
-        else:
-            return target == pattern
-
-    def find(self, name, regex=True):
-        '''Return an iterable over all child primitives that matches the
-        name.
-        
-        Parameters
-        ----------
-        name: str
-            The name or pattern of name for the child primitives to loop over.
-        regex: bool
-            Whether or not to treat the name as a regular expression.
-        '''
-        for c in self.children:
-            if len(c.children) > 0:
-                yield from c.find(name, regex)
-            if self._match(name, c.name, regex):
-                yield c
+    def parameter_name(self):
+        '''The names of the optimizable paramters of the primitive.'''
 
     @property
     def parameters(self):
-        '''A flattened list of optimizable parameters of the primitive and all
-        its children. It can be directly plugged into a PyTorch optimizer.'''
-        return flatten_dict(self.dparam(deep=True))
-
-    @property
-    @abstractmethod
-    def parameter_name(self):
-        '''The names of the optimizable paramters of the primitive.'''
+        return {p: getattr(self, p) for p in self.parameter_name}
 
     @property
     @abstractmethod
@@ -224,14 +176,14 @@ class PrimitiveSet:
             return [choice, *flatten([self._gen_expr_depth_first(a, p=p, d=d-1)
                                       for a in choice.args])]
 
-    def instantiate(self, expr, **hyper_params):
+    def instantiate(self, expr, **hyperparams):
         '''Create a concrete matrix factorization using the given expression.
 
         Parameters
         ----------
         expr: list or :py:class:`gp.PrimitiveTree`
             An expression representing a symbolic factorization.
-        hyper_params: keyword arguments
+        hyperparams: keyword arguments
             Hyperparameters to be forwarded to the primitives.
 
         Returns
@@ -242,21 +194,21 @@ class PrimitiveSet:
             the factorization.
         '''
         try:
-            return self._instantiate_LL1(expr, **hyper_params)[0]
+            return Factorization(self._instantiate_LL1(expr, **hyperparams)[0])
         except Exception as e:
             raise RuntimeError(
                 f'When instantiating the expression {expr}, the following '
                 f'exception occurred:\n\n{e}'
             )
 
-    def _instantiate_LL1(self, expr, **hyper_params):
+    def _instantiate_LL1(self, expr, **hyperparams):
         primitive, tail_expr = expr[0], expr[1:]
         children = []
         for _ in range(primitive.arity):
-            child, tail_expr = self._instantiate_LL1(tail_expr, **hyper_params)
+            child, tail_expr = self._instantiate_LL1(tail_expr, **hyperparams)
             children.append(child)
-        primitive_impl = self.pset.context[primitive.name]
-        return primitive_impl(*children, **hyper_params), tail_expr
+        prim_def = self.pset.context[primitive.name]
+        return (prim_def(**hyperparams), (*children,)), tail_expr
 
     @staticmethod
     def _get_hyperspecs(f, name):
@@ -330,9 +282,8 @@ class PrimitiveSet:
 
                 __qualname__ = _name
 
-                def __init__(self, *children, **kwargs):
+                def __init__(self, **kwargs):
                     self.__f = f(self, **self._make_hargs(kwargs))
-                    self.__c = children
 
                 @property
                 def name(self):
