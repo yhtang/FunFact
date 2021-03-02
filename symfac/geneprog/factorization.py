@@ -140,4 +140,4 @@ class Factorization:
             if subtree is True:
                 yield type(self)(self.tree.subtree(node.identifier))
             else:
-                yield node
+                yield node.data

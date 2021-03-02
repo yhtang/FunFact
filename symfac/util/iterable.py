@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from collections import namedtuple
 
 
 def flatten(iterable):
@@ -7,10 +8,10 @@ def flatten(iterable):
     elements into a flat tuple in depth-first order.
 
     Parameters
-    ----------    
+    ----------
     iterable: iterable
         The iterable to be flattened
-    
+
     Returns
     -------
     flat: tuple
@@ -31,7 +32,7 @@ def flatten_if(iterable, pred):
     the item.
 
     Parameters
-    ----------    
+    ----------
     iterable: iterable
         The iterable to be flattened
     pred: callable
@@ -58,10 +59,10 @@ def flatten_dict(iterable):
     elements into a flat tuple in depth-first order.
 
     Parameters
-    ----------    
+    ----------
     iterable: dict
         The dictionary to be flattened
-    
+
     Returns
     -------
     flat: tuple
@@ -85,3 +86,7 @@ def map_or_call(iterable, mapping):
             yield mapping[item]
         except TypeError:
             yield mapping(item)
+
+
+def as_namedtuple(title, **kwargs):
+    return namedtuple(title, kwargs.keys())(*kwargs.values())
