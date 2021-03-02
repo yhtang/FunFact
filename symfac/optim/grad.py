@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import copy
+import warnings
+import tqdm
+import numpy as np
+import torch
+import torch.nn.functional
+import torch.optim
+from symfac.util.iterable import as_namedtuple
+
+
+def gradient_descent(
+    f, target, lr, loss='mse_loss', algorithm='Adam', nsteps=10000,
+    history_freq=None
+):
+    '''
+    Optimize a factorization using gradient descent. A singleton dimension,
+    i.e. a dimension with size 1, in ``target`` indicates that the
+    factorization is in fact a parallel batch of trials aggregated along
+    that dimension. For example, a ``target`` of shape (1, 4, 4) with a
+    ``f.forward()`` result of shape (8, 4, 4) corresponds to 8 indenepdent
+    trials for factorizing a 4-by-4 matrix.
+
+    Parameters
+    ----------
+    f: callable
+        A factorization object, which upon evaluation returns a reconstructed
+        tensor, as created with :py:mod:`symfac.geneprog`.
+    target: tensor
+        The target tensor to be reconstructed.
+    lr: float
+        Learning rate of the algorithm.
+    loss: str or callable
+        The loss function for comparing the difference between the target and
+        the reconstructed tensor. Could be either a callable that accepts 2
+        arguments, or a string that names a loss function in
+        :py:mod:`torch.nn.functional`.
+    algorithm: str or class
+        The algorithm for carrying out the actual gradient descent. Could be
+        either a PyTorch optimizer class or a string that names an optimizer in
+        :py:mod:`torch.optim`.
+    nsteps: int
+        Number of steps to run.
+    history_frequency: int > 0
+        The frequency to store the loss of the optimiation process.
+    '''
+    if isinstance(loss, str):
+        try:
+            loss = getattr(torch.nn.functional, loss)
+        except AttributeError:
+            raise AttributeError(
+                f'The loss function \'{loss}\' does not exist in'
+                'torch.nn.functional.'
+            )
+    try:
+        loss(target, target)
+    except Exception as e:
+        raise AssertionError(
+            f'The given loss function does not accept two arguments:\n{e}'
+        )
+
+    if isinstance(algorithm, str):
+        try:
+            algorithm = getattr(torch.optim, algorithm)
+        except AttributeError:
+            raise AttributeError(
+                f'The algorithm \'{algorithm}\' does not exist in torch.optim.'
+            )
+    try:
+        opt = algorithm(f.parameters, lr=lr)
+    except Exception:
+        raise AssertionError(
+            'Invalid optimization algorithm:\n{e}'
+        )
+
+    best = None
+    loss_history = []
+    for step in tqdm.trange(nsteps, miniters=None, mininterval=0.25):
+        opt.zero_grad()
+        output = f.forward()
+        data_dim = torch.nonzero(
+            torch.tensor(output.shape) == torch.tensor(target.shape)
+        ).flatten().tolist()
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            batch_loss = loss(output, target, reduction='none').sum(data_dim)
+        total_loss = batch_loss.sum()
+
+        for i, ls in enumerate(batch_loss):
+            if best is None or ls < best.loss:
+                best = as_namedtuple(
+                    'best', f=copy.deepcopy(f), i=i, loss=ls.item()
+                )
+
+        if history_freq is not None and (step + 1) % history_freq == 0:
+            loss_history.append(batch_loss.detach().numpy())
+        total_loss.backward()
+        opt.step()
+
+    return as_namedtuple(
+        'optimization_result',
+        best_loss=best.loss,
+        best_f=best.f,
+        best_i=best.i,
+        loss_history=np.array(loss_history, dtype=np.float)
+    )

@@ -46,6 +46,7 @@ setup(
         'deap>=1.3',
         'torch>=1.7',
         'treelib>=1.6'
+        'tqdm>=4.55'
     ],
     extras_require={
         'docs': ['sphinx', 'sphinx-rtd-theme'],
