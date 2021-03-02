@@ -8,7 +8,7 @@ def flatten(iterable):
     elements into a flat tuple in depth-first order.
 
     Parameters
-    --------
+    ----------
     iterable: iterable
         The iterable to be flattened
 
@@ -32,7 +32,7 @@ def flatten_if(iterable, pred):
     the item.
 
     Parameters
-    ---------
+    ----------
     iterable: iterable
         The iterable to be flattened
     pred: callable

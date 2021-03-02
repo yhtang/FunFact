@@ -1,15 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import copy
+import warnings
+import tqdm
+import numpy as np
+import torch
 import torch.nn.functional
 import torch.optim
 from symfac.util.iterable import as_namedtuple
 
 
 def gradient_descent(
-    f, target, learning_rate, loss='mse_loss', algorithm='AdamW', tol=1e-6,
-    max_nsteps=10000, return_history=False
+    f, target, lr, loss='mse_loss', algorithm='Adam', nsteps=10000,
+    history_freq=None
 ):
     '''
+    Optimize a factorization using gradient descent. A singleton dimension,
+    i.e. a dimension with size 1, in ``target`` indicates that the
+    factorization is in fact a parallel batch of trials aggregated along
+    that dimension. For example, a ``target`` of shape (1, 4, 4) with a
+    ``f.forward()`` result of shape (8, 4, 4) corresponds to 8 indenepdent
+    trials for factorizing a 4-by-4 matrix.
 
     Parameters
     ----------
@@ -18,7 +29,7 @@ def gradient_descent(
         tensor, as created with :py:mod:`symfac.geneprog`.
     target: tensor
         The target tensor to be reconstructed.
-    learning_rate: float
+    lr: float
         Learning rate of the algorithm.
     loss: str or callable
         The loss function for comparing the difference between the target and
@@ -29,86 +40,68 @@ def gradient_descent(
         The algorithm for carrying out the actual gradient descent. Could be
         either a PyTorch optimizer class or a string that names an optimizer in
         :py:mod:`torch.optim`.
-    tol: float
-        Terminate the process if the loss between consecutive steps is smaller
-        than this value.
-    max_nsteps: int
-        Maximum number of steps to run.
+    nsteps: int
+        Number of steps to run.
+    history_frequency: int > 0
+        The frequency to store the loss of the optimiation process.
     '''
     if isinstance(loss, str):
         try:
             loss = getattr(torch.nn.functional, loss)
-        except AttributeError as e:
+        except AttributeError:
             raise AttributeError(
-                f'The loss function \'{loss}\' does not exist in
-                torch.nn.functional.'
+                f'The loss function \'{loss}\' does not exist in'
+                'torch.nn.functional.'
             )
     try:
         loss(target, target)
     except Exception as e:
         raise AssertionError(
-            f'The loss function cannot not accept two arguments:\n{e}'
+            f'The given loss function does not accept two arguments:\n{e}'
         )
 
     if isinstance(algorithm, str):
         try:
             algorithm = getattr(torch.optim, algorithm)
-        except AttributeError as e:
+        except AttributeError:
             raise AttributeError(
                 f'The algorithm \'{algorithm}\' does not exist in torch.optim.'
             )
     try:
-        opt = algorithm(parameters, lr=learning_rate)
-    except Exception as e:
+        opt = algorithm(f.parameters, lr=lr)
+    except Exception:
         raise AssertionError(
             'Invalid optimization algorithm:\n{e}'
         )
 
-    best_K, best_loss = None, None
-    if return_history:
-        loss_history = []
-    for step in range(max_nsteps):
+    best = None
+    loss_history = []
+    for step in tqdm.trange(nsteps, miniters=None, mininterval=0.25):
         opt.zero_grad()
-        output = f()
-        total_loss = torch.tensor(0.0)
-        batch_loss = []
-        for j, K in enumerate(K_batch):
-            loss = F.mse_loss(K, K0)
-            total_loss += loss
-            batch_loss.append(loss)
-            if best_loss is None or loss < best_loss:
-                best_params = factorization.parameters
-                best_run = j
-                best_loss = loss.detach().clone()
-                best_K = K.detach().clone()
-        loss_history.append(batch_loss)
+        output = f.forward()
+        data_dim = torch.nonzero(
+            torch.tensor(output.shape) == torch.tensor(target.shape)
+        ).flatten().tolist()
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            batch_loss = loss(output, target, reduction='none').sum(data_dim)
+        total_loss = batch_loss.sum()
+
+        for i, ls in enumerate(batch_loss):
+            if best is None or ls < best.loss:
+                best = as_namedtuple(
+                    'best', f=copy.deepcopy(f), i=i, loss=ls.item()
+                )
+
+        if history_freq is not None and (step + 1) % history_freq == 0:
+            loss_history.append(batch_loss.detach().numpy())
         total_loss.backward()
         opt.step()
-    
-    return as_namedtuple(
-        best_loss=best_loss,
-        best_params=best_params,
-        best_output=best_output,
-    )
 
-        loss_history = np.array(loss_history, dtype=np.float)
-        print(f'{optname} final loss', loss_history[-1, :])
-        print(f'{optname} best loss', best_loss)
-        print(f'{optname} best params', best_params)
-        print(f'best K\n{best_K.numpy()}')
-        print(f'K0\n{K0.numpy()}')
-        print('===========================================')
-        plt.figure(figsize=(12, 8))
-        for i, line in enumerate(np.log(loss_history).T):
-            plt.plot(line, ls='dashed', lw=0.75, label=f'batch {i}')
-        plt.plot(np.log(
-            np.minimum.accumulate(
-                np.minimum.reduce(loss_history, axis=1),
-                axis=0
-            )
-        ), color='k', lw=1.25, ls='solid', label='BEST')
-        plt.title(optname, fontsize=14)
-        plt.ylabel('log-loss')
-        plt.xlabel('training steps')
-        plt.legend(loc='upper right', fontsize=12)
-        plt.show()
+    return as_namedtuple(
+        'optimization_result',
+        best_loss=best.loss,
+        best_f=best.f,
+        best_i=best.i,
+        loss_history=np.array(loss_history, dtype=np.float)
+    )
