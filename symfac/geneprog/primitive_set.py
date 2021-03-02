@@ -51,6 +51,7 @@ class Primitive(ABC):
 
     @property
     @abstractmethod
+
     def parameter_name(self):
         '''The names of the optimizable paramters of the primitive.'''
 
@@ -71,8 +72,8 @@ class Primitive(ABC):
 
 class PrimitiveSet:
     '''A primitive set, i.e. a realization of a factorzation context-free
-    grammar (CFG), for nonlinear tensor factorization. This is built on top of the
-    `PrimitiveSetTyped` concept of the DEAP package.
+    grammar (CFG), for nonlinear tensor factorization. This is built on top
+    of the `PrimitiveSetTyped` concept of the DEAP package.
 
     Parameters
     ----------

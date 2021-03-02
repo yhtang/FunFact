@@ -6,8 +6,6 @@ from torch import optim
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from symfac.geneprog import PrimitiveSet
-from symfac.visualization import draw_deap_expression
-
 
 # define abstract types used in the factorization
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -23,12 +21,17 @@ RowCol = PrimitiveSet.new_type('RowCol')
 
 pset = PrimitiveSet(Matrix)
 
+# maximum ranks and batch size
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+max_ranks = 10
+batch = 1
+
 
 # create input primitives according to the target rank of the factorization
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
-for i in range(3):
+for i in range(max_ranks):
     @pset.add_terminal(name=f'rank{i}', ret_type=RowCol, params=['col', 'row'])
     def random_col_row_pair(p, n, m):
         # p.row = torch.normal(0.0, 1.0, [n], requires_grad=True)
@@ -49,15 +52,20 @@ def gauss(p):
     )
 
 
-@pset.add_primitive(ret_type=Matrix, in_types=[Matrix], params=['a', 'b'])
-def scale(p):
-    p.a = torch.normal(0.0, 1.0, [1], requires_grad=True)
-    p.b = torch.normal(0.0, 1.0, [1], requires_grad=True)
-    return lambda M: M * p.a + p.b
+@pset.add_primitive(ret_type=Matrix, in_types=[Matrix], params=['a'])
+def tensor_scale(p):
+    p.a = torch.normal(0.0, 1.0, [batch], requires_grad=True)
+    return lambda M: M * p.a[:, None]
+
+
+@pset.add_primitive(ret_type=Matrix, in_types=[Matrix], params=['b'])
+def tensor_const_add(p):
+    p.b = torch.normal(0.0, 1.0, [batch], requires_grad=True)
+    return lambda M: M + p.b[:, None]
 
 
 @pset.add_primitive(ret_type=Matrix, in_types=[Matrix, Matrix])
-def matrix_add(p):
+def tensors_add(p):
     return lambda M1, M2: M1 + M2
 
 
@@ -66,7 +74,7 @@ def matrix_add(p):
 
 
 expr = pset.from_string('''
-matrix_add(
+tensors_add(
     gauss(rank0),
     gauss(rank1)
 )''')
@@ -86,16 +94,32 @@ matrix_add(
 
 
 def f(u0, v0, u1, v1):
-    # return (
-    #     torch.exp(-0.5 * (u0[:, None] - v0[None, :])**2)
-    #     + torch.exp(-0.5 * (u1[:, None] - v1[None, :])**2)
-    # )
     return (
         torch.exp(-0.5 * torch.square(u0[:, None] - v0[None, :]))
         + torch.exp(-0.5 * torch.square(u1[:, None] - v1[None, :]))
     )
 
+# generate multiple gaussian terms
+# gaussians[i] contains i+1 gaussian terms
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+
+def reduce(base_expr, semiring, k):
+    s = f'{base_expr % 0}'
+    for i in range(1, k):
+        s = f'{semiring}({s}, {base_expr % i})'
+    return s
+
+
+gaussians = []
+for k in range(max_ranks):
+    cur_expr_str = 'tensor_const_add('\
+                   + reduce('tensor_scale(gauss(rank%d))',
+                            'tensors_add',
+                            k + 1)\
+                   + ')'
+    cur_expr = pset.from_string(cur_expr_str)
+    gaussians.append(cur_expr)
 n = 3
 m = 4
 K0 = f(
@@ -104,23 +128,22 @@ K0 = f(
 )
 
 
-# learn the factorization using gradienbt descent
+# learn the factorization using gradient descent
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
 # create initial guesses
+
 plt.figure(figsize=(15, 10))
 lr = 0.1
-for optname, optcls in [# ('SGD', optim.SGD),
-                        ('Adam', optim.Adam),
-                        # ('Adadelta', optim.Adadelta),
-                        # ('Adagrad', optim.Adagrad),
-                        # ('AdamW', optim.AdamW),
-                        # ('ASGD', optim.ASGD),
-                        # ('LBFGS', optim.LBFGS),
-                        # ('RMSprop', optim.RMSprop),
-                        ]:
-    factorization = pset.instantiate(expr, n=n, m=m)
+methods_list = [('SGD', optim.SGD),
+                ('Adam', optim.Adam),
+                ('Adadelta', optim.Adadelta),
+                ('Adagrad', optim.Adagrad),
+                ('AdamW', optim.AdamW),
+                ('ASGD', optim.ASGD),
+                ('LBFGS', optim.LBFGS),
+                ('RMSprop', optim.RMSprop)]
+for optname, optcls in methods_list:
+    factorization = pset.instantiate(gaussians[1], n=n, m=m)
     opter = optcls(factorization.parameters, lr=lr)
     loss_history = []
     for _ in range(1000):
