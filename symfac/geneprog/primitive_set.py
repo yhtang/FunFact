@@ -51,7 +51,6 @@ class Primitive(ABC):
 
     @property
     @abstractmethod
-
     def parameter_name(self):
         '''The names of the optimizable paramters of the primitive.'''
 

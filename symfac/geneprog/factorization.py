@@ -4,7 +4,15 @@ import io
 import re
 import sys
 from treelib import Tree
+import torch
 from symfac.util.iterable import flatten_dict
+
+'''
+Long-term TODO list:
+- [ ] better integration in terms of tree/factorization. A factorization is a
+      tree, a tree is a factorization. Intermediate/leaf nodes are primitives,
+      subtrees are factorization.
+'''
 
 
 class Factorization:
@@ -66,14 +74,9 @@ class Factorization:
         key: callable
             Returns the sorting key for the nodes.
         '''
-        sys.stdout, old_stdout = io.StringIO(), sys.stdout
-        self.tree.show(
-            line_type=u'ascii-ex',
-            key=key,
-            data_property=label
+        return self.tree.show(
+            line_type=u'ascii-ex', key=key, data_property=label, stdout=False
         )
-        sys.stdout, content = old_stdout, sys.stdout.getvalue()
-        return content
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''
@@ -90,7 +93,7 @@ class Factorization:
 
     @property
     def children(self):
-        '''A list of child primitive instances.'''
+        '''A list of child factorization instances.'''
         return [Factorization(self.tree.subtree(n.identifier))
                 for n in self.tree.children(self.tree.root)]
 
@@ -108,6 +111,18 @@ class Factorization:
             self.tree[id].data.unique_name: self.tree[id].data.parameters
             for id in self.tree.expand_tree(key=lambda n: n.data.unique_name)
         }
+
+    @property
+    def flat_parameters(self):
+        with torch.no_grad():
+            return torch.cat([p.view(-1) for p in self.parameters])
+
+    @flat_parameters.setter
+    def flat_parameters(self, value):
+        parameters = self.parameters
+        xv = torch.split(value, [p.numel() for p in parameters])
+        for v, parameter in zip(xv, parameters):
+            parameter.view(-1).data[:] = v
 
     @staticmethod
     def _match(pattern, target, regex):
