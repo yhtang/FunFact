@@ -75,33 +75,38 @@ def gradient_descent(
         )
 
     best = None
+    data_dim = None
     loss_history = []
     for step in tqdm.trange(nsteps, miniters=None, mininterval=0.25):
         opt.zero_grad()
         output = f.forward()
-        data_dim = torch.nonzero(
-            torch.tensor(output.shape) == torch.tensor(target.shape)
-        ).flatten().tolist()
+        if data_dim is None:
+            data_dim = torch.nonzero(
+                torch.tensor(output.shape) == torch.tensor(target.shape)
+            ).flatten().tolist()
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             batch_loss = loss(output, target, reduction='none').sum(data_dim)
         total_loss = batch_loss.sum()
 
-        for i, ls in enumerate(batch_loss):
-            if best is None or ls < best.loss:
+        with torch.no_grad():
+            batch_loss_cpu = batch_loss.cpu().numpy()
+            i = np.argmin(batch_loss_cpu)
+            if best is None or batch_loss_cpu[i] < best.loss:
                 best = as_namedtuple(
-                    'best', f=copy.deepcopy(f), i=i, loss=ls.item()
+                    'best', x=f.flat_parameters, i=i, loss=batch_loss_cpu[i]
                 )
 
-        if history_freq is not None and (step + 1) % history_freq == 0:
-            loss_history.append(batch_loss.detach().numpy())
+            if history_freq is not None and (step + 1) % history_freq == 0:
+                loss_history.append(bl)
+
         total_loss.backward()
         opt.step()
 
     return as_namedtuple(
         'optimization_result',
         best_loss=best.loss,
-        best_f=best.f,
+        best_flat_parameters=best.x,
         best_i=best.i,
         loss_history=np.array(loss_history, dtype=np.float)
     )
