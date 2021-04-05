@@ -86,7 +86,7 @@ def gradient_descent(
             ).flatten().tolist()
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            batch_loss = loss(output, target, reduction='none').sum(data_dim)
+            batch_loss = loss(output, target, reduction='none').mean(data_dim)
         total_loss = batch_loss.sum()
 
         with torch.no_grad():
@@ -98,7 +98,7 @@ def gradient_descent(
                 )
 
             if history_freq is not None and (step + 1) % history_freq == 0:
-                loss_history.append(bl)
+                loss_history.append(batch_loss_cpu)
 
         total_loss.backward()
         opt.step()
