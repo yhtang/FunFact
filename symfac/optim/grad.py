@@ -12,7 +12,7 @@ from symfac.util.iterable import as_namedtuple
 
 def gradient_descent(
     f, target, lr, loss='mse_loss', algorithm='Adam', nsteps=10000,
-    history_freq=None
+    history_freq=None, progressbar='default'
 ):
     '''
     Optimize a factorization using gradient descent. A singleton dimension,
@@ -74,10 +74,14 @@ def gradient_descent(
             'Invalid optimization algorithm:\n{e}'
         )
 
+    if progressbar == 'default':
+        def progressbar(n):
+            return tqdm.trange(n, miniters=None, mininterval=0.25, leave=False)
+
     best = None
     data_dim = None
     loss_history = []
-    for step in tqdm.trange(nsteps, miniters=None, mininterval=0.25):
+    for step in progressbar(nsteps):
         opt.zero_grad()
         output = f.forward()
         if data_dim is None:
