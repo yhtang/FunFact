@@ -5,10 +5,13 @@ import warnings
 import numpy as np
 import torch
 import tqdm
-from symfac.util.iterable import flatten
 
 
 class RBFExpansion:
+
+    @property
+    def result(self):
+        return self._result
 
     @staticmethod
     def _get_device(desc):
@@ -21,17 +24,17 @@ class RBFExpansion:
             return torch.device(desc)
 
     def __init__(
-        self, k, f='gauss', batch=64, max_steps=10000, loss='mse_loss',
+        self, k, rbf='gauss', batch=64, max_steps=10000, loss='mse_loss',
         algorithm='Adam', lr=0.1, device='auto', progressbar='default'
     ):
         self.k = k
 
-        if callable(f):
-            self.f = f
-        elif f == 'gauss':
-            self.f = lambda d: torch.exp(-torch.square(d))
+        if callable(rbf):
+            self.rbf = rbf
+        elif rbf == 'gauss':
+            self.rbf = lambda d: torch.exp(-torch.square(d))
         else:
-            raise f'Unrecoginized argument f = {f}.'
+            raise f'Unrecoginized RBF: {rbf}.'
 
         self.batch = batch
         self.max_steps = max_steps
@@ -68,136 +71,142 @@ class RBFExpansion:
                 n, miniters=None, mininterval=0.25, leave=False
             )
 
-    @staticmethod
-    def dist_uv(uv):
-        return uv[0][:, :, None, :] - uv[1][:, None, :, :]
+    def fit(self, target, u0=None, v0=None, a0=None, b0=None):
 
-    def fit(self, target, x0=None, a0=None, b0=None):
+        def f(u, v, a, b):
+            return torch.sum(
+                self.rbf(u[..., :, None, :] - v[..., None, :, :]) *
+                a[..., None, None, :],
+                dim=-1
+            ) + b[..., None, None]
+
         n, m = target.shape
 
-        target = target[None, :, :]
-        if not isinstance(target, torch.Tensor) or target.device != self.device:
-            target = target.to(self.device)
+        target = torch.as_tensor(target[None, :, :], device=self.device)
 
-        if x0 is None:
-            x0 = (
-                torch.randn((self.batch, n, self.k), requires_grad=True, device=self.device),
-                torch.randn((self.batch, m, self.k), requires_grad=True, device=self.device),
-            )
-        elif not isinstance(x0, torch.Tensor) or x0.device != self.device:
-            x0 = torch.Tensor(x0, requires_grad=True, device=self.device)
+        def _create(w, *shape):
+            if w is None:
+                return torch.randn(shape, requires_grad=True, device=self.device)
+            else:
+                return torch.as_tensor(w, device=self.device)
 
-        if a0 is None:
-            a0 = torch.randn((self.batch, self.k), requires_grad=True, device=self.device)
-        elif not isinstance(a0, torch.Tensor) or a0.device != self.device:
-            a0 = torch.Tensor(a0, requires_grad=True, device=self.device)
+        u0 = _create(u0, self.batch, n, self.k)
+        v0 = _create(v0, self.batch, m, self.k)
+        a0 = _create(a0, self.batch, self.k)
+        b0 = _create(b0, self.batch)
 
-        if b0 is None:
-            b0 = torch.randn(self.batch, requires_grad=True, device=self.device)
-        elif not isinstance(b0, torch.Tensor) or b0.device != self.device:
-            b0 = torch.Tensor(b0, requires_grad=True, device=self.device)
-
-        (x, a, b), history = self._rbfexp_core(
-            target=target,
-            f=self.f,
-            x=x0,
-            a=a0,
-            b=b0,
-            dist=self.dist_uv,
+        self._optimum = self._rbfexp_core(
+            target, u0, v0, a0, b0,
+            f=f,
             batch=self.batch,
             max_steps=self.max_steps,
             loss=self.loss,
             algorithm=self.algorithm,
             lr=self.lr,
-            progressbar=self.progressbar,
-            k=self.k,
-            device=self.device
+            progressbar=self.progressbar
         )
 
-        self.x = x
-        self.a = a
-        self.b = b
+        self._batch = self.Batch(f, self._optimum['x'], ['u', 'v', 'a', 'b'])
+        # return self.Batch(f, optimum)
 
-        return history
-
-
-# def rbfexph(
-#     target, k, f='gauss', batch=64, max_steps=10000, tol=1e-4, device='auto'
-# ):
-#     _rbfexp_core(
-#         dist=lambda u: u[:, :, None] - u[:, None, :]
-#     )
+        return self
 
     @staticmethod
-    def _rbfexp_core(
-        target, f, x, a, b, dist, batch, max_steps, loss, algorithm, lr, progressbar,
-        k, device
-    ):
+    def _rbfexp_core(target, *x, **options):
+
+        f = options.pop('f')
+        batch = options.pop('batch')
+        max_steps = options.pop('max_steps')
+        loss = options.pop('loss')
+        algorithm = options.pop('algorithm')
+        lr = options.pop('lr')
+        progressbar = options.pop('progressbar')
+
         try:
-            # opt = algorithm(flatten([x, a, b]), lr=lr)
-            opt = algorithm((*x, a, b), lr=lr)
-            # opt = algorithm((a, b), lr=lr)
+            opt = algorithm(x, lr=lr)
         except Exception:
             raise AssertionError(
                 'Cannot instance optimizer of type {algorithm}:\n{e}'
             )
 
-        print(target.shape)
-        print(x[0].shape)
-        print(x[1].shape)
-        print(a.shape)
-        print(b.shape)
-
         data_dim = list(range(1, len(target.shape)))
-        loss_history = []
+        optimum = {}
+        optimum['x'] = [w.clone().detach() for w in x]
+        optimum['t'] = torch.zeros(batch, dtype=torch.int)
+        optimum['history'] = []
         for step in progressbar(max_steps):
-            opt.zero_grad()            
-            output = torch.sum(
-                f(dist(x)) * a[:, None, None, :],
-                dim=-1,
-            ) + b[:, None, None]
-            # output = torch.zeros(batch, *target.squeeze().shape, device=device)
-            # for i in range(batch):
-            #     for j in range(k):
-            #         output[i, :, :] += f(x[0][i, :, None, j] - x[1][i, None, :, j]) * a[i, j]
-            # print(f'output.shape {output.shape}')
+            opt.zero_grad()
+            output = f(*x)
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
-                batch_loss = loss(output, target, reduction='none').mean(data_dim)
-                # print(f'{loss(output, target, reduction="none").shape} batch_loss.shape {batch_loss.shape}')
-            total_loss = batch_loss.sum()
+                loss_batch = loss(output, target, reduction='none').mean(data_dim)
 
             with torch.no_grad():
-                loss_history.append(batch_loss.cpu().numpy())
+                loss_cpu = loss_batch.detach().cpu()
+                optimum['history'].append(loss_cpu.numpy())
+                if 'best' in optimum:
+                    optimum['best'] = torch.minimum(optimum['best'], loss_cpu)
+                else:
+                    optimum['best'] = loss_cpu
+                better = optimum['best'] == loss_cpu
+                optimum['t'][better] = step
+                for current, new in zip(optimum['x'], x):
+                    current[better, ...] = new[better, ...]
 
-            total_loss.backward()
+            loss_batch.sum().backward()
             opt.step()
 
-        return (x, a, b), np.array(loss_history, dtype=np.float)
+        optimum['history'] = np.array(optimum['history'], dtype=np.float)
+        return optimum
 
+    class Batch:
+        '''An approximation of a dense matrix as a sum of RBF over distance
+        matrices.
+        '''
+        class RBFSeries:
+            def __init__(self, parent, i):
+                self.batch = parent
+                self.i = i
 
-# class RBFExpansion:
-#     '''An approximation of a dense matrix as a sum of RBF over distance
-#     matrices.
-#     '''
-#     def __init__(self, f, components):
-#         pass
+            def __repr__(self):
+                return f'<RBF expansion of {self.batch.funrank} components of {", ".join(self.batch.vars)}>'
 
-#     def fit(self, target):
-#         pass
+            def __getattr__(self, a):
+                return self.batch.x[self.batch.vars.index(a)][self.i, ...]
 
-#     @property
-#     def U(self):
-#         pass
+            def __call__(self, device='cpu'):
+                with torch.no_grad():
+                    return self.batch.f(*[
+                        w[self.i, ...] for w in self.batch.x
+                    ]).to(device)
 
-#     @property
-#     def V(self):
-#         pass
-    
-#     @property
-#     def a(self):
-#         pass
+        def __init__(self, f, x, vars):
+            for w in x:
+                assert(
+                    w.shape[0] == x[0].shape[0] and
+                    w.shape[-1] == x[0].shape[-1],
+                    "Inconsisent component size."
+                )
+            self.f = f
+            self.x = x
+            self.vars = vars
 
-#     @property
-#     def b(self):
-#         pass
+        def __repr__(self):
+            return f'<batch of {len(self)} RBF expansions with {", ".join(self.vars)}>'
+
+        def __len__(self):
+            return len(self.x[0])
+
+        def __call__(self, device='cpu'):
+            with torch.no_grad():
+                return self.f(*self.x).to(device)
+
+        @property
+        def funrank(self):
+            return len(self.x[-1])
+
+        def __getitem__(self, i):
+            return self.RBFSeries(self, i)
+
+        def __getattr__(self, a):
+            return self.x[self.vars.index(a)]
