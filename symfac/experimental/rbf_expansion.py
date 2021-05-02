@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numbers
+from collections import namedtuple
 import warnings
 import numpy as np
 import torch
 import tqdm
 
 
-class RBFExpansion:
+def as_namedtuple(name, **kwargs):
+    return namedtuple(name, list(kwargs.keys()))(*kwargs.values())
+    
 
-    @property
-    def result(self):
-        return self._result
+class RBFExpansion:
 
     @staticmethod
     def _get_device(desc):
@@ -95,7 +96,7 @@ class RBFExpansion:
         a0 = _create(a0, self.batch, self.k)
         b0 = _create(b0, self.batch)
 
-        self._optimum = self._rbfexp_core(
+        self.optimum = self._grad_opt(
             target, u0, v0, a0, b0,
             f=f,
             batch=self.batch,
@@ -106,13 +107,28 @@ class RBFExpansion:
             progressbar=self.progressbar
         )
 
-        self._batch = self.Batch(f, self._optimum['x'], ['u', 'v', 'a', 'b'])
-        # return self.Batch(f, optimum)
+        self.result = (f, self.optimum.x, ['u', 'v', 'a', 'b'])
 
         return self
 
+    @property
+    def optimum(self):
+        return self._optimum
+
+    @optimum.setter
+    def optimum(self, opt_dict):
+        self._optimum = as_namedtuple('optimum', **opt_dict)
+
+    @property
+    def result(self):
+        return self._result
+
+    @result.setter
+    def result(self, fxv):
+        self._result = self.Batch(*fxv)
+
     @staticmethod
-    def _rbfexp_core(target, *x, **options):
+    def _grad_opt(target, *x, **options):
 
         f = options.pop('f')
         batch = options.pop('batch')
@@ -163,22 +179,6 @@ class RBFExpansion:
         '''An approximation of a dense matrix as a sum of RBF over distance
         matrices.
         '''
-        class RBFSeries:
-            def __init__(self, parent, i):
-                self.batch = parent
-                self.i = i
-
-            def __repr__(self):
-                return f'<RBF expansion of {self.batch.funrank} components of {", ".join(self.batch.vars)}>'
-
-            def __getattr__(self, a):
-                return self.batch.x[self.batch.vars.index(a)][self.i, ...]
-
-            def __call__(self, device='cpu'):
-                with torch.no_grad():
-                    return self.batch.f(*[
-                        w[self.i, ...] for w in self.batch.x
-                    ]).to(device)
 
         def __init__(self, f, x, vars):
             for w in x:
@@ -197,16 +197,16 @@ class RBFExpansion:
         def __len__(self):
             return len(self.x[0])
 
-        def __call__(self, device='cpu'):
+        def __call__(self, i=None, device='cpu'):
             with torch.no_grad():
-                return self.f(*self.x).to(device)
+                if i  is None:
+                    return self.f(*self.x).to(device)
+                else:
+                    return self.f(*[w[i, ...] for w in self.x]).to(device)
 
         @property
         def funrank(self):
             return len(self.x[-1])
-
-        def __getitem__(self, i):
-            return self.RBFSeries(self, i)
 
         def __getattr__(self, a):
             return self.x[self.vars.index(a)]
