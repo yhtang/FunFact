@@ -73,13 +73,6 @@ class RBFExpansion:
 
     def fit(self, target, u0=None, v0=None, a0=None, b0=None):
 
-        def f(u, v, a, b):
-            return torch.sum(
-                self.rbf(u[..., :, None, :] - v[..., None, :, :]) *
-                a[..., None, None, :],
-                dim=-1
-            ) + b[..., None, None]
-
         n, m = target.shape
 
         target = torch.as_tensor(target[None, :, :], device=self.dev)
@@ -95,6 +88,13 @@ class RBFExpansion:
         a0 = _create(a0, self.batch_size, self.k)
         b0 = _create(b0, self.batch_size)
 
+        def f(u, v, a, b):
+            return torch.sum(
+                self.rbf(u[..., :, None, :] - v[..., None, :, :]) *
+                a[..., None, None, :],
+                dim=-1
+            ) + b[..., None, None]
+
         self.optimum = self._grad_opt(
             target, u0, v0, a0, b0,
             f=f,
@@ -107,6 +107,44 @@ class RBFExpansion:
         )
 
         self.result = (f, self.optimum.x, ['u', 'v', 'a', 'b'])
+
+        return self
+
+    def fith(self, target, u0=None, a0=None, b0=None):
+
+        n, m = target.shape
+
+        target = torch.as_tensor(target[None, :, :], device=self.dev)
+
+        def _create(w, *shape):
+            if w is None:
+                return torch.randn(shape, requires_grad=True, device=self.dev)
+            else:
+                return torch.as_tensor(w, device=self.dev)
+
+        u0 = _create(u0, self.batch_size, n, self.k)
+        a0 = _create(a0, self.batch_size, self.k)
+        b0 = _create(b0, self.batch_size)
+
+        def f(u, a, b):
+            return torch.sum(
+                self.rbf(u[..., :, None, :] - u[..., None, :, :]) *
+                a[..., None, None, :],
+                dim=-1
+            ) + b[..., None, None]
+
+        self.optimum = self._grad_opt(
+            target, u0, a0, b0,
+            f=f,
+            batch_size=self.batch_size,
+            max_steps=self.max_steps,
+            loss=self.loss,
+            algorithm=self.algorithm,
+            lr=self.lr,
+            progressbar=self.progressbar
+        )
+
+        self.result = (f, self.optimum.x, ['u', 'a', 'b'])
 
         return self
 
@@ -198,12 +236,17 @@ class RBFExpansion:
         def __len__(self):
             return len(self.x[0])
 
-        def __call__(self, i=None, device='cpu'):
+        def __call__(self, runs=None, components=None, device='cpu'):
             with torch.no_grad():
-                if i is None:
-                    return self.f(*self.x).to(device)
-                else:
-                    return self.f(*[w[i, ...] for w in self.x]).to(device)
+                x = self.x
+                if runs is not None:
+                    x = [w[runs, ...] for w in x]
+                if components is not None:
+                    if isinstance(components, int):
+                        components = [components]
+                    x = [w[..., components]
+                         if len(w.shape) > 0 else w for w in x]
+                return self.f(*x).to(device)
 
         @property
         def funrank(self):
