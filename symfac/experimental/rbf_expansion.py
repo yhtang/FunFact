@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import numbers
 from collections import namedtuple
 import warnings
 import numpy as np
@@ -10,7 +9,7 @@ import tqdm
 
 def as_namedtuple(name, **kwargs):
     return namedtuple(name, list(kwargs.keys()))(*kwargs.values())
-    
+
 
 class RBFExpansion:
 
@@ -19,13 +18,13 @@ class RBFExpansion:
         if desc == 'auto':
             try:
                 return torch.device('cuda')
-            except:
+            except Exception:
                 return torch.device('cpu')
         else:
             return torch.device(desc)
 
     def __init__(
-        self, k, rbf='gauss', batch=64, max_steps=10000, loss='mse_loss',
+        self, k, rbf='gauss', batch_size=64, max_steps=10000, loss='mse_loss',
         algorithm='Adam', lr=0.1, device='auto', progressbar='default'
     ):
         self.k = k
@@ -37,7 +36,7 @@ class RBFExpansion:
         else:
             raise f'Unrecoginized RBF: {rbf}.'
 
-        self.batch = batch
+        self.batch_size = batch_size
         self.max_steps = max_steps
 
         if isinstance(loss, str):
@@ -60,16 +59,16 @@ class RBFExpansion:
                 self.algorithm = getattr(torch.optim, algorithm)
             except AttributeError:
                 raise AttributeError(
-                    f'The algorithm \'{algorithm}\' does not exist in torch.optim.'
+                    f'Cannot find \'{algorithm}\' in torch.optim.'
                 )
 
         self.lr = lr
 
-        self.device = self._get_device(device)
+        self.dev = self._get_device(device)
 
         if progressbar == 'default':
             self.progressbar = lambda n: tqdm.trange(
-                n, miniters=None, mininterval=0.25, leave=False
+                n, miniters=None, mininterval=0.25, leave=True
             )
 
     def fit(self, target, u0=None, v0=None, a0=None, b0=None):
@@ -83,23 +82,23 @@ class RBFExpansion:
 
         n, m = target.shape
 
-        target = torch.as_tensor(target[None, :, :], device=self.device)
+        target = torch.as_tensor(target[None, :, :], device=self.dev)
 
         def _create(w, *shape):
             if w is None:
-                return torch.randn(shape, requires_grad=True, device=self.device)
+                return torch.randn(shape, requires_grad=True, device=self.dev)
             else:
-                return torch.as_tensor(w, device=self.device)
+                return torch.as_tensor(w, device=self.dev)
 
-        u0 = _create(u0, self.batch, n, self.k)
-        v0 = _create(v0, self.batch, m, self.k)
-        a0 = _create(a0, self.batch, self.k)
-        b0 = _create(b0, self.batch)
+        u0 = _create(u0, self.batch_size, n, self.k)
+        v0 = _create(v0, self.batch_size, m, self.k)
+        a0 = _create(a0, self.batch_size, self.k)
+        b0 = _create(b0, self.batch_size)
 
         self.optimum = self._grad_opt(
             target, u0, v0, a0, b0,
             f=f,
-            batch=self.batch,
+            batch_size=self.batch_size,
             max_steps=self.max_steps,
             loss=self.loss,
             algorithm=self.algorithm,
@@ -131,7 +130,7 @@ class RBFExpansion:
     def _grad_opt(target, *x, **options):
 
         f = options.pop('f')
-        batch = options.pop('batch')
+        batch_size = options.pop('batch_size')
         max_steps = options.pop('max_steps')
         loss = options.pop('loss')
         algorithm = options.pop('algorithm')
@@ -148,14 +147,18 @@ class RBFExpansion:
         data_dim = list(range(1, len(target.shape)))
         optimum = {}
         optimum['x'] = [w.clone().detach() for w in x]
-        optimum['t'] = torch.zeros(batch, dtype=torch.int)
+        optimum['t'] = torch.zeros(batch_size, dtype=torch.int)
         optimum['history'] = []
         for step in progressbar(max_steps):
             opt.zero_grad()
             output = f(*x)
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
-                loss_batch = loss(output, target, reduction='none').mean(data_dim)
+                loss_batch = loss(
+                    output, target, reduction='none'
+                ).mean(
+                    data_dim
+                )
 
             with torch.no_grad():
                 loss_cpu = loss_batch.detach().cpu()
@@ -182,24 +185,22 @@ class RBFExpansion:
 
         def __init__(self, f, x, vars):
             for w in x:
-                assert(
-                    w.shape[0] == x[0].shape[0] and
-                    w.shape[-1] == x[0].shape[-1],
+                assert w.shape[0] == x[0].shape[0],\
                     "Inconsisent component size."
-                )
             self.f = f
             self.x = x
             self.vars = vars
 
         def __repr__(self):
-            return f'<batch of {len(self)} RBF expansions with {", ".join(self.vars)}>'
+            vars_str = ', '.join(self.vars)
+            return f'<batch of {len(self)} RBF expansions [vars = {vars_str}]>'
 
         def __len__(self):
             return len(self.x[0])
 
         def __call__(self, i=None, device='cpu'):
             with torch.no_grad():
-                if i  is None:
+                if i is None:
                     return self.f(*self.x).to(device)
                 else:
                     return self.f(*[w[i, ...] for w in self.x]).to(device)
