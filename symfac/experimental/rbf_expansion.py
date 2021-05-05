@@ -47,6 +47,8 @@ class RBFExpansion:
                     f'The loss function \'{loss}\' does not exist in'
                     'torch.nn.functional.'
                 )
+        else:
+            self.loss = loss
         try:
             self.loss(torch.zeros(1), torch.zeros(1))
         except Exception as e:
@@ -61,92 +63,112 @@ class RBFExpansion:
                 raise AttributeError(
                     f'Cannot find \'{algorithm}\' in torch.optim.'
                 )
+        else:
+            self.algorithm = algorithm
 
         self.lr = lr
 
-        self.dev = self._get_device(device)
+        self.device = self._get_device(device)
 
         if progressbar == 'default':
             self.progressbar = lambda n: tqdm.trange(
                 n, miniters=None, mininterval=0.25, leave=True
             )
+        else:
+            self.progressbar = progressbar
 
-    def fit(self, target, u0=None, v0=None, a0=None, b0=None):
+    @property
+    def config(self):
+        return {
+            key: self.__dict__[key] for key in self.__dict__
+            if not key.startswith('_')
+        }
 
-        n, m = target.shape
-
-        target = torch.as_tensor(target[None, :, :], device=self.dev)
-
-        def _create(w, *shape):
-            if w is None:
-                return torch.randn(shape, requires_grad=True, device=self.dev)
-            else:
-                return torch.as_tensor(w, device=self.dev)
-
-        u0 = _create(u0, self.batch_size, n, self.k)
-        v0 = _create(v0, self.batch_size, m, self.k)
-        a0 = _create(a0, self.batch_size, self.k)
-        b0 = _create(b0, self.batch_size)
-
-        def f(u, v, a, b):
-            return torch.sum(
-                self.rbf(u[..., :, None, :] - v[..., None, :, :]) *
-                a[..., None, None, :],
-                dim=-1
-            ) + b[..., None, None]
-
-        self.optimum = self._grad_opt(
-            target, u0, v0, a0, b0,
-            f=f,
-            batch_size=self.batch_size,
-            max_steps=self.max_steps,
-            loss=self.loss,
-            algorithm=self.algorithm,
-            lr=self.lr,
-            progressbar=self.progressbar
+    def randn(self, *shape, requires_grad=True):
+        return torch.randn(
+            shape, requires_grad=requires_grad, device=self.device
         )
 
-        self.result = (f, self.optimum.x, ['u', 'v', 'a', 'b'])
+    def as_tensor(self, tsr):
+        return torch.as_tensor(tsr, device=self.device).requires_grad_(True)
 
-        return self
+    def fit(self, target, u0=None, v0=None, a0=None, b0=None, seed=None):
 
-    def fith(self, target, u0=None, a0=None, b0=None):
+        with torch.random.fork_rng(devices=[self.device]):
+            if seed:
+                torch.random.manual_seed(seed)
 
-        n, m = target.shape
+            target = torch.as_tensor(target, device=self.device).unsqueeze(0)
+            _, n, m = target.shape
 
-        target = torch.as_tensor(target[None, :, :], device=self.dev)
+            u0 = self.as_tensor(u0) if u0 is not None else \
+                self.randn(self.batch_size, n, self.k)
+            v0 = self.as_tensor(v0) if v0 is not None else \
+                self.randn(self.batch_size, m, self.k)
+            a0 = self.as_tensor(a0) if a0 is not None else \
+                self.randn(self.batch_size, self.k)
+            b0 = self.as_tensor(b0) if b0 is not None else \
+                self.randn(self.batch_size)
 
-        def _create(w, *shape):
-            if w is None:
-                return torch.randn(shape, requires_grad=True, device=self.dev)
-            else:
-                return torch.as_tensor(w, device=self.dev)
+            def f(u, v, a, b):
+                return torch.sum(
+                    self.rbf(u[..., :, None, :] - v[..., None, :, :]) *
+                    a[..., None, None, :],
+                    dim=-1
+                ) + b[..., None, None]
 
-        u0 = _create(u0, self.batch_size, n, self.k)
-        a0 = _create(a0, self.batch_size, self.k)
-        b0 = _create(b0, self.batch_size)
+            self.optimum = self._grad_opt(target, f, u0, v0, a0, b0)
 
-        def f(u, a, b):
-            return torch.sum(
-                self.rbf(u[..., :, None, :] - u[..., None, :, :]) *
-                a[..., None, None, :],
-                dim=-1
-            ) + b[..., None, None]
+            self.result = (f, self.optimum.x, ['u', 'v', 'a', 'b'])
 
-        self.optimum = self._grad_opt(
-            target, u0, a0, b0,
-            f=f,
-            batch_size=self.batch_size,
-            max_steps=self.max_steps,
-            loss=self.loss,
-            algorithm=self.algorithm,
-            lr=self.lr,
-            progressbar=self.progressbar
-        )
+            return self
 
-        self.result = (f, self.optimum.x, ['u', 'a', 'b'])
+    def fith(self, target, u0=None, a0=None, b0=None, seed=None):
 
-        return self
+        with torch.random.fork_rng(devices=[self.device]):
+            if seed:
+                torch.random.manual_seed(seed)
+
+            target = torch.as_tensor(target, device=self.device).unsqueeze(0)
+            _, n, m = target.shape
+            assert n == m
+
+            u0 = self.as_tensor(u0) if u0 is not None else \
+                self.randn(self.batch_size, n, self.k)
+            a0 = self.as_tensor(a0) if a0 is not None else \
+                self.randn(self.batch_size, self.k)
+            b0 = self.as_tensor(b0) if b0 is not None else \
+                self.randn(self.batch_size)
+
+            def f(u, a, b):
+                return torch.sum(
+                    self.rbf(u[..., :, None, :] - u[..., None, :, :]) *
+                    a[..., None, None, :],
+                    dim=-1
+                ) + b[..., None, None]
+
+            self.optimum = self._grad_opt(target, f, u0, a0, b0)
+
+            self.result = (f, self.optimum.x, ['u', 'a', 'b'])
+
+            return self
+
+    def fit_custom(self, target, f, seed=None, **x0):
+
+        with torch.random.fork_rng(devices=[self.device]):
+            if seed:
+                torch.random.manual_seed(seed)
+
+            target = torch.as_tensor(target, device=self.device).unsqueeze(0)
+            _, n, m = target.shape
+
+            x = [self.as_tensor(w) for w in x0.values()]
+
+            self.optimum = self._grad_opt(target, f, *x)
+
+            self.result = (f, self.optimum.x, list(x0.keys()))
+
+            return self
 
     @property
     def optimum(self):
@@ -164,35 +186,26 @@ class RBFExpansion:
     def result(self, fxv):
         self._result = self.Batch(*fxv)
 
-    @staticmethod
-    def _grad_opt(target, *x, **options):
-
-        f = options.pop('f')
-        batch_size = options.pop('batch_size')
-        max_steps = options.pop('max_steps')
-        loss = options.pop('loss')
-        algorithm = options.pop('algorithm')
-        lr = options.pop('lr')
-        progressbar = options.pop('progressbar')
+    def _grad_opt(self, target, f, *x):
 
         try:
-            opt = algorithm(x, lr=lr)
+            opt = self.algorithm(x, lr=self.lr)
         except Exception:
             raise AssertionError(
-                'Cannot instance optimizer of type {algorithm}:\n{e}'
+                'Cannot instance optimizer of type {self.algorithm}:\n{e}'
             )
 
         data_dim = list(range(1, len(target.shape)))
         optimum = {}
         optimum['x'] = [w.clone().detach() for w in x]
-        optimum['t'] = torch.zeros(batch_size, dtype=torch.int)
+        optimum['t'] = torch.zeros(self.batch_size, dtype=torch.int)
         optimum['history'] = []
-        for step in progressbar(max_steps):
+        for step in self.progressbar(self.max_steps):
             opt.zero_grad()
             output = f(*x)
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
-                loss_batch = loss(
+                loss_batch = self.loss(
                     output, target, reduction='none'
                 ).mean(
                     data_dim
@@ -201,11 +214,13 @@ class RBFExpansion:
             with torch.no_grad():
                 loss_cpu = loss_batch.detach().cpu()
                 optimum['history'].append(loss_cpu.numpy())
-                if 'best' in optimum:
-                    optimum['best'] = torch.minimum(optimum['best'], loss_cpu)
+                if 'best_loss' in optimum:
+                    optimum['best_loss'] = torch.minimum(
+                        optimum['best_loss'], loss_cpu
+                    )
                 else:
-                    optimum['best'] = loss_cpu
-                better = optimum['best'] == loss_cpu
+                    optimum['best_loss'] = loss_cpu
+                better = optimum['best_loss'] == loss_cpu
                 optimum['t'][better] = step
                 for current, new in zip(optimum['x'], x):
                     current[better, ...] = new[better, ...]
@@ -242,10 +257,12 @@ class RBFExpansion:
                 if runs is not None:
                     x = [w[runs, ...] for w in x]
                 if components is not None:
-                    if isinstance(components, int):
-                        components = [components]
+                    components = torch.as_tensor(components)
+                    if components.dim() == 0:
+                        components = components.unsqueeze(0)
                     x = [w[..., components]
-                         if len(w.shape) > 0 else w for w in x]
+                         if len(w.shape) > 0 else torch.zeros_like(w)
+                         for w in x]
                 return self.f(*x).to(device)
 
         @property
