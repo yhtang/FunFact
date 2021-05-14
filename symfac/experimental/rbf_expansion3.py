@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from collections import namedtuple
+import itertools
 import warnings
 import numpy as np
 import torch
@@ -24,7 +25,8 @@ class RBFExpansion2:
             return torch.device(desc)
 
     def __init__(
-        self, k, rbf='gauss', batch_size=64, max_steps=10000, loss='mse_loss',
+        self, k, rbf='gauss', batch_size=64, max_steps=10000, history_freq=1,
+        mini_batch_size=0, mini_batch_by='elements', loss='mse_loss',
         algorithm='Adam', lr=0.1, device='auto', progressbar='default'
     ):
         self.k = k
@@ -38,6 +40,9 @@ class RBFExpansion2:
 
         self.batch_size = batch_size
         self.max_steps = max_steps
+        self.history_freq = history_freq
+        self.mini_batch_size = mini_batch_size
+        self.mini_batch_by = mini_batch_by
 
         if isinstance(loss, str):
             try:
@@ -119,6 +124,13 @@ class RBFExpansion2:
                 return torch.sum(
                     self.rbf(u[..., :, None, :] - v[..., None, :, :]) *
                     a[..., None, None, :],
+                    dim=-1
+                ) + b[..., None, None]
+
+            def f_minibatch(i, j, u, v, a, b):
+                return torch.sum(
+                    self.rbf(u[..., i, :] - v[..., j, :]) *
+                    a[..., None, :],
                     dim=-1
                 ) + b[..., None, None]
 
@@ -205,7 +217,21 @@ class RBFExpansion2:
     def optimum(self):
         return self._optimum
 
-    def _grad_opt(self, target, model):
+    def random_matrix_elements(self, X, b):
+        ind = torch.randperm(X.nelement(), device=self.device)[:b]
+        return ind % X.shape[0], ind // X.shape[0]
+
+    def random_submatrix(self, X, b):
+        if isinstance(b, int):
+            b = [b] * X.ndim
+        else:
+            assert len(b) == X.ndim
+        itertools.product(torch.randperm(X.shape[0], device=self.device)[:b[0]])
+        I = 
+        J = torch.randperm(X.shape[1], device=self.device)[:b[1]]
+        return I, J
+
+    def _grad_opt(self, target, model, model_minibatch=None):
 
         try:
             opt = self.algorithm(model.x, lr=self.lr)
@@ -214,6 +240,11 @@ class RBFExpansion2:
                 'Cannot instance optimizer of type {self.algorithm}:\n{e}'
             )
 
+        if self.mini_batch_size > 0:
+            if self.mini_batch_by in ['element', 'elements']:
+                mini_batch_indexer = lambda self.random_matrix_elements
+
+
         data_dim = list(range(1, len(target.shape)))
         report = {}
         report['x_best'] = [w.clone().detach() for w in model.x]
@@ -221,14 +252,26 @@ class RBFExpansion2:
         report['loss_history'] = []
         for step in self.progressbar(self.max_steps):
             opt.zero_grad()
-            output = model()
+            if model_minibatch is not None:
+                output_minibatch = model()
+                f_minibatch(
+                    u0, v0, a0, b0, I, J
+                )
+                prediction = model_minibatch()
+            else:
+                prediction = model()
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
-                loss_batch = self.loss(
-                    output, target, reduction='none'
-                ).mean(
-                    data_dim
-                )
+                if model_minibatch is not None:
+                    loss_batch = self.loss(
+                        prediction, target[:, I, J], reduction='mean'
+                    )
+                else:
+                    loss_batch = self.loss(
+                        output, target, reduction='none'
+                    ).mean(
+                        data_dim
+                    )
 
             with torch.no_grad():
                 loss_cpu = loss_batch.detach().cpu()
