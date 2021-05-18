@@ -12,7 +12,7 @@ def as_namedtuple(name, **kwargs):
     return namedtuple(name, list(kwargs.keys()))(*kwargs.values())
 
 
-class RBFExpansion2:
+class RBFExpansionMiniBatch:
 
     @staticmethod
     def _get_device(desc):
@@ -25,11 +25,12 @@ class RBFExpansion2:
             return torch.device(desc)
 
     def __init__(
-        self, k, rbf='gauss', batch_size=64, max_steps=10000, history_freq=1,
-        mini_batch_size=0, mini_batch_by='elements', loss='mse_loss',
-        algorithm='Adam', lr=0.1, device='auto', progressbar='default'
+        self, k, mini_batch_size, rbf='gauss', batch_size=64, max_steps=10000,
+        history_freq=10, mini_batch_by='elements', loss='mse_loss',
+        algorithm='Adam', lr=0.05, device='auto', progressbar='default'
     ):
         self.k = k
+        self.mini_batch_size = mini_batch_size
 
         if callable(rbf):
             self.rbf = rbf
@@ -41,7 +42,6 @@ class RBFExpansion2:
         self.batch_size = batch_size
         self.max_steps = max_steps
         self.history_freq = history_freq
-        self.mini_batch_size = mini_batch_size
         self.mini_batch_by = mini_batch_by
 
         if isinstance(loss, str):
@@ -89,18 +89,20 @@ class RBFExpansion2:
             if not key.startswith('_')
         }
 
-    def randn(self, *shape, requires_grad=True):
+    def randn(self, *shape, requires_grad=False):
         return torch.randn(
             shape, requires_grad=requires_grad, device=self.device
         )
 
-    def rand(self, *shape, requires_grad=True):
+    def rand(self, *shape, requires_grad=False):
         return torch.rand(
             shape, requires_grad=requires_grad, device=self.device
         )
 
-    def as_tensor(self, tsr):
-        return torch.as_tensor(tsr, device=self.device).requires_grad_(True)
+    def as_tensor(self, tsr, requires_grad=True):
+        return torch.as_tensor(tsr, device=self.device)\
+            .detach()\
+            .requires_grad_(requires_grad)
 
     def fit(self, target, u0=None, v0=None, a0=None, b0=None, seed=None):
 
@@ -112,13 +114,13 @@ class RBFExpansion2:
             _, n, m = target.shape
 
             u0 = self.as_tensor(u0) if u0 is not None else \
-                self.randn(self.batch_size, n, self.k)
+                self.randn(self.batch_size, n, self.k, requires_grad=True)
             v0 = self.as_tensor(v0) if v0 is not None else \
-                self.randn(self.batch_size, m, self.k)
+                self.randn(self.batch_size, m, self.k, requires_grad=True)
             a0 = self.as_tensor(a0) if a0 is not None else \
-                self.randn(self.batch_size, self.k)
+                self.randn(self.batch_size, self.k, requires_grad=True)
             b0 = self.as_tensor(b0) if b0 is not None else \
-                self.randn(self.batch_size)
+                self.randn(self.batch_size, requires_grad=True)
 
             def f(u, v, a, b):
                 return torch.sum(
@@ -127,15 +129,20 @@ class RBFExpansion2:
                     dim=-1
                 ) + b[..., None, None]
 
-            def f_minibatch(i, j, u, v, a, b):
-                return torch.sum(
-                    self.rbf(u[..., i, :] - v[..., j, :]) *
-                    a[..., None, :],
-                    dim=-1
-                ) + b[..., None, None]
+            def loss_minibatch(target, i, j, u, v, a, b):
+                return self.loss(
+                    target[..., i, j],
+                    torch.sum(
+                        self.rbf(u[..., i, :] - v[..., j, :]) *
+                        a[..., None, :],
+                        dim=-1
+                    ) + b[..., None],
+                    reduction='mean'
+                )
 
             self.report = self._grad_opt(
                 target,
+                loss_minibatch,
                 self.Model(f, (u0, v0, a0, b0), default_grad_on=True)
             )
 
@@ -146,43 +153,43 @@ class RBFExpansion2:
 
             return self
 
-    def fith(self, target, u0=None, a0=None, b0=None, seed=None):
+    # def fith(self, target, u0=None, a0=None, b0=None, seed=None):
 
-        with torch.random.fork_rng(devices=[self.device]):
-            if seed:
-                torch.random.manual_seed(seed)
+    #     with torch.random.fork_rng(devices=[self.device]):
+    #         if seed:
+    #             torch.random.manual_seed(seed)
 
-            target = torch.as_tensor(target, device=self.device).unsqueeze(0)
-            _, n, m = target.shape
-            assert n == m
+    #         target = torch.as_tensor(target, device=self.device).unsqueeze(0)
+    #         _, n, m = target.shape
+    #         assert n == m
 
-            u0 = self.as_tensor(u0) if u0 is not None else \
-                self.randn(self.batch_size, n, self.k)
-            a0 = self.as_tensor(a0) if a0 is not None else \
-                self.randn(self.batch_size, self.k)
-            b0 = self.as_tensor(b0) if b0 is not None else \
-                self.randn(self.batch_size)
+    #         u0 = self.as_tensor(u0) if u0 is not None else \
+    #             self.randn(self.batch_size, n, self.k)
+    #         a0 = self.as_tensor(a0) if a0 is not None else \
+    #             self.randn(self.batch_size, self.k)
+    #         b0 = self.as_tensor(b0) if b0 is not None else \
+    #             self.randn(self.batch_size)
 
-            def f(u, a, b):
-                return torch.sum(
-                    self.rbf(u[..., :, None, :] - u[..., None, :, :]) *
-                    a[..., None, None, :],
-                    dim=-1
-                ) + b[..., None, None]
+    #         def f(u, a, b):
+    #             return torch.sum(
+    #                 self.rbf(u[..., :, None, :] - u[..., None, :, :]) *
+    #                 a[..., None, None, :],
+    #                 dim=-1
+    #             ) + b[..., None, None]
 
-            self.report = self._grad_opt(
-                target,
-                self.Model(f, (u0, a0, b0), default_grad_on=True)
-            )
+    #         self.report = self._grad_opt(
+    #             target,
+    #             self.Model(f, (u0, a0, b0), default_grad_on=True)
+    #         )
 
-            self._optimum = self.Model(
-                f, self.report.x_best, x_names=['u', 'a', 'b'],
-                default_device='cpu'
-            )
+    #         self._optimum = self.Model(
+    #             f, self.report.x_best, x_names=['u', 'a', 'b'],
+    #             default_device='cpu'
+    #         )
 
-            return self
+    #         return self
 
-    def fit_custom(self, target, f, seed=None, **x0):
+    def fit_custom(self, target, f, f_minibatch, seed=None, **x0):
 
         with torch.random.fork_rng(devices=[self.device]):
             if seed:
@@ -193,8 +200,16 @@ class RBFExpansion2:
 
             x = [self.as_tensor(w) for w in x0.values()]
 
+            def loss_minibatch(target, i, j, *x):
+                return self.loss(
+                    target[..., i, j],
+                    f_minibatch(i, j, *x),
+                    reduction='mean'
+                )
+
             self.report = self._grad_opt(
                 target,
+                loss_minibatch,
                 self.Model(f, x, default_grad_on=True)
             )
 
@@ -217,21 +232,20 @@ class RBFExpansion2:
     def optimum(self):
         return self._optimum
 
-    def random_matrix_elements(self, X, b):
-        ind = torch.randperm(X.nelement(), device=self.device)[:b]
-        return ind % X.shape[0], ind // X.shape[0]
+    def _random_matrix_elements(self, n, m, b):
+        ind, _ = torch.sort(torch.randperm(n * m, device=self.device)[:b])
+        return ind % n, ind // n
 
-    def random_submatrix(self, X, b):
+    def _random_submatrix(self, n, m, b):
         if isinstance(b, int):
-            b = [b] * X.ndim
+            b = [b, b]
         else:
-            assert len(b) == X.ndim
-        itertools.product(torch.randperm(X.shape[0], device=self.device)[:b[0]])
-        I = 
-        J = torch.randperm(X.shape[1], device=self.device)[:b[1]]
-        return I, J
+            assert len(b) == 2
+        i, _ = torch.sort(torch.randperm(n, device=self.device)[:b[0]])
+        j, _ = torch.sort(torch.randperm(m, device=self.device)[:b[1]])
+        return list(zip(*list(itertools.product(i, j))))
 
-    def _grad_opt(self, target, model, model_minibatch=None):
+    def _grad_opt(self, target, loss_minibatch, model):
 
         try:
             opt = self.algorithm(model.x, lr=self.lr)
@@ -240,54 +254,53 @@ class RBFExpansion2:
                 'Cannot instance optimizer of type {self.algorithm}:\n{e}'
             )
 
-        if self.mini_batch_size > 0:
-            if self.mini_batch_by in ['element', 'elements']:
-                mini_batch_indexer = lambda self.random_matrix_elements
-
+        _, n, m = target.shape
+        if self.mini_batch_by in ['element', 'elements']:
+            def indexer():
+                return self._random_matrix_elements(n, m, self.mini_batch_size)
+        elif self.mini_batch_by in ['submatrix', 'submatrices']:
+            def indexer():
+                return self._random_submatrix(n, m, self.mini_batch_size)
+        else:
+            raise RuntimeError(
+                f'Unknown mini batch style: {self.mini_batch_by}'
+            )
 
         data_dim = list(range(1, len(target.shape)))
         report = {}
         report['x_best'] = [w.clone().detach() for w in model.x]
         report['t_best'] = torch.zeros(self.batch_size, dtype=torch.int)
         report['loss_history'] = []
+        report['loss_history_ticks'] = []
         for step in self.progressbar(self.max_steps):
+            if step % self.history_freq == 0:
+                with torch.no_grad():
+                    output = model()
+                    with warnings.catch_warnings():
+                        warnings.simplefilter('ignore')
+                        loss_cpu = self.loss(
+                            output, target, reduction='none'
+                        ).mean(
+                            data_dim
+                        ).cpu()
+                    report['loss_history'].append(loss_cpu.numpy())
+                    if 'loss_best' in report:
+                        report['loss_best'] = torch.minimum(
+                            report['loss_best'], loss_cpu
+                        )
+                    else:
+                        report['loss_best'] = loss_cpu
+                    better = report['loss_best'] == loss_cpu
+                    report['loss_history_ticks'].append(step)
+                    report['t_best'][better] = step
+                    for current, new in zip(report['x_best'], model.x):
+                        current[better, ...] = new[better, ...]
+
+            i, j = indexer()
             opt.zero_grad()
-            if model_minibatch is not None:
-                output_minibatch = model()
-                f_minibatch(
-                    u0, v0, a0, b0, I, J
-                )
-                prediction = model_minibatch()
-            else:
-                prediction = model()
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
-                if model_minibatch is not None:
-                    loss_batch = self.loss(
-                        prediction, target[:, I, J], reduction='mean'
-                    )
-                else:
-                    loss_batch = self.loss(
-                        output, target, reduction='none'
-                    ).mean(
-                        data_dim
-                    )
-
-            with torch.no_grad():
-                loss_cpu = loss_batch.detach().cpu()
-                report['loss_history'].append(loss_cpu.numpy())
-                if 'loss_best' in report:
-                    report['loss_best'] = torch.minimum(
-                        report['loss_best'], loss_cpu
-                    )
-                else:
-                    report['loss_best'] = loss_cpu
-                better = report['loss_best'] == loss_cpu
-                report['t_best'][better] = step
-                for current, new in zip(report['x_best'], model.x):
-                    current[better, ...] = new[better, ...]
-
-            loss_batch.sum().backward()
+                loss_minibatch(target, i, j, *model.x).backward()
             opt.step()
 
         report['loss_history'] = np.array(

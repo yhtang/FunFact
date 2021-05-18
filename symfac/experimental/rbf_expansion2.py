@@ -11,7 +11,7 @@ def as_namedtuple(name, **kwargs):
     return namedtuple(name, list(kwargs.keys()))(*kwargs.values())
 
 
-class RBFExpansion2:
+class RBFExpansionV2:
 
     @staticmethod
     def _get_device(desc):
@@ -94,8 +94,10 @@ class RBFExpansion2:
             shape, requires_grad=requires_grad, device=self.device
         )
 
-    def as_tensor(self, tsr):
-        return torch.as_tensor(tsr, device=self.device).requires_grad_(True)
+    def as_tensor(self, tsr, requires_grad=True):
+        return torch.as_tensor(tsr, device=self.device)\
+            .detach()\
+            .requires_grad_(requires_grad)
 
     def fit(self, target, u0=None, v0=None, a0=None, b0=None, seed=None):
 

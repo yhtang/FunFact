@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """NTF"""
 
-__version__ = '0.5.1'
+__version__ = '0.5.3'
 __author__ = '''Yu-Hang "Maxin" Tang'''
 __maintainer__ = 'Yu-Hang "Maxin" Tang'
 __email__ = 'Tang.Maxin@gmail.com'
