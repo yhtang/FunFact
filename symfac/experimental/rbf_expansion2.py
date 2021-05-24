@@ -221,6 +221,7 @@ class RBFExpansionV2:
         report['x_best'] = [w.clone().detach() for w in model.x]
         report['t_best'] = torch.zeros(self.batch_size, dtype=torch.int)
         report['loss_history'] = []
+        report['loss_history_ticks'] = []
         for step in self.progressbar(self.max_steps):
             opt.zero_grad()
             output = model()
@@ -242,6 +243,7 @@ class RBFExpansionV2:
                 else:
                     report['loss_best'] = loss_cpu
                 better = report['loss_best'] == loss_cpu
+                report['loss_history_ticks'].append(step)
                 report['t_best'][better] = step
                 for current, new in zip(report['x_best'], model.x):
                     current[better, ...] = new[better, ...]
