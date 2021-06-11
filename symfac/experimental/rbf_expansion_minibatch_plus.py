@@ -69,7 +69,9 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
         else:
             self.progressbar = progressbar
 
-    def fit(self, target, u0=None, v0=None, a0=None, b0=None, seed=None):
+    def fit(
+        self, target, seed=None, plugins=[], u0=None, v0=None, a0=None, b0=None
+    ):
 
         with torch.random.fork_rng(devices=[self.device]):
             if seed:
@@ -110,7 +112,8 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
                 loss_minibatch,
                 self.ModelPlus(
                     self.rbf, f, (u0, v0, a0, b0), default_grad_on=True
-                )
+                ),
+                plugins
             )
 
             self._optimum = self.ModelPlus(
@@ -156,7 +159,7 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
 
     #         return self
 
-    def fit_custom(self, target, f, f_minibatch, seed=None, **x0):
+    def fit_custom(self, target, f, f_minibatch, seed=None, plugins=[], **x0):
 
         with torch.random.fork_rng(devices=[self.device]):
             if seed:
@@ -177,7 +180,8 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
             self.report = self._grad_opt(
                 target,
                 loss_minibatch,
-                self.ModelPlus(self.rbf, f, x, default_grad_on=True)
+                self.ModelPlus(self.rbf, f, x, default_grad_on=True),
+                plugins
             )
 
             self._optimum = self.ModelPlus(
@@ -200,7 +204,7 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
         j, _ = torch.sort(torch.randperm(m, device=self.device)[:b[1]])
         return list(zip(*list(itertools.product(i, j))))
 
-    def _grad_opt(self, target, loss_minibatch, model):
+    def _grad_opt(self, target, loss_minibatch, model, plugins=[]):
 
         try:
             opt = self.algorithm(model.x, lr=self.lr)
@@ -250,6 +254,14 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
                     report['t_best'][better] = step
                     for current, new in zip(report['x_best'], model.x):
                         current[better, ...] = new[better, ...]
+
+            with torch.no_grad():
+                for plugin in plugins:
+                    if step % plugin['every'] == 0:
+                        local_vars = locals()
+                        plugin['callback'](
+                            **{k: local_vars[k] for k in plugin['requires']}
+                        )
 
             i, j = indexer()
             opt.zero_grad()

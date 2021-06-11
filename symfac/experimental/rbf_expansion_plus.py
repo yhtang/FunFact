@@ -65,7 +65,7 @@ class RBFExpansionPlus(RBFExpansionBase):
             self.progressbar = progressbar
 
     def fit(
-        self, target, u0=None, v0=None, a0=None, b0=None, seed=None, plugins=[]
+        self, target, seed=None, plugins=[], u0=None, v0=None, a0=None, b0=None
     ):
 
         with torch.random.fork_rng(devices=[self.device]):
@@ -108,7 +108,7 @@ class RBFExpansionPlus(RBFExpansionBase):
 
             return self
 
-    def fith(self, target, u0=None, a0=None, b0=None, seed=None):
+    def fith(self, target, seed=None, plugins=[], u0=None, a0=None, b0=None):
 
         with torch.random.fork_rng(devices=[self.device]):
             if seed:
@@ -137,7 +137,8 @@ class RBFExpansionPlus(RBFExpansionBase):
                 self.ModelPlus(
                     self.rbf, f, (u0, a0, b0), x_names=['u', 'a', 'b'],
                     default_grad_on=True
-                )
+                ),
+                plugins
             )
 
             self._optimum = self.ModelPlus(
@@ -147,7 +148,7 @@ class RBFExpansionPlus(RBFExpansionBase):
 
             return self
 
-    def fit_custom(self, target, f, seed=None, **x0):
+    def fit_custom(self, target, f, seed=None, plugins=[], **x0):
 
         with torch.random.fork_rng(devices=[self.device]):
             if seed:
@@ -163,7 +164,8 @@ class RBFExpansionPlus(RBFExpansionBase):
                 self.ModelPlus(
                     self.rbf, f, x, x_names=list(x0.keys()),
                     default_grad_on=True
-                )
+                ),
+                plugins
             )
 
             self._optimum = self.ModelPlus(
