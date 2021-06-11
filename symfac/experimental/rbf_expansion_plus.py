@@ -64,7 +64,9 @@ class RBFExpansionPlus(RBFExpansionBase):
         else:
             self.progressbar = progressbar
 
-    def fit(self, target, u0=None, v0=None, a0=None, b0=None, seed=None):
+    def fit(
+        self, target, u0=None, v0=None, a0=None, b0=None, seed=None, plugins=[]
+    ):
 
         with torch.random.fork_rng(devices=[self.device]):
             if seed:
@@ -92,8 +94,11 @@ class RBFExpansionPlus(RBFExpansionBase):
             self.report = self._grad_opt(
                 target,
                 self.ModelPlus(
-                    self.rbf, f, (u0, v0, a0, b0), default_grad_on=True
-                )
+                    self.rbf, f, (u0, v0, a0, b0),
+                    x_names=['u', 'v', 'a', 'b'],
+                    default_grad_on=True
+                ),
+                plugins
             )
 
             self._optimum = self.ModelPlus(
@@ -129,7 +134,10 @@ class RBFExpansionPlus(RBFExpansionBase):
 
             self.report = self._grad_opt(
                 target,
-                self.ModelPlus(self.rbf, f, (u0, a0, b0), default_grad_on=True)
+                self.ModelPlus(
+                    self.rbf, f, (u0, a0, b0), x_names=['u', 'a', 'b'],
+                    default_grad_on=True
+                )
             )
 
             self._optimum = self.ModelPlus(
@@ -152,7 +160,10 @@ class RBFExpansionPlus(RBFExpansionBase):
 
             self.report = self._grad_opt(
                 target,
-                self.ModelPlus(self.rbf, f, x, default_grad_on=True)
+                self.ModelPlus(
+                    self.rbf, f, x, x_names=list(x0.keys()),
+                    default_grad_on=True
+                )
             )
 
             self._optimum = self.ModelPlus(
@@ -162,7 +173,7 @@ class RBFExpansionPlus(RBFExpansionBase):
 
             return self
 
-    def _grad_opt(self, target, model):
+    def _grad_opt(self, target, model, plugins=[]):
 
         try:
             opt = self.algorithm(model.x, lr=self.lr)
@@ -202,6 +213,13 @@ class RBFExpansionPlus(RBFExpansionBase):
                 report['t_best'][better] = step
                 for current, new in zip(report['x_best'], model.x):
                     current[better, ...] = new[better, ...]
+
+                for plugin in plugins:
+                    if step % plugin['every'] == 0:
+                        local_vars = locals()
+                        plugin['callback'](
+                            **{k: local_vars[k] for k in plugin['requires']}
+                        )
 
             loss_batch.sum().backward()
             opt.step()
