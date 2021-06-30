@@ -259,9 +259,15 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
                 for plugin in plugins:
                     if step % plugin['every'] == 0:
                         local_vars = locals()
-                        plugin['callback'](
-                            **{k: local_vars[k] for k in plugin['requires']}
-                        )
+
+                        try:
+                            requires = plugin['requires']
+                        except KeyError:
+                            requires = plugin['callback'].__code__.co_varnames
+
+                        args = {k: local_vars[k] for k in requires}
+
+                        plugin['callback'](**args)
 
             i, j = indexer()
             opt.zero_grad()
