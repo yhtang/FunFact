@@ -14,7 +14,7 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
         self, k=1, mini_batch_size=1, rbf='gauss', batch_size=64,
         max_steps=10000, history_freq=10, mini_batch_by='elements',
         loss='mse_loss', algorithm='Adam', lr=0.05, device='auto',
-        progressbar='default'
+        amp=False, progressbar='default'
     ):
         self.k = k
         self.mini_batch_size = mini_batch_size
@@ -59,8 +59,8 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
             self.algorithm = algorithm
 
         self.lr = lr
-
         self.device = self._get_device(device)
+        self.amp = amp
 
         if progressbar == 'default':
             self.progressbar = lambda n: tqdm.trange(
@@ -271,9 +271,13 @@ class RBFExpansionMiniBatchPlus(RBFExpansionBase):
 
             i, j = indexer()
             opt.zero_grad()
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore')
-                loss_minibatch(self.rbf, target, i, j, *model.x).backward()
+            with torch.cuda.amp.autocast(
+                enabled=self.amp and target.device.type == 'cuda'
+            ):
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    loss_m = loss_minibatch(self.rbf, target, i, j, *model.x)
+            loss_m.backward()
             opt.step()
 
         report['loss_history'] = np.array(

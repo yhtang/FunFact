@@ -12,7 +12,7 @@ class RBFExpansionPlus(RBFExpansionBase):
     def __init__(
         self, k=1, rbf='gauss', batch_size=64, max_steps=10000,
         loss='mse_loss', algorithm='Adam', lr=0.1, device='auto',
-        progressbar='default'
+        amp=False, progressbar='default'
     ):
         self.k = k
 
@@ -54,8 +54,8 @@ class RBFExpansionPlus(RBFExpansionBase):
             self.algorithm = algorithm
 
         self.lr = lr
-
         self.device = self._get_device(device)
+        self.amp = amp
 
         if progressbar == 'default':
             self.progressbar = lambda n: tqdm.trange(
@@ -192,14 +192,18 @@ class RBFExpansionPlus(RBFExpansionBase):
         report['loss_history_ticks'] = []
         for step in self.progressbar(self.max_steps):
             opt.zero_grad()
-            output = model()
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore')
-                loss_batch = self.loss(
-                    output, target, reduction='none'
-                ).mean(
-                    data_dim
-                )
+
+            with torch.cuda.amp.autocast(
+                enabled=self.amp and target.device.type == 'cuda'
+            ):
+                output = model()
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    loss_batch = self.loss(
+                        output, target, reduction='none'
+                    ).mean(
+                        data_dim
+                    )
 
             with torch.no_grad():
                 loss_cpu = loss_batch.detach().cpu()
