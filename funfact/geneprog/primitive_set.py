@@ -9,6 +9,11 @@ from funfact.util.iterable import flatten, map_or_call
 from .factorization import Factorization
 
 
+# TODO:
+# To be rewritten: factor out the action/interpretation part and only keeps the
+# representation part. The former is then going into the evaluation module.
+
+
 class Primitive(ABC):
     '''A primitive in the context of genetic programming is an element of an
     arithmetic expression, such as a constant, an operation, a function, etc.
