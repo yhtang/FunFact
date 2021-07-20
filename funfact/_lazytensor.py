@@ -51,14 +51,6 @@ class Index(Symbol):
         return f'{type(self).__qualname__}({repr(self.symbol)})'
 
 
-def index(symbol):
-    return Index(symbol)
-
-
-def indices(symbols):
-    return [index(s) for s in re.split(r'[,\s]+', symbols)]
-
-
 class Expression(LaTeXHTMLRepr):
 
     def __add__(self, rhs: Expression):
@@ -103,10 +95,6 @@ class LazyBase(Symbol):
                     if self.initial is not None else ''
         )
 
-    # TODO
-    # def _repr_html_(self):
-    #     pass
-
     @property
     def shape(self):
         return self._shape
@@ -135,12 +123,34 @@ class LazyTensor(LazyBase):
 
     def __getitem__(self, indices):
         try:
-            return IndexNotation(self, tuple(indices))
+            return IndexExpression(self, tuple(indices))
         except TypeError:
-            return IndexNotation(self, (indices,))
+            return IndexExpression(self, (indices,))
 
     def _repr_tex_(self):
         return fr'''\mathbf{{{str(self.symbol)}}}'''
+
+
+class IndexExpression(Expression):
+    def __init__(self, tensor, indices):
+        self.tensor = tensor
+        self.indices = indices
+
+    def __str__(self):
+        return '{tensor}[{indices}]'.format(
+            tensor=str(self.tensor),
+            indices=', '.join(map(str, self.indices))
+        )
+
+    def __repr__(self):
+        return '{tensor}[{indices}]'.format(
+            tensor=repr(self.tensor),
+            indices=', '.join(map(repr, self.indices))
+        )
+
+    def _repr_tex_(self):
+        idx = ''.join([i._repr_tex_() for i in self.indices])
+        return fr'''{{{self.tensor._repr_tex_()}}}_{{{idx}}}'''
 
 
 class UnaryExpression(Expression):
@@ -168,26 +178,12 @@ class BinaryExpression(Expression):
         return f'{self.lhs._repr_tex_()} {self.oper.tex} {self.rhs._repr_tex_()}'
 
 
-class IndexNotation(Expression):
-    def __init__(self, tensor, indices):
-        self.tensor = tensor
-        self.indices = indices
+def index(symbol):
+    return Index(symbol)
 
-    def __str__(self):
-        return '{tensor}[{indices}]'.format(
-            tensor=str(self.tensor),
-            indices=', '.join(map(str, self.indices))
-        )
 
-    def __repr__(self):
-        return '{tensor}[{indices}]'.format(
-            tensor=repr(self.tensor),
-            indices=', '.join(map(repr, self.indices))
-        )
-
-    def _repr_tex_(self):
-        idx = ''.join([i._repr_tex_() for i in self.indices])
-        return fr'''{{{self.tensor._repr_tex_()}}}_{{{idx}}}'''
+def indices(symbols):
+    return [index(s) for s in re.split(r'[,\s]+', symbols)]
 
 
 def tensor(*size, symbol=None, initial=None):
