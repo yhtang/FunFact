@@ -19,6 +19,7 @@ class LaTeXHTMLRepr(ABC):
 
 
 class Symbol(LaTeXHTMLRepr):
+
     @property
     def symbol(self):
         return self._symbol
@@ -132,7 +133,9 @@ class LazyTensor(LazyBase):
 
 
 class IndexExpression(Expression):
+
     def __init__(self, tensor, indices):
+        self.oper = primitive.p_idx
         self.tensor = tensor
         self.indices = indices
 
@@ -154,6 +157,7 @@ class IndexExpression(Expression):
 
 
 class UnaryExpression(Expression):
+
     def __init__(self, oper, operand):
         self.oper = oper
         self.operand = operand
@@ -163,19 +167,32 @@ class UnaryExpression(Expression):
 
 
 class BinaryExpression(Expression):
+
     def __init__(self, oper, lhs, rhs):
         self.oper = oper
         self.lhs = lhs
         self.rhs = rhs
 
     def __str__(self):
-        return f'{str(self.lhs)} {self.oper.symbol} {str(self.rhs)}'
+        lstr = str(self.lhs)
+        rstr = str(self.rhs)
+        if self.lhs.oper.precedence > self.oper.precedence:
+            lstr = fr'({lstr})'
+        if self.rhs.oper.precedence > self.oper.precedence:
+            rstr = fr'({rstr})'
+        return f'{lstr} {self.oper.symbol} {rstr}'
 
     def __repr__(self):
         return f'{self.oper.name}({repr(self.lhs)}, {repr(self.rhs)})'
 
     def _repr_tex_(self):
-        return f'{self.lhs._repr_tex_()} {self.oper.tex} {self.rhs._repr_tex_()}'
+        lstr = self.lhs._repr_tex_()
+        rstr = self.rhs._repr_tex_()
+        if self.lhs.oper.precedence > self.oper.precedence:
+            lstr = fr'\left({lstr}\right)'
+        if self.rhs.oper.precedence > self.oper.precedence:
+            rstr = fr'\left({rstr}\right)'
+        return f'{lstr} {self.oper.tex} {rstr}'
 
 
 def index(symbol):
