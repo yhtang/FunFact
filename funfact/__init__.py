@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Fun-Fact"""
-from ._lazytensor import index, indices, tensor, LazyTensor
+from ._abstract_tensor import index, indices, tensor
 
 
 __version__ = '0.5.7'
@@ -12,6 +12,6 @@ __license__ = 'see LICENSE file'
 __copyright__ = '''see COPYRIGHT file'''
 
 
-__all__ = [
-    'index', 'indices', 'tensor', 'LazyTensor'
-]
+# __all__ = [
+#     'index', 'indices', 'tensor'
+# ]
