@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from abc import ABC, abstractmethod
 import re
 import uuid
 import numbers
-from . import _primitive as P
+from ._expr import Expr
 
 
-class Symbol:
+class Symbol(ABC):
 
     @property
     def symbol(self):
@@ -14,18 +15,35 @@ class Symbol:
 
     @symbol.setter
     def symbol(self, string: str):
-        if string is None:
-            string = f'_{uuid.uuid4().hex[:8]}'
-
         assert string.isidentifier(), \
             f"A symbol must be a valid Python identifiers, not {repr(string)}."
         self._symbol = string
+
+    @abstractmethod
+    def _repr_tex_(self):
+        pass
+
+    def _repr_html_(self):
+        return f'''$${self._repr_tex_()}$$'''
 
 
 class Index(Symbol):
 
     def __init__(self, symbol):
         self.symbol = symbol
+
+    def __str__(self):
+        return str(self.symbol)
+
+    def __repr__(self):
+        return f'{type(self).__qualname__}({repr(self.symbol)})'
+
+    def _repr_tex_(self):
+        # return f'''{str(self.symbol)}'''
+        if len(self.symbol) > 1:
+            return fr'\left[{self.symbol}\right]'
+        else:
+            return self.symbol
 
 
 class AbstractTensor(Symbol):
@@ -45,7 +63,8 @@ class AbstractTensor(Symbol):
         or tuple.
     '''
 
-    def __init__(self, *size, symbol=None, initial=None):
+    def __init__(self, symbol, *size, initial=None):
+        self.symbol = symbol
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):
                 raise RuntimeError(
@@ -53,7 +72,6 @@ class AbstractTensor(Symbol):
                     f"got {n} for mode {d}."
                 )
         self._shape = tuple(map(int, size))
-        self.symbol = symbol
         self.initial = initial
 
     @property
@@ -62,9 +80,24 @@ class AbstractTensor(Symbol):
 
     def __getitem__(self, indices):
         try:
-            return P.Expression(P.p_idx, self, *indices)
+            return Expr('idx', self, *indices)
         except TypeError:
-            return P.Expression(P.p_idx, self, indices)
+            return Expr('idx', self, indices)
+
+    def __str__(self):
+        return str(self.symbol)
+
+    def __repr__(self):
+        return '{cls}({symbol}, {shape}{initial})'.format(
+            cls=type(self).__qualname__,
+            symbol=repr(self.symbol),
+            shape=self.shape,
+            initial=f', initial={repr(self.initial)}'
+                    if self.initial is not None else ''
+        )
+
+    def _repr_tex_(self):
+        return fr'''\mathbf{{{str(self.symbol)}}}'''
 
 
 def index(symbol):
@@ -75,5 +108,24 @@ def indices(symbols):
     return [index(s) for s in re.split(r'[,\s]+', symbols)]
 
 
-def tensor(*size, symbol=None, initial=None):
-    return AbstractTensor(*size, symbol=symbol, initial=initial)
+def tensor(*spec, initial=None):
+    '''Construct an abstract tensor using `spec`.
+
+    Parameters
+    ----------
+    spec:
+        Formats supported:
+
+        * symbol, size...
+        * size...
+
+    initial:
+        Initialization distribution
+    '''
+    if isinstance(spec[0], str):
+        symbol, *size = spec
+    else:
+        symbol = f'_{uuid.uuid4().hex[:8]}'
+        size = spec
+
+    return AbstractTensor(symbol, *size, initial=initial)
