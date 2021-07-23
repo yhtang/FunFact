@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
-import re
 import numbers
+import re
+import typing
 from ._expr import Expr
 
 
@@ -20,8 +21,10 @@ class Symbol(ABC):
         m = re.fullmatch('([a-zA-Z]+)(?:_(\d+))?', string)
         if m is None:
             raise RuntimeError(
-                'A symbol must be alphabetic with an optional numeric '
-                f'subscript,  got {repr(string)} instead.'
+                f'{repr(string)} is not a valid symbol.\n'
+                'A symbol must be alphabetic and optionally followed by an '
+                'underscore and a numeric subscript. '
+                'Examples: i, j, k_0, lhs, etc.'
             )
         self._letter, self._number = m.groups()
         if self._letter == 'Anonymous':
@@ -87,10 +90,18 @@ class AbstractTensor(Symbol):
     def shape(self):
         return self._shape
 
+    @property
+    def ndim(self):
+        return len(self._shape)
+
     def __getitem__(self, indices):
-        try:
+        if isinstance(indices, typing.Iterable):
+            assert len(indices) == self.ndim,\
+                f"Indices {indices} does not match the rank of tensor {self}."
             return Expr('idx', self, *indices)
-        except TypeError:
+        else:
+            assert 1 == self.ndim,\
+                f"Indices {indices} does not match the rank of tensor {self}."
             return Expr('idx', self, indices)
 
     def __str__(self):

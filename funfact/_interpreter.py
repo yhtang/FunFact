@@ -12,6 +12,8 @@ class LatexReprInterpreter:
 
     precedence = dict(
         idx=1,
+        call=2,
+        square=3,
         neg=4,
         mul=5,
         div=5,
@@ -22,6 +24,9 @@ class LatexReprInterpreter:
     rules = {}
     rules['idx'] = lambda tensor, *indices:\
         fr'''{{{tensor}}}_{{{''.join(map(str, indices))}}}'''
+    rules['call'] = lambda input, f: fr'\operatorname{{{f}}}{{{input}}}'
+    rules['square'] = lambda input: fr'{input}^{2}'
+    rules['neg'] = lambda input: fr'-{input}'
     rules['mul'] = lambda lhs, rhs: fr'{lhs} \times {rhs}'
     rules['div'] = lambda lhs, rhs: f'{lhs} / {rhs}'
     rules['add'] = lambda lhs, rhs: f'{lhs} + {rhs}'

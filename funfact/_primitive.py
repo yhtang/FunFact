@@ -4,6 +4,8 @@
 
 primitive_set = [
     'idx',
+    'call'
+    'square',
     'neg',
     'mul',
     'div',
