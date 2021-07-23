@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import numbers
 from ._interpreter import LatexReprInterpreter
 
 
@@ -50,12 +51,32 @@ class Expr:
         return neg(self)
 
 
-def neg(expr): return Expr('neg', expr)
+def _as_expr(value):
+    if isinstance(value, Expr):
+        return value
+    elif isinstance(value, numbers.Real):
+        return Expr('lit', value=value)
+    else:
+        raise RuntimeError(
+            f'Value {value} of type {type(value)} not allowed in expression.'
+        )
 
-def add(lhs, rhs): return Expr('add', lhs, rhs)
 
-def sub(lhs, rhs): return Expr('sub', lhs, rhs)
+def neg(expr):
+    return Expr('neg', expr)
 
-def mul(lhs, rhs): return Expr('mul', lhs, rhs)
 
-def div(lhs, rhs): return Expr('div', lhs, rhs)
+def add(lhs, rhs):
+    return Expr('add', _as_expr(lhs), _as_expr(rhs))
+
+
+def sub(lhs, rhs):
+    return Expr('sub', _as_expr(lhs), _as_expr(rhs))
+
+
+def mul(lhs, rhs):
+    return Expr('mul', _as_expr(lhs), _as_expr(rhs))
+
+
+def div(lhs, rhs):
+    return Expr('div', _as_expr(lhs), _as_expr(rhs))

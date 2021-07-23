@@ -11,6 +11,7 @@ class Evaluated(NamedTuple):
 class LatexReprInterpreter:
 
     precedence = dict(
+        lit=0,
         idx=1,
         call=2,
         square=3,
@@ -24,6 +25,7 @@ class LatexReprInterpreter:
     rules = {}
     rules['idx'] = lambda tensor, *indices:\
         fr'''{{{tensor}}}_{{{''.join(map(str, indices))}}}'''
+    rules['lit'] = lambda value: str(value)
     rules['call'] = lambda input, f: fr'\operatorname{{{f}}}{{{input}}}'
     rules['square'] = lambda input: fr'{input}^{2}'
     rules['neg'] = lambda input: fr'-{input}'

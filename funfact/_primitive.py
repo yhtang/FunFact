@@ -3,12 +3,13 @@
 
 
 primitive_set = [
-    'idx',
-    'call'
-    'square',
-    'neg',
-    'mul',
-    'div',
-    'add',
-    'sub',
+    'lit',  # literal values
+    'idx',  # tensor indexing
+    'call'  # function call
+    'square',  # element-wise square
+    'neg',  # negation
+    'mul',  # multiplication
+    'div',  # division
+    'add',  # addition
+    'sub',  # subtraction
 ]
