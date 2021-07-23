@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Fun-Fact"""
-from ._abstract_tensor import index, indices, tensor
+from ._tensor_notation import index, indices, tensor
 
 
 __version__ = '0.5.7'

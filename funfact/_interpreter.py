@@ -39,7 +39,7 @@ class LatexReprInterpreter:
                 part = arg.value
 
                 try:
-                    if self.precedence[arg.p] > precedence:
+                    if self.precedence[arg.expr.p] > precedence:
                         part = fr'\left({part}\right)'
                 except AttributeError:
                     pass
@@ -53,32 +53,3 @@ class LatexReprInterpreter:
 # TODO: 
 # meta-interpreter, e.g. a tracer interpreter that converts any interpreter
 # into one that returns an interpreted tree.
-
-
-# def __str__(self):
-#     lstr = str(self.lhs)
-#     rstr = str(self.rhs)
-#     if self.lhs.oper.precedence > self.oper.precedence:
-#         lstr = fr'({lstr})'
-#     if self.rhs.oper.precedence > self.oper.precedence:
-#         rstr = fr'({rstr})'
-#     return f'{lstr} {self.oper.symbol} {rstr}'
-
-
-# index expr
-def __str__(self):
-    return '{tensor}[{indices}]'.format(
-        tensor=str(self.tensor),
-        indices=', '.join(map(str, self.indices))
-    )
-
-def __repr__(self):
-    return '{tensor}[{indices}]'.format(
-        tensor=repr(self.tensor),
-        indices=', '.join(map(repr, self.indices))
-    )
-
-def repr_tex(self):
-    idx = ''.join([i.repr_tex() for i in self.indices])
-    return fr'''{{{self.tensor.repr_tex()}}}_{{{idx}}}'''
-

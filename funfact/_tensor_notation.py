@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
 import re
-import uuid
 import numbers
 from ._expr import Expr
 
@@ -11,13 +10,22 @@ class Symbol(ABC):
 
     @property
     def symbol(self):
-        return self._symbol
+        if self._number is not None:
+            return f'{self._letter}_{self._number}'
+        else:
+            return self._letter
 
     @symbol.setter
     def symbol(self, string: str):
-        assert string.isidentifier(), \
-            f"A symbol must be a valid Python identifiers, not {repr(string)}."
-        self._symbol = string
+        m = re.fullmatch('([a-zA-Z]+)(?:_(\d+))?', string)
+        if m is None:
+            raise RuntimeError(
+                'A symbol must be alphabetic with an optional numeric '
+                f'subscript,  got {repr(string)} instead.'
+            )
+        self._letter, self._number = m.groups()
+        if self._letter == 'Anonymous':
+            self._letter = r'\varphi'
 
     @abstractmethod
     def _repr_tex_(self):
@@ -39,11 +47,10 @@ class Index(Symbol):
         return f'{type(self).__qualname__}({repr(self.symbol)})'
 
     def _repr_tex_(self):
-        # return f'''{str(self.symbol)}'''
-        if len(self.symbol) > 1:
-            return fr'\left[{self.symbol}\right]'
+        if self._number is not None:
+            return fr'{{{self._letter}}}_{{{self._number}}}'
         else:
-            return self.symbol
+            return fr'{{{self._letter}}}'
 
 
 class AbstractTensor(Symbol):
@@ -62,6 +69,8 @@ class AbstractTensor(Symbol):
         Can be either a variable number of arguments or an iterable like a list
         or tuple.
     '''
+
+    n_nameless = 0
 
     def __init__(self, symbol, *size, initial=None):
         self.symbol = symbol
@@ -97,7 +106,10 @@ class AbstractTensor(Symbol):
         )
 
     def _repr_tex_(self):
-        return fr'''\mathbf{{{str(self.symbol)}}}'''
+        if self._number is not None:
+            return fr'\boldsymbol{{{self._letter}}}^{{({self._number})}}'
+        else:
+            return fr'\boldsymbol{{{self._letter}}}'
 
 
 def index(symbol):
@@ -125,7 +137,8 @@ def tensor(*spec, initial=None):
     if isinstance(spec[0], str):
         symbol, *size = spec
     else:
-        symbol = f'_{uuid.uuid4().hex[:8]}'
+        symbol = f'Anonymous_{AbstractTensor.n_nameless}'
+        AbstractTensor.n_nameless += 1
         size = spec
 
     return AbstractTensor(symbol, *size, initial=initial)
