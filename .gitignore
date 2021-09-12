@@ -144,3 +144,5 @@ dmypy.json
 
 # VS Code
 .vscode/
+
+venv-*/*
