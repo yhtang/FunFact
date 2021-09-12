@@ -111,8 +111,7 @@ class RBFExpansion(RBFExpansionBasePyCUDA):
 
         u0 = rng.normal(0.0, 0.1, (N, R, E)) if u0 is None else u0
         v0 = rng.normal(0.0, 0.1, (M, R, E)) if v0 is None else v0
-        # a0 = rng.normal(0.0, 1.0, (R, E)) if a0 is None else a0
-        a0 = rng.normal(0.0, np.std(target) / np.sqrt(self.r), (R, E)) if a0 is None else a0
+        a0 = rng.normal(0.0, np.std(target) / np.sqrt(R), (R, E)) if a0 is None else a0
         b0 = rng.normal(0.0, 1.0, (E,)) if b0 is None else b0
 
         u = self._as_cuda_array(u0, dtype=np.float32, order='F')
@@ -183,13 +182,104 @@ class RBFExpansion(RBFExpansionBasePyCUDA):
             ) + b[None, None, ...]
 
         self.report = self._grad_opt(
-            # f_cuda, (u0, v0, a0, b0), plugins
             f_cuda, (u, v, a, b), plugins
         )
 
         self._optimum = self.Model(
             # self.rbf,
             f_cpu, self.report.x_best, x_names=['u', 'v', 'a', 'b']
+        )
+
+        return self
+
+    def fith(
+        self, target, seed=None, plugins=[], u0=None, a0=None, b0=None
+    ):
+        rng = np.random.default_rng(seed)
+
+        A = self._as_cuda_array(target, dtype=np.float32, order='F')
+        E = self.ensemble_size
+        R = self.r
+        N, M = A.shape
+        assert(
+            N == M and np.allclose(A, A.T),
+            'fith() only works for symmetric matrices'
+        )
+
+        u0 = rng.normal(0.0, 0.1, (N, R, E)) if u0 is None else u0
+        a0 = rng.normal(0.0, np.std(target) / np.sqrt(R), (R, E)) if a0 is None else a0
+        b0 = rng.normal(0.0, 1.0, (E,)) if b0 is None else b0
+
+        u = self._as_cuda_array(u0, dtype=np.float32, order='F')
+        a = self._as_cuda_array(a0, dtype=np.float32, order='F')
+        b = self._as_cuda_array(b0, dtype=np.float32, order='F')
+
+        L = ManagedArray.zeros((E,), dtype=np.float32, order='F')
+        du = ManagedArray.zeros((N, R, E), dtype=np.float32, order='F')
+        da = ManagedArray.zeros((R, E), dtype=np.float32, order='F')
+        db = ManagedArray.zeros((E,), dtype=np.float32, order='F')
+
+        kernel = SourceModule(
+            self.src.render(
+                E=E, N=N, M=M, R=R,
+                n=self.cuda_tile_size[0],
+                m=self.cuda_tile_size[1],
+                r=self.cuda_tile_size[2],
+                thread_per_block=self.cuda_thread_per_block,
+                block_per_inst=self.cuda_block_per_inst
+            ),
+            options=['-std=c++14',
+                     '-O4',
+                     '--use_fast_math',
+                     '--expt-relaxed-constexpr',
+                     '--maxrregcount=64',
+                     '-Xptxas', '-v',
+                     '-lineinfo',
+                     ],
+            no_extern_c=True,
+            keep=True
+        ).get_function('rbf_expansion_ensemble')
+
+        def f_cuda(x):
+            u, a, b = x
+            u = self._as_cuda_array(u, dtype=np.float32, order='F')
+            a = self._as_cuda_array(a, dtype=np.float32, order='F')
+            b = self._as_cuda_array(b, dtype=np.float32, order='F')
+            self._zero_cuda_array(L)
+            self._zero_cuda_array(du)
+            self._zero_cuda_array(da)
+            self._zero_cuda_array(db)
+
+            kernel(
+                A, u, u, a, b, L, du, du, da, db,
+                block=(self.cuda_thread_per_block, 1, 1),
+                grid=(self.cuda_block_per_inst, self.ensemble_size)
+            )
+
+            self.cuda_context.synchronize()
+
+            return np.copy(L), (du, da, db)
+
+        def f_cpu(
+            # rbf,
+            u, a, b
+        ):
+            return np.sum(
+                np.exp(
+                    -np.square(
+                        u[:, None, ...] - u[None, :, ...]
+                    )
+                ) * a[None, None, ...],
+                axis=2
+            ) + b[None, None, ...]
+
+        self.report = self._grad_opt(
+            f_cuda, (u, a, b), plugins
+        )
+
+        self._optimum = self.Model(
+            # self.rbf,
+            f_cpu, self.report.x_best, x_names=['u', 'a', 'b']
         )
 
         return self
@@ -247,70 +337,3 @@ class RBFExpansion(RBFExpansionBasePyCUDA):
         )
 
         return report
-
-    # def fith(self, target, seed=None, plugins=[], u0=None, a0=None, b0=None):
-
-    #     with torch.random.fork_rng(devices=[self.device]):
-    #         if seed:
-    #             torch.random.manual_seed(seed)
-
-    #         target = torch.as_tensor(target, device=self.device).unsqueeze(0)
-    #         _, n, m = target.shape
-    #         assert n == m
-
-    #         u0 = self.as_tensor(u0) if u0 is not None else \
-    #             self.randn(self.batch_size, n, self.k)
-    #         a0 = self.as_tensor(a0) if a0 is not None else \
-    #             self.randn(self.batch_size, self.k)
-    #         b0 = self.as_tensor(b0) if b0 is not None else \
-    #             self.randn(self.batch_size)
-
-    #         def f(rbf, u, a, b):
-    #             return torch.sum(
-    #                 rbf(u[..., :, None, :] - u[..., None, :, :]) *
-    #                 a[..., None, None, :],
-    #                 dim=-1
-    #             ) + b[..., None, None]
-
-    #         self.report = self._grad_opt(
-    #             target,
-    #             self.ModelPlus(
-    #                 self.rbf, f, (u0, a0, b0), x_names=['u', 'a', 'b'],
-    #                 default_grad_on=True
-    #             ),
-    #             plugins
-    #         )
-
-    #         self._optimum = self.ModelPlus(
-    #             self.rbf, f, self.report.x_best, x_names=['u', 'a', 'b'],
-    #             default_device='cpu'
-    #         )
-
-    #         return self
-
-    # def fit_custom(self, target, f, seed=None, plugins=[], **x0):
-
-    #     with torch.random.fork_rng(devices=[self.device]):
-    #         if seed:
-    #             torch.random.manual_seed(seed)
-
-    #         target = torch.as_tensor(target, device=self.device).unsqueeze(0)
-    #         _, n, m = target.shape
-
-    #         x = [self.as_tensor(w) for w in x0.values()]
-
-    #         self.report = self._grad_opt(
-    #             target,
-    #             self.ModelPlus(
-    #                 self.rbf, f, x, x_names=list(x0.keys()),
-    #                 default_grad_on=True
-    #             ),
-    #             plugins
-    #         )
-
-    #         self._optimum = self.ModelPlus(
-    #             self.rbf, f, self.report.x_best, x_names=list(x0.keys()),
-    #             default_device='cpu'
-    #         )
-
-    #         return self
