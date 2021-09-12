@@ -49,9 +49,6 @@ __global__ void rbf_expansion_ensemble(
     const int i_warp_local = i_thread / warp_size;
     const int i_warp_inst  = i_warp_local + i_block * warp_per_block;
 
-    // const int warp_id_local = threadIdx.x / warp_size;
-    // const int warp_id_global = warp_id_local + blockIdx.x * blockDim.x / warp_size;
-
     auto  A = tensor_view<MemoryLayout::Fortran>(ptr_A,  N, M      );
     auto  u = tensor_view<MemoryLayout::Fortran>(ptr_u,  N,    R, E);
     auto du = tensor_view<MemoryLayout::Fortran>(ptr_du, N,    R, E);
@@ -71,14 +68,9 @@ __global__ void rbf_expansion_ensemble(
     volatile __shared__ float  a_cache[warp_per_block][        r];
     volatile __shared__ float da_cache[warp_per_block][        r];
 
-    // auto  A_warp = f_tensor_view( A_cache[i_warp_local], n, m);
-    // auto dA_warp = f_tensor_view( A_cache[i_warp_local], n, m);  // reuse the buffer of A
-    auto  u_warp = f_tensor_view( u_cache[i_warp_local], n, r);
-    // auto du_warp = f_tensor_view(du_cache[i_warp_local], n, r);
-    auto  v_warp = f_tensor_view( v_cache[i_warp_local], m, r);
-    // auto dv_warp = f_tensor_view(dv_cache[i_warp_local], m, r);
-    auto  a_warp = f_tensor_view( a_cache[i_warp_local], r);
-    // auto da_warp = f_tensor_view(da_cache[i_warp_local], r);
+    auto u_warp = f_tensor_view(u_cache[i_warp_local], n, r);
+    auto v_warp = f_tensor_view(v_cache[i_warp_local], m, r);
+    auto a_warp = f_tensor_view(a_cache[i_warp_local], r);
 
     float  A_local[elem_per_thread];
     float dA_local[elem_per_thread];
@@ -96,10 +88,6 @@ __global__ void rbf_expansion_ensemble(
         // upper-left coordinate of the tile
         int I = tile_id % tiles_n * n;
         int J = tile_id / tiles_n * m;
-
-        // if (lane == 0) {
-        //     printf("IJ: %d %d, tiles_n, tiles_m %d %d,\n", I, J, tiles_n, tiles_m);
-        // }
 
         __debug__
 
@@ -120,7 +108,7 @@ __global__ void rbf_expansion_ensemble(
 
         for(int K = 0; K < R; K += r) { // loop over RBF components
 
-            // prepare block-level cache
+            // prepare warp-level cache
             #pragma unroll
             par_for(p, n * r) {
                 auto i = p % n;
@@ -168,7 +156,6 @@ __global__ void rbf_expansion_ensemble(
         //----------------------------------------------------------------------
         // loss calculations
 
-        // TODO: reduction for total loss
         #pragma unroll (elem_per_thread)
         par_enumerate(q, p, n * m) {
             auto i = p % n;
@@ -199,7 +186,6 @@ __global__ void rbf_expansion_ensemble(
                 auto k = p / n;
                 if (I + i < N && K + k < R) {
                     u_warp (i, k) = u(I + i, K + k, i_instance);
-                    // du_warp(i, k) = 0;
                 }
             }
             #pragma unroll
@@ -208,19 +194,15 @@ __global__ void rbf_expansion_ensemble(
                 auto k = p / m;
                 if (J + j < M && K + k < R) {
                     v_warp (j, k) = v(J + j, K + k, i_instance);
-                    // dv_warp(j, k) = 0;
                 }
             }
             #pragma unroll
             par_for(k, r) {
                 a_warp (k) = a(K + k, i_instance);
-                // da_warp(k) = 0;
             }
             __syncthreads();
 
             __debug__
-
-            // constexpr static int cols_per_wave = warp_size / n;
 
             #pragma unroll
             par_enumerate(q, p, n * m) {
@@ -234,7 +216,6 @@ __global__ void rbf_expansion_ensemble(
                     auto d = u_warp(i, k) - v_warp(j, k);
                     auto eij = active ? expf(-d * d) : 0.f;
                     auto duv = active ? (-2.f * dA * a_warp(k) * eij * d) : 0.f;
-                    // printf("i %d j %d n %d m %d p %d active %d duv %f\n", i, j, n, m, p, active, duv);
 
                     auto delta_u = duv;
                     auto delta_v = -duv;
@@ -245,28 +226,13 @@ __global__ void rbf_expansion_ensemble(
                         delta_v += __shfl_xor_sync(0xFFFFFFFF, delta_v, mask);
                     }
                     if (lane < n) {
-                        // du_warp(i, k) += delta_u;
                         atomicAdd(du.at(I + i, K + k, i_instance), delta_u);
                     }
                     if (lane % n == 0) {
-                        // dv_warp(j, k) += delta_v;
                         atomicAdd(dv.at(J + j, K + k, i_instance), delta_v);
                     }
 
-                    // for(int m = 1; m < n; m <<= 1) {
-                    //     delta_u += __shfl_xor_sync(m, delta_u, 0xFFFFFFFF);
-                    // }
-                    // if (lane % n)
-
-                    // if (active) atomicAdd(du_warp.at(i, k),  duv);
-                    // printf("instance %d block %d thread %d write to du %d, %d\n", i_instance, i_block, i_thread, i, k);
-                    // __syncthreads();
-                    // if (active) atomicAdd(dv_warp.at(j, k), -duv);
-                    // // printf("instance %d block %d thread %d write to dv %d, %d\n", i_instance, i_block, i_thread, j, k);
-                    // __syncthreads();
                     auto delta_a = warp_sum(dA * eij);
-                    // if (lane == 0) atomicAdd((float*)da_warp.at(k), da);
-                    // if (lane == 0) da_warp(k) += da;
                     if (lane == 0) {
                         atomicAdd(da.at(K + k, i_instance), delta_a);
                     }
@@ -277,31 +243,6 @@ __global__ void rbf_expansion_ensemble(
             __syncthreads();
 
             __debug__
-
-            // store tile/depth results to global memory
-            #if 0
-            #pragma unroll
-            par_for(p, n * r) {
-                auto i = p % n;
-                auto k = p / n;
-                if (I + i < N && K + k < R) {
-                    // printf("thread %d adding %f @ (%d, %d) to du[%d, %d, %d]\n", threadIdx.x, du_warp(i, k), i, k, I + i, K + k, i_instance);
-                    atomicAdd(du.at(I + i, K + k, i_instance), du_warp(i, k));
-                }
-            }
-            #pragma unroll
-            par_for(p, m * r) {
-                auto j = p % m;
-                auto k = p / m;
-                if (J + j < M && K + k < R) {
-                    atomicAdd(dv.at(J + j, K + k, i_instance), dv_warp(j, k));
-                }
-            }
-            #pragma unroll
-            par_for(k, r) {
-                atomicAdd(da.at(K + k, i_instance), da_warp(k));
-            }
-            #endif
         }
         __debug__
 
