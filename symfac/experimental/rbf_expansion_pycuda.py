@@ -6,12 +6,10 @@ import warnings
 import numpy as np
 import pycuda.autoinit
 import pycuda.driver as cuda
-from pycuda.compiler import SourceModule
 import tqdm
 
-import symfac.cpp
-from symfac.cpp import Template
-from symfac.cuda import ManagedArray
+from symfac.cpp import get_cpp_file, Template
+from symfac.cuda import jit, ManagedArray
 import symfac.optim as optim
 
 from .rbf_expansion_base_pycuda import RBFExpansionBasePyCUDA
@@ -92,11 +90,7 @@ class RBFExpansion(RBFExpansionBasePyCUDA):
         try:
             return self._src
         except AttributeError:
-            self._src = Template(
-                open(
-                    symfac.cpp.__path__[0] + '/rbf_expansion_ensemble.cu'
-                ).read()
-            )
+            self._src = Template(get_cpp_file('rbf_expansion_ensemble.cu'))
         return self._src
 
     def fit(
@@ -125,7 +119,7 @@ class RBFExpansion(RBFExpansionBasePyCUDA):
         da = ManagedArray.zeros((R, E), dtype=np.float32, order='F')
         db = ManagedArray.zeros((E,), dtype=np.float32, order='F')
 
-        kernel = SourceModule(
+        kernel = jit(
             self.src.render(
                 E=E, N=N, M=M, R=R,
                 n=self.cuda_tile_size[0],
@@ -134,17 +128,8 @@ class RBFExpansion(RBFExpansionBasePyCUDA):
                 thread_per_block=self.cuda_thread_per_block,
                 block_per_inst=self.cuda_block_per_inst
             ),
-            options=['-std=c++14',
-                     '-O4',
-                     '--use_fast_math',
-                     '--expt-relaxed-constexpr',
-                     '--maxrregcount=64',
-                     '-Xptxas', '-v',
-                     '-lineinfo',
-                     ],
-            no_extern_c=True,
-            keep=True
-        ).get_function('rbf_expansion_ensemble')
+            'rbf_expansion_ensemble'
+        )
 
         def f_cuda(x):
             u, v, a, b = x
@@ -201,10 +186,9 @@ class RBFExpansion(RBFExpansionBasePyCUDA):
         E = self.ensemble_size
         R = self.r
         N, M = A.shape
-        assert(
-            N == M and np.allclose(A, A.T),
+        assert \
+            N == M and np.allclose(A, A.T), \
             'fith() only works for symmetric matrices'
-        )
 
         u0 = rng.normal(0.0, 0.1, (N, R, E)) if u0 is None else u0
         a0 = rng.normal(0.0, np.std(target) / np.sqrt(R), (R, E)) if a0 is None else a0
@@ -219,7 +203,7 @@ class RBFExpansion(RBFExpansionBasePyCUDA):
         da = ManagedArray.zeros((R, E), dtype=np.float32, order='F')
         db = ManagedArray.zeros((E,), dtype=np.float32, order='F')
 
-        kernel = SourceModule(
+        kernel = jit(
             self.src.render(
                 E=E, N=N, M=M, R=R,
                 n=self.cuda_tile_size[0],
@@ -228,17 +212,8 @@ class RBFExpansion(RBFExpansionBasePyCUDA):
                 thread_per_block=self.cuda_thread_per_block,
                 block_per_inst=self.cuda_block_per_inst
             ),
-            options=['-std=c++14',
-                     '-O4',
-                     '--use_fast_math',
-                     '--expt-relaxed-constexpr',
-                     '--maxrregcount=64',
-                     '-Xptxas', '-v',
-                     '-lineinfo',
-                     ],
-            no_extern_c=True,
-            keep=True
-        ).get_function('rbf_expansion_ensemble')
+            'rbf_expansion_ensemble'
+        )
 
         def f_cuda(x):
             u, a, b = x

@@ -1,10 +1,11 @@
 #include <type_traits>
 #include "cuda_util.h"
+#include "tea.h"
 #include "tensor_view.h"
 
 extern "C" {
 
-__global__ void rbf_expansion_ensemble(
+__global__ void rbf_expansion_ensemble_minibatch(
     float * __restrict ptr_A,
     float * __restrict ptr_u,
     float * __restrict ptr_v,
@@ -20,16 +21,6 @@ __global__ void rbf_expansion_ensemble(
     constexpr static int N = ${N};  // number of matrix rows
     constexpr static int M = ${M};  // number of matrix columns
     constexpr static int R = ${R};  // number of RBF components
-    constexpr static int n = ${n};
-    constexpr static int m = ${m};
-    constexpr static int r = ${r};
-    constexpr static int tiles_n = (N + n - 1) / n;
-    constexpr static int tiles_m = (M + m - 1) / m;
-
-    static_assert(
-        n * m > 0 && n * m % 32 == 0,
-        "Tile size in number of elements must be non-negative multiple of 32."
-    );
 
     /*---------------------------------------------------
     a kernel call = an ensemble of instances
@@ -37,17 +28,13 @@ __global__ void rbf_expansion_ensemble(
     a block       = loop over tiles of the target matrix
     ---------------------------------------------------*/
 
+    constexpr static int ilp              = ${ilp};
     constexpr static int thread_per_block = ${thread_per_block}; // == blockDim.x;
     constexpr static int block_per_inst   = ${block_per_inst};   // == gridDim.x;
-    constexpr static int warp_per_block   = thread_per_block / warp_size;
-    constexpr static int warp_per_inst    = warp_per_block * block_per_inst;
-    constexpr static int elem_per_thread  = n * m / warp_size;
     const int i_thread     = threadIdx.x;
     const int i_block      = blockIdx.x;
     const int i_instance   = blockIdx.y;
     const int lane         = i_thread % warp_size;
-    const int i_warp_local = i_thread / warp_size;
-    const int i_warp_inst  = i_warp_local + i_block * warp_per_block;
 
     auto  A = tensor_view<MemoryLayout::Fortran>(ptr_A,  N, M      );
     auto  u = tensor_view<MemoryLayout::Fortran>(ptr_u,  N,    R, E);
@@ -60,16 +47,12 @@ __global__ void rbf_expansion_ensemble(
     auto db = tensor_view<MemoryLayout::Fortran>(ptr_db,          E);
     auto  L = tensor_view<MemoryLayout::Fortran>(ptr_L,           E);
 
-    volatile __shared__ float  u_cache[warp_per_block][n * r];
-    volatile __shared__ float  v_cache[warp_per_block][m * r];
-    volatile __shared__ float  a_cache[warp_per_block][    r];
+    volatile __shared__ float  a_cache[warp_per_block][r];
 
-    auto u_warp = f_tensor_view(u_cache[i_warp_local], n, r);
-    auto v_warp = f_tensor_view(v_cache[i_warp_local], m, r);
-    auto a_warp = f_tensor_view(a_cache[i_warp_local], r);
+    auto  a_warp = f_tensor_view( a_cache[i_warp_local], r);
 
-    float  A_local[elem_per_thread];
-    float dA_local[elem_per_thread];
+    float  A_local[ilp];
+    float dA_local[ilp];
 
     float db_local = 0;
     float loss_local = 0;

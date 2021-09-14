@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-from pycuda.compiler import SourceModule
 
-import symfac.cpp
-from symfac.cuda import ManagedArray
+from symfac.cpp import get_cpp_file
+from symfac.cuda import jit, ManagedArray
 
 
 class Adam:
@@ -14,18 +13,7 @@ class Adam:
         try:
             return cls._kernel
         except AttributeError:
-            cls._kernel = SourceModule(
-                open(symfac.cpp.__path__[0] + '/adam.cu').read(),
-                options=['-std=c++14',
-                         '-O4',
-                         '--use_fast_math',
-                         '--expt-relaxed-constexpr',
-                         '--maxrregcount=64',
-                         '-Xptxas', '-v',
-                         '-lineinfo'],
-                no_extern_c=True
-            ).get_function('adam')
-
+            cls._kernel = jit(get_cpp_file('adam.cu'), 'adam')
             return cls._kernel
 
     @property
