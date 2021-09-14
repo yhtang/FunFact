@@ -4,7 +4,6 @@ from collections import namedtuple
 import warnings
 
 import numpy as np
-import pycuda.autoinit
 import pycuda.driver as cuda
 import tqdm
 
@@ -12,10 +11,10 @@ from symfac.cpp import get_cpp_file, Template
 from symfac.cuda import jit, ManagedArray
 import symfac.optim as optim
 
-from .rbf_expansion_base_pycuda import RBFExpansionBasePyCUDA
+from ._base import RBFExpansionBasePyCUDA
 
 
-class RBFExpansion(RBFExpansionBasePyCUDA):
+class RBFExpansionDenseFullGrad(RBFExpansionBasePyCUDA):
 
     def __init__(
         self, r=1,

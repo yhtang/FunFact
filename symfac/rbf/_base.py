@@ -3,14 +3,13 @@
 from collections import namedtuple
 import dill
 import numpy as np
+import pycuda.autoinit
 import pycuda.tools
 import pycuda.driver as cuda
 from symfac.cuda import ManagedArray
 
 
 class RBFExpansionBasePyCUDA:
-
-    Optimizer = namedtuple('Optimizer', ['init', 'update', 'get_params'])
 
     @staticmethod
     def as_namedtuple(name, **kwargs):
