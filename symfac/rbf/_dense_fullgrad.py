@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from collections import namedtuple
-import warnings
-
 import numpy as np
-import pycuda.driver as cuda
 import tqdm
 
 from symfac.cpp import get_cpp_file, Template
@@ -68,10 +64,11 @@ class RBFExpansionDenseFullGrad(RBFExpansionBasePyCUDA):
             self.algorithm = algorithm
 
         self.lr = lr
-        self.cuda_context = self._get_cuda_context(cuda_device)
+        self.cuda_device = cuda_device
         self.cuda_block_per_inst = cuda_block_per_inst
         self.cuda_thread_per_block = cuda_thread_per_block
         self.cuda_tile_size = cuda_tile_size
+        self.cuda_context.synchronize()
 
         if progressbar == 'default':
             self.progressbar = lambda n: tqdm.trange(

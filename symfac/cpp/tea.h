@@ -14,13 +14,13 @@ struct TEA {
         _pass<N - 1>(_0, _1, sum);
     }
 
-    template<> __inline__ __host__ __device__
-    static void _pass<0>(uint &_0, uint &_1, uint sum) {}
-
     template<int N> __inline__ __host__ __device__
-    static uint2 TEA(uint key, uint counter)
+    static uint2 CBRNG(uint key, uint counter)
     {
         _pass<N>(key, counter);
         return make_uint2(key, counter);
     }
 };
+
+template<> __inline__ __host__ __device__
+void TEA::_pass<0>(uint &_0, uint &_1, uint sum) {}

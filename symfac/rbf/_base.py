@@ -44,14 +44,24 @@ class RBFExpansionBasePyCUDA:
         )
 
     def to_pickle(self, file):
-        open(file, 'wb').write(dill.dumps(self.__dict__))
+        state = self.__dict__.copy()
+        state.pop('_cuda_context', None)
+        open(file, 'wb').write(dill.dumps(state))
 
     @classmethod
     def from_pickle(cls, file):
-        fac = cls(k=0)
+        fac = cls()
         for key, val in dill.loads(open(file, 'rb').read()).items():
             setattr(fac, key, val)
         return fac
+
+    @property
+    def cuda_context(self):
+        try:
+            return self._cuda_context
+        except AttributeError:
+            self._cuda_context = self._get_cuda_context(self.cuda_device)
+            return self._cuda_context
 
     @property
     def config(self):
@@ -119,61 +129,3 @@ class RBFExpansionBasePyCUDA:
 
         def __setstate__(self, state):
             vars(self).update(state)
-
-    # class ModelPlus:
-    #     '''An approximation of a dense matrix as a sum of RBF over distance
-    #     matrices.
-    #     '''
-
-    #     def __init__(
-    #         self, rbf, f, x, x_names=None, default_device=None,
-    #         default_grad_on=False
-    #     ):
-    #         for w in x:
-    #             assert w.shape[0] == x[0].shape[0],\
-    #                 "Inconsisent component size."
-    #         self.rbf = rbf
-    #         self.f = f
-    #         self.x = x
-    #         self.x_names = x_names
-    #         self.default_device = default_device
-    #         self.default_grad_on = default_grad_on
-
-    #     def __repr__(self):
-    #         xns = ', '.join(self.x_names)
-    #         return f'<batch of {len(self)} RBF expansions [x_names = {xns}]>'
-
-    #     def __len__(self):
-    #         return len(self.x[0])
-
-    #     def __call__(
-    #         self, runs=None, components=None, device=None, grad_on=None
-    #     ):
-    #         if grad_on is None:
-    #             grad_on = self.default_grad_on
-    #         with torch.set_grad_enabled(grad_on):
-    #             x = self.x
-    #             if runs is not None:
-    #                 x = [w[runs, ...] for w in x]
-    #             if components is not None:
-    #                 components = torch.as_tensor(components)
-    #                 if components.dim() == 0:
-    #                     components = components.unsqueeze(0)
-    #                 x = [w[..., components]
-    #                      if len(w.shape) > 0 else torch.zeros_like(w)
-    #                      for w in x]
-    #             device = device or self.default_device
-    #             return self.f(self.rbf, *x).to(device)
-
-    #     @property
-    #     def funrank(self):
-    #         return len(self.x[-1])
-
-    #     def __getattr__(self, a):
-    #         return self.x[self.x_names.index(a)]
-
-    #     def __getstate__(self):
-    #         return vars(self)
-
-    #     def __setstate__(self, state):
-    #         vars(self).update(state)
