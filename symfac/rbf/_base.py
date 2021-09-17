@@ -3,24 +3,18 @@
 from collections import namedtuple
 import dill
 import numpy as np
-import pycuda.autoinit
-import pycuda.tools
 import pycuda.driver as cuda
-from symfac.cuda import ManagedArray
+from symfac.cuda import context_manager, ManagedArray
 
 
 class RBFExpansionBasePyCUDA:
 
+    def __init__(self):
+        context_manager.autoinit()
+
     @staticmethod
     def as_namedtuple(name, **kwargs):
         return namedtuple(name, list(kwargs.keys()))(*kwargs.values())
-
-    @staticmethod
-    def _get_cuda_context(device):
-        if device == 'auto':
-            return pycuda.tools.make_default_context()
-        else:
-            return cuda.Device(device).make_context()
 
     @staticmethod
     def _as_cuda_array(arr, dtype=None, order=None):
@@ -45,7 +39,6 @@ class RBFExpansionBasePyCUDA:
 
     def to_pickle(self, file):
         state = self.__dict__.copy()
-        state.pop('_cuda_context', None)
         open(file, 'wb').write(dill.dumps(state))
 
     @classmethod
@@ -54,14 +47,6 @@ class RBFExpansionBasePyCUDA:
         for key, val in dill.loads(open(file, 'rb').read()).items():
             setattr(fac, key, val)
         return fac
-
-    @property
-    def cuda_context(self):
-        try:
-            return self._cuda_context
-        except AttributeError:
-            self._cuda_context = self._get_cuda_context(self.cuda_device)
-            return self._cuda_context
 
     @property
     def config(self):

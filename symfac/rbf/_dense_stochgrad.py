@@ -4,7 +4,7 @@ import numpy as np
 import tqdm
 
 from symfac.cpp import get_cpp_file, Template
-from symfac.cuda import jit, ManagedArray
+from symfac.cuda import jit, context_manager, ManagedArray
 import symfac.optim as optim
 
 from ._base import RBFExpansionBasePyCUDA
@@ -18,13 +18,14 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
         ensemble_size=64, max_steps=10000,
         mini_batch_size=1024,
         # loss='mse_loss',  # TODO: support custom exprs using sympy
-        algorithm='Adam', lr=0.1,
+        algorithm='Adam', lr=0.05,
         progressbar='default',
-        cuda_device='auto',
         cuda_thread_per_block=64,
         cuda_block_per_inst=2,
         cuda_tile_size=(8, 8, 8),
     ):
+        super().__init__()
+
         self.r = r
 
         # if callable(rbf):
@@ -66,7 +67,6 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
             self.algorithm = algorithm
 
         self.lr = lr
-        self.cuda_context = self._get_cuda_context(cuda_device)
         self.cuda_block_per_inst = cuda_block_per_inst
         self.cuda_thread_per_block = cuda_thread_per_block
         self.cuda_tile_size = cuda_tile_size
@@ -77,10 +77,6 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
             )
         else:
             self.progressbar = progressbar
-
-    def __del__(self):
-        self.cuda_context.synchronize()
-        self.cuda_context.pop()
 
     @property
     def src(self):
@@ -147,7 +143,7 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
                 grid=(self.cuda_block_per_inst, self.ensemble_size)
             )
 
-            self.cuda_context.synchronize()
+            context_manager.context.synchronize()
 
             return np.copy(L), (du, dv, da, db)
 
@@ -229,7 +225,7 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
                 grid=(self.cuda_block_per_inst, self.ensemble_size)
             )
 
-            self.cuda_context.synchronize()
+            context_manager.context.synchronize()
 
             return np.copy(L), (du, da, db)
 

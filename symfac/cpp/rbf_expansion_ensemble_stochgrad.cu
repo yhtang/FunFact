@@ -128,7 +128,6 @@ __global__ void rbf_expansion_ensemble_stochgrad(
     atomicAdd( L.at(i_instance), loss_local);
     __syncthreads();
     __debug__
-
 }
 
 }
