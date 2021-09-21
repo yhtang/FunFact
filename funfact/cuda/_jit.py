@@ -12,11 +12,11 @@ def jit(source, name, *compiler_options, **pycuda_options):
                  '--use_fast_math',
                  '--expt-relaxed-constexpr',
                  '--maxrregcount=64',
-                 '-Xptxas', '-v',
+                 # '-Xptxas', '-v',
                  '-lineinfo',
                  *compiler_options],
         include_dirs=funfact.cpp.__path__,
         no_extern_c=True,
-        keep=True,
+        # keep=True,
         **pycuda_options
     ).get_function(name)
