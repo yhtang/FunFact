@@ -3,5 +3,5 @@
 import os
 
 
-def get_cpp_file(filename):
-    return open(os.path.join(os.path.dirname(__file__), filename)).read()
+def get_cpp_file(*path):
+    return open(os.path.join(os.path.dirname(__file__), *path)).read()

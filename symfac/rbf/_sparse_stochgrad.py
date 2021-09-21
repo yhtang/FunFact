@@ -86,10 +86,10 @@ class RBFExpansionSparseStochasticGrad(RBFExpansionBasePyCUDA):
         try:
             return self._src
         except AttributeError:
-            self._src = Template(
-                get_cpp_file('rbf_expansion_sparse_stochgrad.cu')
-            )
-        return self._src
+            self._src = Template(get_cpp_file(
+                'rbf-expansion-ensemble', 'sparse-stoch-grad.cu'
+            ))
+            return self._src
 
     def fit(
         self, target, seed=None, plugins=[], u0=None, v0=None, a0=None, b0=None
@@ -207,87 +207,114 @@ class RBFExpansionSparseStochasticGrad(RBFExpansionBasePyCUDA):
 
         return self
 
-    # def fith(
-    #     self, target, seed=None, plugins=[], u0=None, a0=None, b0=None
-    # ):
-    #     rng = np.random.default_rng(seed)
+    def fith(
+        self, target, seed=None, plugins=[], u0=None, a0=None, b0=None
+    ):
+        rng = np.random.default_rng(seed)
 
-    #     A = self._as_cuda_array(target, dtype=np.float32, order='F')
-    #     E = self.ensemble_size
-    #     R = self.r
-    #     N, M = A.shape
-    #     assert \
-    #         N == M and np.allclose(A, A.T), \
-    #         'fith() only works for symmetric matrices'
+        A = target if sp.issparse(target) else sp.coo_matrix(target)
+        A.eliminate_zeros()
+        E = self.ensemble_size
+        R = self.r
+        N, M = A.shape
+        NNZ = A.nnz
+        NH = NNZ * self.cuda_hitmap_factor
+        I, J, V = sp.find(A)
 
-    #     u0 = rng.normal(0.0, 0.1, (N, R, E)) if u0 is None else u0
-    #     a0 = rng.normal(0.0, np.std(target) / np.sqrt(R), (R, E)) if a0 is None else a0
-    #     b0 = rng.normal(0.0, 1.0, (E,)) if b0 is None else b0
+        minibatch_sizes = [
+            int(NNZ * self.sampling_ratio[0]),
+            int((N * M - NNZ) * self.sampling_ratio[1])
+        ]
+        minibatch_sizes = [
+            ((s + 31) // 32) * 32
+            for s in minibatch_sizes
+        ]
 
-    #     u = self._as_cuda_array(u0, dtype=np.float32, order='F')
-    #     a = self._as_cuda_array(a0, dtype=np.float32, order='F')
-    #     b = self._as_cuda_array(b0, dtype=np.float32, order='F')
+        rng_key = ManagedArray.empty((E,), dtype=np.uint32, order='F')
+        hitmap = ManagedArray.zeros(((NH + 31) // 32,), dtype=np.int32, order='F')
+        nz_values = self._as_cuda_array(V, dtype=np.float32, order='F')
+        nz_indices = self._as_cuda_array(
+            np.array(
+                list(zip(I, J)),
+                dtype=[
+                    ('i', np.int32),
+                    ('j', np.int32)
+                ]
+            )
+        )
+        print(nz_indices)
 
-    #     L = ManagedArray.zeros((E,), dtype=np.float32, order='F')
-    #     du = ManagedArray.zeros((N, R, E), dtype=np.float32, order='F')
-    #     da = ManagedArray.zeros((R, E), dtype=np.float32, order='F')
-    #     db = ManagedArray.zeros((E,), dtype=np.float32, order='F')
+        u0 = rng.normal(0.0, 0.1, (N, R, E)) if u0 is None else u0
+        a0 = rng.normal(0.0, np.std(V) / np.sqrt(R), (R, E)) if a0 is None else a0
+        b0 = rng.normal(0.0, 1.0, (E,)) if b0 is None else b0
 
-    #     kernel = jit(
-    #         self.src.render(
-    #             E=E, N=N, M=M, R=R,
-    #             n=self.cuda_tile_size[0],
-    #             m=self.cuda_tile_size[1],
-    #             r=self.cuda_tile_size[2],
-    #             thread_per_block=self.cuda_thread_per_block,
-    #             block_per_inst=self.cuda_block_per_inst
-    #         ),
-    #         'rbf_expansion_ensemble'
-    #     )
+        u = self._as_cuda_array(u0, dtype=np.float32, order='F')
+        a = self._as_cuda_array(a0, dtype=np.float32, order='F')
+        b = self._as_cuda_array(b0, dtype=np.float32, order='F')
 
-    #     def f_cuda(x):
-    #         u, a, b = x
-    #         u = self._as_cuda_array(u, dtype=np.float32, order='F')
-    #         a = self._as_cuda_array(a, dtype=np.float32, order='F')
-    #         b = self._as_cuda_array(b, dtype=np.float32, order='F')
-    #         self._zero_cuda_array(L)
-    #         self._zero_cuda_array(du)
-    #         self._zero_cuda_array(da)
-    #         self._zero_cuda_array(db)
+        L = ManagedArray.zeros((E,), dtype=np.float32, order='F')
+        du = ManagedArray.zeros((N, R, E), dtype=np.float32, order='F')
+        da = ManagedArray.zeros((R, E), dtype=np.float32, order='F')
+        db = ManagedArray.zeros((E,), dtype=np.float32, order='F')
 
-    #         kernel(
-    #             A, u, u, a, b, L, du, du, da, db,
-    #             block=(self.cuda_thread_per_block, 1, 1),
-    #             grid=(self.cuda_block_per_inst, self.ensemble_size)
-    #         )
+        kernels = [
+            jit(
+                self.src.render(
+                    E=E, N=N, M=M, R=R, NNZ=NNZ, NH=NH, GOAL=GOAL,
+                    thread_per_block=self.cuda_thread_per_block,
+                    block_per_inst=self.cuda_block_per_inst
+                ),
+                f'rbf_expansion_ensemble_sparse_stochgrad_{GOAL}'
+            )
+            for GOAL in ['SamplingNonZeros', 'SamplingZeros']
+        ]
 
-    #         context_manager.context.synchronize()
+        def f_cuda(x):
+            u, a, b = x
+            u = self._as_cuda_array(u, dtype=np.float32, order='F')
+            a = self._as_cuda_array(a, dtype=np.float32, order='F')
+            b = self._as_cuda_array(b, dtype=np.float32, order='F')
+            self._zero_cuda_array(L)
+            self._zero_cuda_array(du)
+            self._zero_cuda_array(da)
+            self._zero_cuda_array(db)
 
-    #         return np.copy(L), (du, da, db)
+            for kernel, n in zip(kernels, minibatch_sizes):
+                kernel(
+                    rng_key, hitmap, nz_indices, nz_values,
+                    u, u, a, b, L, du, du, da, db,
+                    np.int32(n),
+                    block=(self.cuda_thread_per_block, 1, 1),
+                    grid=(self.cuda_block_per_inst, self.ensemble_size)
+                )
 
-    #     def f_cpu(
-    #         # rbf,
-    #         u, a, b
-    #     ):
-    #         return np.sum(
-    #             np.exp(
-    #                 -np.square(
-    #                     u[:, None, ...] - u[None, :, ...]
-    #                 )
-    #             ) * a[None, None, ...],
-    #             axis=2
-    #         ) + b[None, None, ...]
+            context_manager.context.synchronize()
 
-    #     self.report = self._grad_opt(
-    #         f_cuda, (u, a, b), plugins
-    #     )
+            return np.copy(L), (du, da, db)
 
-    #     self._optimum = self.Model(
-    #         # self.rbf,
-    #         f_cpu, self.report.x_best, x_names=['u', 'a', 'b']
-    #     )
+        def f_cpu(
+            # rbf,
+            u, a, b
+        ):
+            return np.sum(
+                np.exp(
+                    -np.square(
+                        u[:, None, ...] - u[None, :, ...]
+                    )
+                ) * a[None, None, ...],
+                axis=2
+            ) + b[None, None, ...]
 
-    #     return self
+        self.report = self._grad_opt(
+            f_cuda, (u, a, b), plugins
+        )
+
+        self._optimum = self.Model(
+            # self.rbf,
+            f_cpu, self.report.x_best, x_names=['u', 'a', 'b']
+        )
+
+        return self
 
     def _grad_opt(self, f, x, plugins=[]):
 

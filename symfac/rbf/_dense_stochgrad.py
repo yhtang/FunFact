@@ -83,9 +83,9 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
         try:
             return self._src
         except AttributeError:
-            self._src = Template(
-                get_cpp_file('rbf_expansion_ensemble_stochgrad.cu')
-            )
+            self._src = Template(get_cpp_file(
+                'rbf-expansion-ensemble', 'dense-stoch-grad.cu'
+            ))
         return self._src
 
     def fit(

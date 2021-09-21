@@ -13,7 +13,7 @@ class Adam:
         try:
             return cls._kernel
         except AttributeError:
-            cls._kernel = jit(get_cpp_file('adam.cu'), 'adam')
+            cls._kernel = jit(get_cpp_file('optim', 'adam.cu'), 'adam')
             return cls._kernel
 
     @property

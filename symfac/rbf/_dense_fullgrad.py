@@ -81,7 +81,9 @@ class RBFExpansionDenseFullGrad(RBFExpansionBasePyCUDA):
         try:
             return self._src
         except AttributeError:
-            self._src = Template(get_cpp_file('rbf_expansion_ensemble.cu'))
+            self._src = Template(get_cpp_file(
+                'rbf-expansion-ensemble', 'dense-full-grad.cu'
+            ))
         return self._src
 
     def fit(
