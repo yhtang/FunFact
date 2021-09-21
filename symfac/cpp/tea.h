@@ -15,10 +15,17 @@ struct TEA {
     }
 
     template<int N> __inline__ __host__ __device__
-    static uint2 CBRNG(uint key, uint counter)
+    static uint2 get_2x32(uint key, uint counter)
     {
         _pass<N>(key, counter);
         return make_uint2(key, counter);
+    }
+
+    template<int N> __inline__ __host__ __device__
+    static uint get_1x32(uint key, uint counter)
+    {
+        _pass<N>(key, counter);
+        return key * 3 + counter;
     }
 };
 

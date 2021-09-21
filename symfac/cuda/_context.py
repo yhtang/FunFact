@@ -14,6 +14,9 @@ class MetaContextManager(type):
             self.autoinit()
             return self._cuda_context
 
+    def __del__(self):
+        self.context.detach()
+
 
 class context_manager(metaclass=MetaContextManager):
 
