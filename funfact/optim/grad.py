@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn.functional
 import torch.optim
-from symfac.util.iterable import as_namedtuple
+from funfact.util.iterable import as_namedtuple
 
 
 def gradient_descent(
@@ -26,7 +26,7 @@ def gradient_descent(
     ----------
     f: callable
         A factorization object, which upon evaluation returns a reconstructed
-        tensor, as created with :py:mod:`symfac.geneprog`.
+        tensor, as created with :py:mod:`funfact.geneprog`.
     target: tensor
         The target tensor to be reconstructed.
     lr: float

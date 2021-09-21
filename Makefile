@@ -6,7 +6,7 @@ default: lint
 
 
 lint:
-	flake8 --max-line-length=80 symfac/ example/
+	flake8 --max-line-length=80 funfact/ example/
 
 test:
 	tox -e py38

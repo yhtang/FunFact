@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from symfac.cpp import get_cpp_file
-from symfac.cuda import jit, ManagedArray
+from funfact.cpp import get_cpp_file
+from funfact.cuda import jit, ManagedArray
 
 
 class Adam:

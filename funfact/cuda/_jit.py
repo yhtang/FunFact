@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from pycuda.compiler import SourceModule
-import symfac.cpp
+import funfact.cpp
 
 
 def jit(source, name, *compiler_options, **pycuda_options):
@@ -15,7 +15,7 @@ def jit(source, name, *compiler_options, **pycuda_options):
                  '-Xptxas', '-v',
                  '-lineinfo',
                  *compiler_options],
-        include_dirs=symfac.cpp.__path__,
+        include_dirs=funfact.cpp.__path__,
         no_extern_c=True,
         keep=True,
         **pycuda_options

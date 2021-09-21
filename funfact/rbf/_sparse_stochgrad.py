@@ -4,9 +4,9 @@ import numpy as np
 import scipy.sparse as sp
 import tqdm
 
-from symfac.cpp import get_cpp_file, Template
-from symfac.cuda import jit, context_manager, ManagedArray
-import symfac.optim as optim
+from funfact.cpp import get_cpp_file, Template
+from funfact.cuda import jit, context_manager, ManagedArray
+import funfact.optim as optim
 
 from ._base import RBFExpansionBasePyCUDA
 

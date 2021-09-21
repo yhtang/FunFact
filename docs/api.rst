@@ -3,6 +3,6 @@ API Reference
 .. toctree::
    :maxdepth: 1
 
-   apidoc/symfac.geneprog
-   apidoc/symfac.visualization
-   apidoc/symfac.util
+   apidoc/funfact.geneprog
+   apidoc/funfact.visualization
+   apidoc/funfact.util

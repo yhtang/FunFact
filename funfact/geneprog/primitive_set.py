@@ -5,7 +5,7 @@ import inspect
 from abc import ABC, abstractmethod
 import numpy as np
 from deap import gp
-from symfac.util.iterable import flatten, map_or_call
+from funfact.util.iterable import flatten, map_or_call
 from .factorization import Factorization
 
 

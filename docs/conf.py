@@ -16,7 +16,7 @@ import sys
 # inherited-members,show-inheritance'''
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
-import symfac
+import funfact
 
 
 # Automatically call apidoc
@@ -24,7 +24,7 @@ import symfac
 def run_apidoc(_):
 
     current_dir = os.path.abspath(os.path.dirname(__file__))
-    module = os.path.join(current_dir, "..", "symfac")
+    module = os.path.join(current_dir, "..", "funfact")
 
     apidir = os.path.join(current_dir, "apidoc")
     argv = [
@@ -67,7 +67,7 @@ copyright = '2021, LBNL'
 author = 'Yu-Hang "Maxin" Tang'
 
 # The full version, including alpha/beta/rc tags
-release = symfac.__version__
+release = funfact.__version__
 
 
 # -- General configuration ---------------------------------------------------

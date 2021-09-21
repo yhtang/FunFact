@@ -5,7 +5,7 @@ import torch
 from torch import optim
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from symfac.geneprog import PrimitiveSet
+from funfact.geneprog import PrimitiveSet
 
 # define abstract types used in the factorization
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

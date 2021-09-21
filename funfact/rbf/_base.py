@@ -4,7 +4,7 @@ from collections import namedtuple
 import dill
 import numpy as np
 import pycuda.driver as cuda
-from symfac.cuda import context_manager, ManagedArray
+from funfact.cuda import context_manager, ManagedArray
 
 
 class RBFExpansionBasePyCUDA:

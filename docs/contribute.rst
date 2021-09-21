@@ -21,14 +21,14 @@ When submitting an issue, please try to follow the guidelines below:
 - Provide a mock code snippt for feature suggestions.
 - Provide a full traceback when an exception is raised.
 - Please include your operating system type and version number, as well as your
-  Python, ``symfac``, ``pytorch``, and ``deap`` versions. This information can
+  Python, ``funfact``, ``pytorch``, and ``deap`` versions. This information can
   be found by running:
 
   .. code-block:: Python
 
      import platform; print(platform.platform())
      import sys; print('Python', sys.version)
-     import symfac; print('SymFac', symfac.__version__)
+     import funfact; print('SymFac', funfact.__version__)
      import torch; print('PyTorch', torch.__version__)
      import deap; print('DEAP', deap.VERSION)
 

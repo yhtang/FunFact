@@ -4,7 +4,7 @@ import re
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
-with open('symfac/__init__.py') as fd:
+with open('funfact/__init__.py') as fd:
     __version__ = re.search("__version__ = '(.*)'", fd.read()).group(1)
 
 
@@ -34,10 +34,10 @@ class Tox(TestCommand):
 
 
 setup(
-    name='symfac',
+    name='funfact',
     version=__version__,
-    python_requires='>=3.6',
-    url='TBD',
+    python_requires='>=3.7',
+    url='https://github.com/yhtang/FunFact',
     license='BSD',
     author='Yu-Hang Tang',
     tests_require=['tox'],
@@ -53,7 +53,7 @@ setup(
     },
     cmdclass={'test': Tox},
     author_email='Tang.Maxin@gmail.com',
-    description='TBD',
+    description='Functional factorization for matrices and tensors',
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude='test'),

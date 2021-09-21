@@ -3,22 +3,21 @@
 import numpy as np
 import tqdm
 
-from symfac.cpp import get_cpp_file, Template
-from symfac.cuda import jit, context_manager, ManagedArray
-import symfac.optim as optim
+from funfact.cpp import get_cpp_file, Template
+from funfact.cuda import jit, context_manager, ManagedArray
+import funfact.optim as optim
 
 from ._base import RBFExpansionBasePyCUDA
 
 
-class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
+class RBFExpansionDenseFullGrad(RBFExpansionBasePyCUDA):
 
     def __init__(
         self, r=1,
         # rbf='gauss',  # TODO: support custom exprs using sympy
         ensemble_size=64, max_steps=10000,
-        mini_batch_size=1024,
         # loss='mse_loss',  # TODO: support custom exprs using sympy
-        algorithm='Adam', lr=0.05,
+        algorithm='Adam', lr=0.1,
         progressbar='default',
         cuda_thread_per_block=64,
         cuda_block_per_inst=2,
@@ -37,7 +36,6 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
 
         self.ensemble_size = ensemble_size
         self.max_steps = max_steps
-        self.mini_batch_size = mini_batch_size
 
         # if isinstance(loss, str):
         #     try:
@@ -84,7 +82,7 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
             return self._src
         except AttributeError:
             self._src = Template(get_cpp_file(
-                'rbf-expansion-ensemble', 'dense-stoch-grad.cu'
+                'rbf-expansion-ensemble', 'dense-full-grad.cu'
             ))
         return self._src
 
@@ -117,10 +115,13 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
         kernel = jit(
             self.src.render(
                 E=E, N=N, M=M, R=R,
+                n=self.cuda_tile_size[0],
+                m=self.cuda_tile_size[1],
+                r=self.cuda_tile_size[2],
                 thread_per_block=self.cuda_thread_per_block,
                 block_per_inst=self.cuda_block_per_inst
             ),
-            'rbf_expansion_ensemble_stochgrad'
+            'rbf_expansion_ensemble'
         )
 
         def f_cuda(x):
@@ -137,8 +138,6 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
 
             kernel(
                 A, u, v, a, b, L, du, dv, da, db,
-                np.uint32(rng.integers(0, 2**32)),
-                np.int32(self.mini_batch_size),
                 block=(self.cuda_thread_per_block, 1, 1),
                 grid=(self.cuda_block_per_inst, self.ensemble_size)
             )

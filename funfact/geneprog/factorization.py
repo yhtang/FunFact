@@ -5,7 +5,7 @@ import re
 import sys
 from treelib import Tree
 import torch
-from symfac.util.iterable import flatten_dict
+from funfact.util.iterable import flatten_dict
 
 '''
 Long-term TODO list:
