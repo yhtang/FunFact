@@ -1,3 +1,3 @@
-# SymFac
+# FunFact
 
-Internal use only.
+Library for perferming functional factorization of matrices.
