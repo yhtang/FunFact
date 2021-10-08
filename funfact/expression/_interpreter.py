@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import NamedTuple, Any
-from ._primitive import precedence
+from ._symbols import SymbolPrecedence
 
 
 class Evaluated(NamedTuple):
@@ -10,6 +10,8 @@ class Evaluated(NamedTuple):
 
 
 class LatexReprInterpreter:
+
+    precedence = SymbolPrecedence()
 
     rules = {}
     rules['idx'] = lambda tensor, *indices:\
@@ -28,14 +30,14 @@ class LatexReprInterpreter:
             value = expr._repr_tex_()
         else:
             rule = self.rules[expr.p]
-            pr = precedence[expr.p]
+            pr = self.precedence(expr.p)
 
             parts = []
             for arg in map(self, expr.args):
                 part = arg.value
 
                 try:
-                    if precedence[arg.expr.p] > pr:
+                    if self.precedence(arg.expr.p) > pr:
                         part = fr'\left({part}\right)'
                 except AttributeError:
                     pass

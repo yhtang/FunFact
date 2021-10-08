@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Fun-Fact"""
-from ._tensor_notation import index, indices, tensor
+from .expression import index, indices, tensor, functional
 
 
 __version__ = '0.5.7'
@@ -12,6 +12,6 @@ __license__ = 'see LICENSE file'
 __copyright__ = '''see COPYRIGHT file'''
 
 
-# __all__ = [
-#     'index', 'indices', 'tensor'
-# ]
+__all__ = [
+    'index', 'indices', 'tensor', 'functional'
+]
