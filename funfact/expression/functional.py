@@ -3,17 +3,21 @@
 from ._expr import Expr
 
 
-def exp(input):
-    return Expr('call', input, f='exp')
+def exp(t):
+    return Expr('call', t, f='exp')
 
 
-def sin(input):
-    return Expr('call', input, f='sin')
+def sin(t):
+    return Expr('call', t, f='sin')
 
 
-def cos(input):
-    return Expr('call', input, f='cos')
+def cos(t):
+    return Expr('call', t, f='cos')
 
 
-def square(input):
-    return Expr('square', input)
+def pow(t, e):
+    return Expr('pow', t, e)
+
+
+def square(t):
+    return Expr('pow', t, 2)

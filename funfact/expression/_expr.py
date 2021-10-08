@@ -50,6 +50,12 @@ class Expr:
     def __neg__(self):
         return neg(self)
 
+    def __pow__(self, exponent):
+        return pow(self, exponent)
+
+    def __rpow__(self, base):
+        return pow(base, self)
+
 
 def _as_expr(value):
     if isinstance(value, Expr):
@@ -60,10 +66,6 @@ def _as_expr(value):
         raise RuntimeError(
             f'Value {value} of type {type(value)} not allowed in expression.'
         )
-
-
-def neg(expr):
-    return Expr('neg', expr)
 
 
 def add(lhs, rhs):
@@ -80,3 +82,11 @@ def mul(lhs, rhs):
 
 def div(lhs, rhs):
     return Expr('div', _as_expr(lhs), _as_expr(rhs))
+
+
+def neg(expr):
+    return Expr('neg', _as_expr(expr))
+
+
+def pow(base, exponent):
+    return Expr('pow', _as_expr(base), _as_expr(exponent))
