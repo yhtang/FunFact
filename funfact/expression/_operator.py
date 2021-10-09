@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-class Operators:
+class Operators(metaclass=OperatorMeta):
     def undefined(f):
         '''An undefined method is similar to an abstract method except for that
         it only produces an error when being called, rather than prohibiting
@@ -12,7 +12,14 @@ class Operators:
 
         return undefined_handler
 
+    def set_precedence(p):
+        def handler(f):
+            OperatorMeta.precedence[f.__name__] = p
+            return f
+        return handler
+
     @undefined
+    @set_precedence(0)
     def _lit(self):
         '''literal value'''
 
