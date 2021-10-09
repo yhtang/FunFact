@@ -5,9 +5,10 @@ import numbers
 import re
 import typing
 from ._tsrex import TsrEx
+from ._primitive import primitives as P
 
 
-class Symbol(ABC):
+class Identifier(ABC):
 
     @property
     def symbol(self):
@@ -38,7 +39,7 @@ class Symbol(ABC):
         return f'''$${self._repr_tex_()}$$'''
 
 
-class Index(Symbol):
+class Index(Identifier):
 
     def __init__(self, symbol):
         self.symbol = symbol
@@ -56,7 +57,7 @@ class Index(Symbol):
             return fr'{{{self._letter}}}'
 
 
-class AbstractTensor(Symbol):
+class AbstractTensor(Identifier):
     '''An abstract tensor is a symbolic representation of a multidimensional
     array and is convenient for specifying **tensor expressions**. At
     construction, it does not allocate memory nor populate elements, but rather
@@ -98,11 +99,11 @@ class AbstractTensor(Symbol):
         if isinstance(indices, typing.Iterable):
             assert len(indices) == self.ndim,\
                 f"Indices {indices} does not match the rank of tensor {self}."
-            return TsrEx('idx', self, *indices)
+            return TsrEx(P.idx, self, *indices)
         else:
             assert 1 == self.ndim,\
                 f"Indices {indices} does not match the rank of tensor {self}."
-            return TsrEx('idx', self, indices)
+            return TsrEx(P.idx, self, indices)
 
     def __str__(self):
         return str(self.symbol)
