@@ -4,7 +4,7 @@ import numbers
 from ._interpreter import LatexReprInterpreter
 
 
-class Expr:
+class TsrEx:
 
     latex_repr_interpreter = LatexReprInterpreter()
 
@@ -57,11 +57,11 @@ class Expr:
         return pow(base, self)
 
 
-def _as_expr(value):
-    if isinstance(value, Expr):
+def _as_tsrex(value):
+    if isinstance(value, TsrEx):
         return value
     elif isinstance(value, numbers.Real):
-        return Expr('lit', value=value)
+        return TsrEx('lit', value=value)
     else:
         raise RuntimeError(
             f'Value {value} of type {type(value)} not allowed in expression.'
@@ -69,24 +69,24 @@ def _as_expr(value):
 
 
 def add(lhs, rhs):
-    return Expr('add', _as_expr(lhs), _as_expr(rhs))
+    return TsrEx('add', _as_tsrex(lhs), _as_tsrex(rhs))
 
 
 def sub(lhs, rhs):
-    return Expr('sub', _as_expr(lhs), _as_expr(rhs))
+    return TsrEx('sub', _as_tsrex(lhs), _as_tsrex(rhs))
 
 
 def mul(lhs, rhs):
-    return Expr('mul', _as_expr(lhs), _as_expr(rhs))
+    return TsrEx('mul', _as_tsrex(lhs), _as_tsrex(rhs))
 
 
 def div(lhs, rhs):
-    return Expr('div', _as_expr(lhs), _as_expr(rhs))
+    return TsrEx('div', _as_tsrex(lhs), _as_tsrex(rhs))
 
 
 def neg(expr):
-    return Expr('neg', _as_expr(expr))
+    return TsrEx('neg', _as_tsrex(expr))
 
 
 def pow(base, exponent):
-    return Expr('pow', _as_expr(base), _as_expr(exponent))
+    return TsrEx('pow', _as_tsrex(base), _as_tsrex(exponent))

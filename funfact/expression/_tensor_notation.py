@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import numbers
 import re
 import typing
-from ._expr import Expr
+from ._tsrex import TsrEx
 
 
 class Symbol(ABC):
@@ -98,11 +98,11 @@ class AbstractTensor(Symbol):
         if isinstance(indices, typing.Iterable):
             assert len(indices) == self.ndim,\
                 f"Indices {indices} does not match the rank of tensor {self}."
-            return Expr('idx', self, *indices)
+            return TsrEx('idx', self, *indices)
         else:
             assert 1 == self.ndim,\
                 f"Indices {indices} does not match the rank of tensor {self}."
-            return Expr('idx', self, indices)
+            return TsrEx('idx', self, indices)
 
     def __str__(self):
         return str(self.symbol)
