@@ -1,3 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from ._tensor_notation import index, indices, tensor
+from ._tsrex import index, indices, tensor
+
+
+__all__ = ['index', 'indices', 'tensor']
