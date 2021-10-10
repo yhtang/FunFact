@@ -18,7 +18,15 @@ def no_op(f):
 
 
 class Interpreter(ABC):
-    '''See definitions of the primitives in the `Primitives` class.'''
+    '''An interpreter traverses an abstract syntax tree (AST) in a depth-first
+    manner and perform corresponding actions for each of the node. Applying
+    different interpreters to the same AST lead to different results, all of
+    which conform to yet reflects the different facets of the AST. See
+    definitions of the primitives in the `Primitives` class.'''
+
+    @abstractmethod
+    def __call__(self, expr):
+        pass
 
     @abstractmethod
     def scalar(self):
@@ -62,4 +70,22 @@ class Interpreter(ABC):
 
     @abstractmethod
     def sub(self):
+        pass
+
+
+class FunctionalInterpreter(Interpreter):
+    '''A functional interpreter traverses an AST for one pass and produces the
+    final outcome without altering the AST. Intermediates are passed as return
+    values between the traversing levels.'''
+    def __call__(self, expr, parent=None):
+        return getattr(self, expr.p.name)(
+            *[self(operand, expr) for operand in expr.operands], **expr.params
+        )
+
+
+class ImperativeInterpreter(Interpreter):
+    '''An imperative interpreter traverses an AST and then either modifies it or
+    creates a new AST as a result of the evaluation.'''
+    def __call__(self, expr):
+        # TBD
         pass

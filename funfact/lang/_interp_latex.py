@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from ._interp_base import Interpreter
+from ._interp_base import FunctionalInterpreter
 
 
-class LatexInterpreter(Interpreter):
+class LatexInterpreter(FunctionalInterpreter):
 
-    def __call__(self, expr):
-        parts = []
-        for subexpr in expr.args:
-            part = self(subexpr)
-            if expr.p.precedence < subexpr.p.precedence:
-                part = fr'\left({part}\right)'
-            parts.append(part)
-        return getattr(self, expr.p.name)(*parts, **expr.params)
+    def __call__(self, expr, parent=None):
+        '''Decorate the base evaluation result with an optional pair of
+        parentheses conditional on the relative precedence between the parent
+        and child nodes.'''
+        value = super().__call__(expr, parent)
+        if parent is not None and expr.p.precedence > parent.p.precedence:
+            return fr'\left({value}\right)'
+        else:
+            return value
 
     def scalar(self, value):
         return str(value)

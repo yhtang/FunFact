@@ -12,19 +12,19 @@ class TsrEx:
 
     latex_gen = LatexInterpreter()
 
-    def __init__(self, p, *args, **params):
+    def __init__(self, p, *operands, **params):
         self.p = p
-        self.args = args
+        self.operands = operands
         self.params = params
 
     def eval(self, interpreter):
         return interpreter(self)
 
     def __repr__(self):
-        return '{cls}({p}, {args}{params})'.format(
+        return '{cls}({p}, {operands}{params})'.format(
             cls=type(self).__name__,
             p=repr(self.p),
-            args=', '.join(map(repr, self.args)),
+            operands=', '.join(map(repr, self.operands)),
             params=', '.join([
                 f'{repr(k)}={repr(v)}' for k, v in self.params.items()
             ])
