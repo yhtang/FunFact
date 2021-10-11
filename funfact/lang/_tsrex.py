@@ -16,9 +16,7 @@ class TsrEx:
         self.p = p
         self.operands = operands
         self.params = params
-
-    def eval(self, interpreter):
-        return interpreter(self)
+        self.payload = None
 
     def __repr__(self):
         return '{cls}({p}, {operands}{params})'.format(
@@ -31,18 +29,18 @@ class TsrEx:
         )
 
     def _repr_html_(self):
-        return f'''$${self.eval(self.latex_gen)}$$'''
+        return f'''$${self.latex_gen(self)}$$'''
 
     @staticmethod
     def _as_tsrex(value):
         if isinstance(value, TsrEx):
             return value
         elif isinstance(value, numbers.Real):
-            return TsrEx(P.scalar, value=value)
+            return TsrEx(P.scalar, value)
         elif isinstance(value, AbstractTensor):
-            return TsrEx(P.tensor, value=value)
+            return TsrEx(P.tensor, value)
         elif isinstance(value, Index):
-            return TsrEx(P.index, value=value)
+            return TsrEx(P.index, value)
         else:
             raise RuntimeError(
                 f'''Value {value} of type {type(value)} not allowed in
@@ -94,7 +92,7 @@ class Identifier(ABC):
 
     @symbol.setter
     def symbol(self, string: str):
-        m = re.fullmatch('([a-zA-Z]+)(?:_(\d+))?', string)
+        m = re.fullmatch(r'([a-zA-Z]+)(?:_(\d+))?', string)
         if m is None:
             raise RuntimeError(
                 f'{repr(string)} is not a valid symbol.\n'
@@ -136,7 +134,7 @@ class AbstractTensor(Identifier):
     '''An abstract tensor is a symbolic representation of a multidimensional
     array and is convenient for specifying **tensor expressions**. At
     construction, it does not allocate memory nor populate elements, but rather
-    just record the shape, the method of initialization, and other related
+    just record the shape, the method of initializerization, and other related
     properties for a tensor. This is in contrast to the behavior of common
     linear algebra libraries, where multidimensional arrays are 'eager' in
     allocating memory and creating the data.
@@ -151,7 +149,7 @@ class AbstractTensor(Identifier):
 
     n_nameless = 0
 
-    def __init__(self, symbol, *size, initial=None):
+    def __init__(self, symbol, *size, initializer=None):
         self.symbol = symbol
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):
@@ -160,7 +158,7 @@ class AbstractTensor(Identifier):
                     f"got {n} for mode {d}."
                 )
         self._shape = tuple(map(int, size))
-        self.initial = initial
+        self.initializer = initializer
 
     @property
     def shape(self):
@@ -192,12 +190,12 @@ class AbstractTensor(Identifier):
         return str(self.symbol)
 
     def __repr__(self):
-        return '{cls}({symbol}, {shape}{initial})'.format(
+        return '{cls}({symbol}, {shape}{initializer})'.format(
             cls=type(self).__qualname__,
             symbol=repr(self.symbol),
             shape=self.shape,
-            initial=f', initial={repr(self.initial)}'
-                    if self.initial is not None else ''
+            initializer=f', initializer={repr(self.initializer)}'
+                        if self.initializer is not None else ''
         )
 
     def _repr_tex_(self):
@@ -215,7 +213,7 @@ def indices(symbols):
     return [index(s) for s in re.split(r'[,\s]+', symbols)]
 
 
-def tensor(*spec, initial=None):
+def tensor(*spec, initializer=None):
     '''Construct an abstract tensor using `spec`.
 
     Parameters
@@ -226,7 +224,7 @@ def tensor(*spec, initial=None):
         * symbol, size...
         * size...
 
-    initial:
+    initializer:
         Initialization distribution
     '''
     if isinstance(spec[0], str):
@@ -236,4 +234,4 @@ def tensor(*spec, initial=None):
         AbstractTensor.n_nameless += 1
         size = spec
 
-    return AbstractTensor(symbol, *size, initial=initial)
+    return AbstractTensor(symbol, *size, initializer=initializer)

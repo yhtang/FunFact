@@ -15,26 +15,26 @@ class LatexInterpreter(FunctionalInterpreter):
         else:
             return value
 
-    def scalar(self, value):
-        return str(value)
+    def scalar(self, leaf):
+        return str(leaf)
 
-    def tensor(self, value):
-        return value._repr_tex_()
+    def tensor(self, leaf):
+        return leaf._repr_tex_()
 
-    def index(self, value):
-        return value._repr_tex_()
+    def index(self, leaf):
+        return leaf._repr_tex_()
 
     def index_notation(self, tensor, *indices):
         return fr'''{{{tensor}}}_{{{''.join(map(str, indices))}}}'''
 
-    def call(self, input, f):
-        return fr'\operatorname{{{f}}}{{{input}}}'
+    def call(self, tsrex, f):
+        return fr'\operatorname{{{f}}}{{{tsrex}}}'
 
     def pow(self, base, exponent):
         return fr'{{{base}}}^{{{exponent}}}'
 
-    def neg(self, input):
-        return fr'-{input}'
+    def neg(self, tsrex):
+        return fr'-{tsrex}'
 
     def div(self, lhs, rhs):
         return fr'{lhs} / {rhs}'

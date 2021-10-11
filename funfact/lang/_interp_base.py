@@ -1,20 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
-# from typing import NamedTuple, Any
-
-
-# class Evaluated(NamedTuple):
-#     expr: Any
-#     value: Any
-
-
-def no_op(f):
-    '''A no-op rule does nothing.'''
-    def do_nothing(*args, **kwargs):
-        pass
-
-    return do_nothing
+import copy
 
 
 class Interpreter(ABC):
@@ -29,47 +16,47 @@ class Interpreter(ABC):
         pass
 
     @abstractmethod
-    def scalar(self):
+    def scalar(self, leaf):
         pass
 
     @abstractmethod
-    def tensor(self):
+    def tensor(self, leaf):
         pass
 
     @abstractmethod
-    def index(self):
+    def index(self, leaf):
         pass
 
     @abstractmethod
-    def index_notation(self):
+    def index_notation(self, tensor, *indices):
         pass
 
     @abstractmethod
-    def call(self):
+    def call(self, tsrex, f):
         pass
 
     @abstractmethod
-    def pow(self):
+    def pow(self, base, exponent):
         pass
 
     @abstractmethod
-    def neg(self):
+    def neg(self, tsrex):
         pass
 
     @abstractmethod
-    def mul(self):
+    def mul(self, lhs, rhs):
         pass
 
     @abstractmethod
-    def div(self):
+    def div(self, lhs, rhs):
         pass
 
     @abstractmethod
-    def add(self):
+    def add(self, lhs, rhs):
         pass
 
     @abstractmethod
-    def sub(self):
+    def sub(self, lhs, rhs):
         pass
 
 
@@ -78,14 +65,21 @@ class FunctionalInterpreter(Interpreter):
     final outcome without altering the AST. Intermediates are passed as return
     values between the traversing levels.'''
     def __call__(self, expr, parent=None):
-        return getattr(self, expr.p.name)(
-            *[self(operand, expr) for operand in expr.operands], **expr.params
-        )
+        rule = getattr(self, expr.p.name)
+        if expr.p.terminal:
+            return rule(*expr.operands, **expr.params)
+        else:
+            return rule(*[self(e, parent) for e in expr.operands],
+                        **expr.params)
 
 
-class ImperativeInterpreter(Interpreter):
-    '''An imperative interpreter traverses an AST and then either modifies it or
-    creates a new AST as a result of the evaluation.'''
-    def __call__(self, expr):
-        # TBD
-        pass
+class TranscribeInterpreter(Interpreter):
+    '''A transcribe interpreter creates a modified copy of an AST while
+    traversing it.'''
+    def __call__(self, expr, parent=None):
+        expr = copy.copy(expr)
+        rule = getattr(self, expr.p.name)
+        if not expr.p.terminal:
+            expr.operands = tuple([self(e, parent) for e in expr.operands])
+        expr.payload = rule(*expr.operands, **expr.params)
+        return expr
