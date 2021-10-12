@@ -69,7 +69,7 @@ class FunctionalInterpreter(Interpreter):
         if expr.p.terminal:
             return rule(*expr.operands, **expr.params)
         else:
-            return rule(*[self(e, parent) for e in expr.operands],
+            return rule(*[self(e, expr) for e in expr.operands],
                         **expr.params)
 
 
@@ -80,6 +80,6 @@ class TranscribeInterpreter(Interpreter):
         expr = copy.copy(expr)
         rule = getattr(self, expr.p.name)
         if not expr.p.terminal:
-            expr.operands = tuple([self(e, parent) for e in expr.operands])
+            expr.operands = tuple([self(e, expr) for e in expr.operands])
         expr.payload = rule(*expr.operands, **expr.params)
         return expr
