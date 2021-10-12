@@ -7,8 +7,8 @@ from ._interp_base import TranscribeInterpreter
 class InitializationInterpreter(TranscribeInterpreter):
 
     def no_op(f):
-        '''Returns without evaluating a node.'''
-        def do_nothing(*operands):
+        '''Returns without evaluating anything.'''
+        def do_nothing(*operands, **params):
             return None
         return do_nothing
 
