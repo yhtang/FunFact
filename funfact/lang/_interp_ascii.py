@@ -25,7 +25,7 @@ class ASCIIInterpreter(TranscribeInterpreter):
         return f
 
     def pow(self, base, exponent):
-        return pow
+        return 'pow'
 
     def neg(self, tsrex):
         return '-'
