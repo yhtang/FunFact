@@ -4,13 +4,34 @@ from abc import ABC, abstractmethod
 import re
 import numbers
 import typing
+import asciitree
+from funfact.util.iterable import as_namedtuple
 from ._primitive import primitives as P
 from ._interp_latex import LatexInterpreter
+from ._interp_ascii import ASCIIInterpreter
 
 
 class TsrEx:
 
-    latex_gen = LatexInterpreter()
+    latex_intr = LatexInterpreter()
+    ascii_intr = ASCIIInterpreter()
+    ascii_gen = asciitree.LeftAligned(
+        traverse=as_namedtuple(
+            'TsrExTraversal',
+            get_root=lambda tsrex: tsrex,
+            get_children=lambda tsrex: [
+                op for op in tsrex.operands if hasattr(op, 'operands')
+            ],
+            get_text=lambda tsrex: tsrex.payload
+        ),
+        draw=asciitree.drawing.BoxStyle(
+            gfx=asciitree.drawing.BOX_LIGHT,
+            horiz_len=1,
+            label_space=0,
+            label_format=' {}',
+            indent=1
+        )
+    )
 
     def __init__(self, p, *operands, **params):
         self.p = p
@@ -29,7 +50,11 @@ class TsrEx:
         )
 
     def _repr_html_(self):
-        return f'''$${self.latex_gen(self)}$$'''
+        return f'''$${self.latex_intr(self)}$$'''
+
+    @property
+    def asciitree(self):
+        return self.ascii_gen(self.ascii_intr(self))
 
     @staticmethod
     def _as_tsrex(value):
