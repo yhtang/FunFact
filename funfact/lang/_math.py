@@ -1,25 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from ._tsrex import TsrEx as _T
-from ._primitive import primitives as _P
+from ._ast import Primitives as _P
 
 
-def abs(x): return _T(_P.call, x, f='abs')
-def exp(x): return _T(_P.call, x, f='exp')
-def log(x): return _T(_P.call, x, f='log')
-def sin(x): return _T(_P.call, x, f='sin')
-def cos(x): return _T(_P.call, x, f='cos')
-def tan(x): return _T(_P.call, x, f='tan')
-def asin(x): return _T(_P.call, x, f='asin')
-def acos(x): return _T(_P.call, x, f='acos')
-def atan(x): return _T(_P.call, x, f='atan')
-def sinh(x): return _T(_P.call, x, f='sinh')
-def cosh(x): return _T(_P.call, x, f='cosh')
-def tanh(x): return _T(_P.call, x, f='tanh')
-def asinh(x): return _T(_P.call, x, f='asinh')
-def acosh(x): return _T(_P.call, x, f='acosh')
-def atanh(x): return _T(_P.call, x, f='atanh')
-def erf(x): return _T(_P.call, x, f='erf')
-def erfc(x): return _T(_P.call, x, f='erfc')
-def min(x, y): return _T(_P.call, x, y, f='min')
-def max(x, y): return _T(_P.call, x, y, f='max')
+def abs(x): return _T(_P.call('abs', x))
+def exp(x): return _T(_P.call('exp', x))
+def log(x): return _T(_P.call('log', x))
+def sin(x): return _T(_P.call('sin', x))
+def cos(x): return _T(_P.call('cos', x))
+def tan(x): return _T(_P.call('tan', x))
+def asin(x): return _T(_P.call('asin', x))
+def acos(x): return _T(_P.call('acos', x))
+def atan(x): return _T(_P.call('atan', x))
+def sinh(x): return _T(_P.call('sinh', x))
+def cosh(x): return _T(_P.call('cosh', x))
+def tanh(x): return _T(_P.call('tanh', x))
+def asinh(x): return _T(_P.call('asinh', x))
+def acosh(x): return _T(_P.call('acosh', x))
+def atanh(x): return _T(_P.call('atanh', x))
+def erf(x): return _T(_P.call('erf', x))
+def erfc(x): return _T(_P.call('erfc', x))

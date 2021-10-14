@@ -5,45 +5,45 @@ from ._interp_base import FunctionalInterpreter
 
 class LatexInterpreter(FunctionalInterpreter):
 
-    def __call__(self, expr, parent=None):
+    def __call__(self, node, parent=None):
         '''Decorate the base evaluation result with an optional pair of
         parentheses conditional on the relative precedence between the parent
         and child nodes.'''
-        value = super().__call__(expr, parent)
-        if parent is not None and expr.p.precedence > parent.p.precedence:
+        value = super().__call__(node, parent)
+        if parent is not None and node.precedence > parent.precedence:
             return fr'\left({value}\right)'
         else:
             return value
 
-    def scalar(self, leaf):
-        return str(leaf)
+    def scalar(self, value, payload):
+        return str(value)
 
-    def tensor(self, leaf):
-        return leaf._repr_tex_()
+    def tensor(self, value, payload):
+        return value._repr_tex_()
 
-    def index(self, leaf):
-        return leaf._repr_tex_()
+    def index(self, value, payload):
+        return value._repr_tex_()
 
-    def index_notation(self, tensor, *indices):
-        return fr'''{{{tensor}}}_{{{''.join(map(str, indices))}}}'''
+    def index_notation(self, tensor, indices, payload):
+        return fr'''{{{tensor}}}_{{{''.join(indices)}}}'''
 
-    def call(self, tsrex, f):
-        return fr'\operatorname{{{f}}}{{{tsrex}}}'
+    def call(self, f, x, payload):
+        return fr'\operatorname{{{f}}}{{{x}}}'
 
-    def pow(self, base, exponent):
+    def pow(self, base, exponent, payload):
         return fr'{{{base}}}^{{{exponent}}}'
 
-    def neg(self, tsrex):
-        return fr'-{tsrex}'
+    def neg(self, x, payload):
+        return fr'-{x}'
 
-    def div(self, lhs, rhs):
+    def div(self, lhs, rhs, payload):
         return fr'{lhs} / {rhs}'
 
-    def mul(self, lhs, rhs):
+    def mul(self, lhs, rhs, payload):
         return fr'{lhs} \times {rhs}'
 
-    def add(self, lhs, rhs):
+    def add(self, lhs, rhs, payload):
         return fr'{lhs} + {rhs}'
 
-    def sub(self, lhs, rhs):
+    def sub(self, lhs, rhs, payload):
         return fr'{lhs} - {rhs}'
