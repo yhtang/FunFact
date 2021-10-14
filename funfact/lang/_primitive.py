@@ -12,8 +12,8 @@ class Primitive(NamedTuple):
 class Primitives:
     def primitive(precedence, terminal):
         def as_property(f):
-            p = Primitive(f.__name__, precedence, terminal)
-            return property(lambda self: p)
+            primitive = Primitive(f.__name__, precedence, terminal)
+            return property(lambda self: primitive)
         return as_property
 
     @primitive(precedence=0, terminal=True)

@@ -65,8 +65,8 @@ class FunctionalInterpreter(Interpreter):
     final outcome without altering the AST. Intermediates are passed as return
     values between the traversing levels.'''
     def __call__(self, expr, parent=None):
-        rule = getattr(self, expr.p.name)
-        if expr.p.terminal:
+        rule = getattr(self, expr.primitive.name)
+        if expr.primitive.terminal:
             return rule(*expr.operands, **expr.params)
         else:
             return rule(*[self(e, expr) for e in expr.operands],
@@ -78,8 +78,8 @@ class TranscribeInterpreter(Interpreter):
     traversing it.'''
     def __call__(self, expr, parent=None):
         expr = copy.copy(expr)
-        rule = getattr(self, expr.p.name)
-        if not expr.p.terminal:
+        rule = getattr(self, expr.primitive.name)
+        if not expr.primitive.terminal:
             expr.operands = tuple([self(e, expr) for e in expr.operands])
         expr.payload = rule(*expr.operands, **expr.params)
         return expr

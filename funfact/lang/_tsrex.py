@@ -33,16 +33,16 @@ class TsrEx:
         )
     )
 
-    def __init__(self, p, *operands, **params):
-        self.p = p
+    def __init__(self, primitive, *operands, **params):
+        self.primitive = primitive
         self.operands = operands
         self.params = params
         self.payload = None
 
     def __repr__(self):
-        return '{cls}({p}, {operands}{params})'.format(
+        return '{cls}({primitive}, {operands}{params})'.format(
             cls=type(self).__name__,
-            p=repr(self.p),
+            primitive=repr(self.primitive),
             operands=', '.join(map(repr, self.operands)),
             params=', '.join([
                 f'{repr(k)}={repr(v)}' for k, v in self.params.items()

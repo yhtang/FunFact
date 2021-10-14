@@ -10,7 +10,8 @@ class LatexInterpreter(FunctionalInterpreter):
         parentheses conditional on the relative precedence between the parent
         and child nodes.'''
         value = super().__call__(expr, parent)
-        if parent is not None and expr.p.precedence > parent.p.precedence:
+        if parent is not None and \
+           expr.primitive.precedence > parent.primitive.precedence:
             return fr'\left({value}\right)'
         else:
             return value
