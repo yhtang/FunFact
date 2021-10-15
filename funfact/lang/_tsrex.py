@@ -12,13 +12,9 @@ from ._tensor import AbstractTensor, AbstractIndex
 
 class TsrEx(_AST):
 
-    latex_intr = LatexInterpreter()
-    ascii_intr = ASCIIInterpreter()
-
-    def __or__(self, interpreter):
-        return TsrEx(interpreter(self.root))
-
-    ascii_gen = asciitree.LeftAligned(
+    _latex_intr = LatexInterpreter()
+    _ascii_intr = ASCIIInterpreter()
+    _asciitree = asciitree.LeftAligned(
         traverse=as_namedtuple(
             'TsrExTraversal',
             get_root=lambda root: root,
@@ -34,20 +30,28 @@ class TsrEx(_AST):
             get_text=lambda node: node.payload
         ),
         draw=asciitree.drawing.BoxStyle(
-            gfx=asciitree.drawing.BOX_LIGHT,
-            horiz_len=1,
+            gfx={
+                'UP_AND_RIGHT': u'\u2570',
+                'HORIZONTAL': u'\u2500',
+                'VERTICAL': u'\u2502',
+                'VERTICAL_AND_RIGHT': u'\u251c'
+            },
+            horiz_len=2,
             label_space=0,
             label_format=' {}',
             indent=1
         )
     )
 
+    def __or__(self, interpreter):
+        return TsrEx(interpreter(self.root))
+
     @property
     def asciitree(self):
-        return self.ascii_gen(self.ascii_intr(self.root))
+        return self._asciitree(self._ascii_intr(self.root))
 
     def _repr_html_(self):
-        return f'''$${self.latex_intr(self.root)}$$'''
+        return f'''$${self._latex_intr(self.root)}$$'''
 
     def __add__(self, rhs):
         return self.astree(P.add(self.root, self.asnode(rhs)))
