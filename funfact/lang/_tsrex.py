@@ -54,37 +54,37 @@ class TsrEx(_AST):
         return f'''$${self._latex_intr(self.root)}$$'''
 
     def __add__(self, rhs):
-        return self.astree(P.add(self.root, self.asnode(rhs)))
+        return self._as_tree(P.add(self.root, self._as_node(rhs)))
 
     def __radd__(self, lhs):
-        return self.astree(P.add(self.asnode(lhs), self.root))
+        return self._as_tree(P.add(self._as_node(lhs), self.root))
 
     def __sub__(self, rhs):
-        return self.astree(P.sub(self.root, self.asnode(rhs)))
+        return self._as_tree(P.sub(self.root, self._as_node(rhs)))
 
     def __rsub__(self, lhs):
-        return self.astree(P.sub(self.asnode(lhs), self.root))
+        return self._as_tree(P.sub(self._as_node(lhs), self.root))
 
     def __mul__(self, rhs):
-        return self.astree(P.mul(self.root, self.asnode(rhs)))
+        return self._as_tree(P.mul(self.root, self._as_node(rhs)))
 
     def __rmul__(self, lhs):
-        return self.astree(P.mul(self.asnode(lhs), self.root))
+        return self._as_tree(P.mul(self._as_node(lhs), self.root))
 
     def __div__(self, rhs):
-        return self.astree(P.div(self.root, self.asnode(rhs)))
+        return self._as_tree(P.div(self.root, self._as_node(rhs)))
 
     def __rdiv__(self, lhs):
-        return self.astree(P.div(self.asnode(lhs), self.root))
+        return self._as_tree(P.div(self._as_node(lhs), self.root))
 
     def __neg__(self):
-        return self.astree(P.neg(self.root))
+        return self._as_tree(P.neg(self.root))
 
     def __pow__(self, exponent):
-        return self.astree(P.pow(self.root, self.asnode(exponent)))
+        return self._as_tree(P.pow(self.root, self._as_node(exponent)))
 
     def __rpow__(self, base):
-        return self.astree(P.pow(self.asnode(base)), self.root)
+        return self._as_tree(P.pow(self._as_node(base)), self.root)
 
     def __getitem__(self, indices):
         assert isinstance(self.root, P.tensor)

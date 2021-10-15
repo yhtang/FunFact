@@ -100,8 +100,16 @@ class _AST:
                     f'Invalid arguments to create an AST: data = {data}.'
                 )
 
-    def astree(self, t):
+    @property
+    def root(self):
+        return self._root
+
+    @root.setter
+    def root(self, r):
+        self._root = r
+
+    def _as_tree(self, t):
         return type(self)(t)
 
-    def asnode(self, t):
-        return self.astree(t).root
+    def _as_node(self, t):
+        return self._as_tree(t).root
