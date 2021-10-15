@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
 import copy
-from inspect import Arguments
 from numbers import Real
-from os import stat
 from typing import Iterable, Union, Any
-from ._ast import _AST, _ASNode, Primitives as P
+from ._ast import _ASNode, Primitives as P
 from ._tensor import AbstractIndex, AbstractTensor
 
 

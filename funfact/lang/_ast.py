@@ -17,7 +17,9 @@ class Primitives:
         def make_primitive(f):
             p = make_dataclass(
                 f.__name__,
-                inspect.getfullargspec(f).args + [('payload', Any, field(default=None))],
+                inspect.getfullargspec(f).args + [
+                    ('payload', Any, field(default=None))
+                ],
                 bases=(_ASNode,)
             )
             p.name = property(lambda self: f.__name__)
