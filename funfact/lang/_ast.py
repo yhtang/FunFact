@@ -108,8 +108,10 @@ class _AST:
     def root(self, r):
         self._root = r
 
-    def _as_tree(self, t):
-        return type(self)(t)
+    @classmethod
+    def _as_tree(cls, t):
+        return cls(t)
 
-    def _as_node(self, t):
-        return self._as_tree(t).root
+    @classmethod
+    def _as_node(cls, t):
+        return cls._as_tree(t).root
