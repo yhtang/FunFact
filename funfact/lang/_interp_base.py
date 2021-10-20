@@ -24,6 +24,14 @@ def _deep_apply(f, value, *args, **kwargs):
     else:
         return value
 
+def _binary_deep_apply(f, left, right):
+    if isinstance(left, (list, tuple)):
+        return [_binary_deep_apply(f, *elem) for elem in zip(left, right)]
+    elif isinstance(left, _ASNode):
+        return f(left,right)
+    else:
+        return left
+
 
 class ROOFInterpreter(ABC):
     '''A ROOF (Read-Only On-the-Fly) interpreter traverses an AST for one pass
@@ -150,3 +158,14 @@ class TranscribeInterpreter(ABC):
         rule = getattr(self, node.name)
         node.payload = rule(**node.__dict__)
         return node
+
+class MergeInterpreter:
+    '''The merge interpreter merges the payload of two identical ASTs 
+    into another one while traversing both of them.'''
+    def __call__(self, left: _ASNode, right: _ASNode):
+        left = copy.copy(left)
+        for name in left.__dict__.keys():
+            left.__dict__[name] = _binary_deep_apply(self, \
+                             getattr(left, name), getattr(right, name))
+        left.payload = (left.payload, right.payload)
+        return left
