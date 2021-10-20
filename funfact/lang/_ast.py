@@ -29,15 +29,15 @@ class Primitives:
 
     @primitive(precedence=0)
     def scalar(value):
-        '''an index'''
+        '''a scalar number'''
 
     @primitive(precedence=0)
     def index(value: AbstractIndex):
-        '''an abstract tensor'''
+        '''an index'''
 
     @primitive(precedence=0)
     def tensor(value: AbstractTensor):
-        '''a scalar number'''
+        '''an abstract tensor'''
 
     @primitive(precedence=1)
     def index_notation(
