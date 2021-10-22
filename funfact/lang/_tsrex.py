@@ -7,6 +7,10 @@ from funfact.util.iterable import as_namedtuple, flatten_if
 from ._ast import _AST, _ASNode, Primitives as P
 from ._interp_ascii import ASCIIInterpreter
 from ._interp_latex import LatexInterpreter
+from ._interp_init import InitializationInterpreter
+from ._interp_base import MergeInterpreter
+from ._interp_index_surv import IndexSurvivalInterpreter
+from ._interp_eval import EvaluationInterpreter
 from ._tensor import AbstractTensor, AbstractIndex
 
 
@@ -14,6 +18,10 @@ class TsrEx(_AST):
 
     _latex_intr = LatexInterpreter()
     _ascii_intr = ASCIIInterpreter()
+    _init_intr = InitializationInterpreter()
+    _merge_intr = MergeInterpreter()
+    _idx_intr = IndexSurvivalInterpreter()
+    _eval_intr = EvaluationInterpreter()
     _asciitree = asciitree.LeftAligned(
         traverse=as_namedtuple(
             'TsrExTraversal',
@@ -49,6 +57,13 @@ class TsrEx(_AST):
     @property
     def asciitree(self):
         return self._asciitree(self._ascii_intr(self.root))
+
+    def evaluate(self):
+        out_init = self | self._init_intr
+        out_idx = self | self._idx_intr
+        merged = self._merge_intr( out_init.root , out_idx.root )
+        out = self._eval_intr( merged )
+        return out[0]
 
     def _repr_html_(self):
         return f'''$${self._latex_intr(self.root)}$$'''
