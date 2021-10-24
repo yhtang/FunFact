@@ -6,9 +6,10 @@ from ._interp_base import TranscribeInterpreter
 from ._ast import Primitives as P
 from ._tensor import AbstractIndex, AbstractTensor
 
+
 class IndexSurvivalInterpreter(TranscribeInterpreter):
-    '''The index survival interpreter analyzes which of the indices surive 
-    in a contraction of two tensors.'''
+    '''The index survival interpreter analyzes which of the indices survive in a
+    contraction of two tensors.'''
     Tensorial = Union[
         P.index_notation, P.call, P.pow, P.neg, P.mul, P.div, P.add, P.sub
     ]
@@ -18,7 +19,7 @@ class IndexSurvivalInterpreter(TranscribeInterpreter):
         return None
 
     def tensor(self, value: AbstractTensor, payload: Any):
-        return None 
+        return None
 
     def index(self, value: AbstractIndex, payload: Any):
         return value.symbol
