@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import copy
 from numbers import Real
 from typing import Iterable, Union, Any
-from ._ast import _ASNode, Primitives as P
+from ._ast import _ASNode, _AST, Primitives as P
 from ._tensor import AbstractIndex, AbstractTensor
 
 
@@ -24,13 +24,15 @@ def _deep_apply(f, value, *args, **kwargs):
     else:
         return value
 
-def _binary_deep_apply(f, left, right):
-    if isinstance(left, (list, tuple)):
-        return [_binary_deep_apply(f, *elem) for elem in zip(left, right)]
-    elif isinstance(left, _ASNode):
-        return f(left,right)
+
+def _deep_apply_batch(f, *values):
+    head = values[0]
+    if isinstance(head, (list, tuple)):
+        return [_deep_apply_batch(f, *elem) for elem in zip(*values)]
+    elif isinstance(head, _ASNode):
+        return f(*values)
     else:
-        return left
+        return head
 
 
 class ROOFInterpreter(ABC):
@@ -93,6 +95,9 @@ class ROOFInterpreter(ABC):
         }
         rule = getattr(self, node.name)
         return rule(**operands)
+
+    def __ror__(self, tsrex: _AST):
+        return self(tsrex.root)
 
 
 class TranscribeInterpreter(ABC):
@@ -159,13 +164,22 @@ class TranscribeInterpreter(ABC):
         node.payload = rule(**node.__dict__)
         return node
 
+    def __ror__(self, tsrex: _AST):
+        return type(tsrex)(self(tsrex.root))
+
+
 class MergeInterpreter:
-    '''The merge interpreter merges the payload of two identical ASTs 
-    into another one while traversing both of them.'''
-    def __call__(self, left: _ASNode, right: _ASNode):
-        left = copy.copy(left)
-        for name in left.__dict__.keys():
-            left.__dict__[name] = _binary_deep_apply(self, \
-                             getattr(left, name), getattr(right, name))
-        left.payload = (left.payload, right.payload)
-        return left
+    '''The merge interpreter merges several homologus ASTs by concatenating the
+    payloads of each group of same-place nodes as a tuple.'''
+    def __call__(self, *nodes: _ASNode):
+        head = copy.copy(nodes[0])
+        for name in head.__dict__.keys():
+            head.__dict__[name] = _deep_apply_batch(
+                self,
+                *[getattr(n, name) for n in nodes]
+            )
+        head.payload = tuple([n.payload for n in nodes])
+        return head
+
+    def __ror__(self, tsrex_list: Iterable[_AST]):
+        return type(tsrex_list[0])(self(*[tsrex.root for tsrex in tsrex_list]))
