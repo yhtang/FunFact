@@ -51,18 +51,15 @@ class TsrEx(_AST):
         )
     )
 
-    def __or__(self, interpreter):
-        return TsrEx(interpreter(self.root))
-
     @property
     def asciitree(self):
         return self._asciitree(self._ascii_intr(self.root))
 
     def evaluate(self):
-        out_init = self | self._init_intr
-        out_idx = self | self._idx_intr
-        merged = self._merge_intr( out_init.root , out_idx.root )
-        out = self._eval_intr( merged )
+        out = (
+            self | self._init_intr,
+            self | self._idx_intr
+        ) | self._merge_intr | self._eval_intr
         return out[0]
 
     def _repr_html_(self):
