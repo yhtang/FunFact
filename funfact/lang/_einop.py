@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-'''
-    Einstein operation between two nd arrays. The specification
-    string 'spec' is expected to be ordered alphabetically for the
-    left hand side.
-'''
+
 def _einop(spec: str, lhs, rhs, op):
+    '''Einstein operation between two nd arrays. The specification string 'spec'
+        is expected to be ordered alphabetically for the left hand side.'''
     # parse specification string
     lhs_spec, rhs_spec = spec.split(',')
     # transpose rhs
-    rhs = np.transpose(rhs, sorted(range(len(rhs_spec)), key=rhs_spec.__getitem__))
+    rhs = np.transpose(rhs, np.argsort(list(rhs_spec)))
     # determine indices
     indices_all = set(lhs_spec).union(rhs_spec)
     indices_all = sorted(list(indices_all))
@@ -34,4 +32,3 @@ def _einop(spec: str, lhs, rhs, op):
     con_axis = tuple(con_axis)
     # compute contraction
     return np.sum(op(lhs[indices_lhs], rhs[indices_rhs]), axis=con_axis)
-    
