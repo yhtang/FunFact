@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from ._interp_base import ROOFInterpreter
+from ._base import ROOFInterpreter
 
 
-class LatexInterpreter(ROOFInterpreter):
+class LatexRenderer(ROOFInterpreter):
 
     def __call__(self, node, parent=None):
         '''Decorate the base evaluation result with an optional pair of

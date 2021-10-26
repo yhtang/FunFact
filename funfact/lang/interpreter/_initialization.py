@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-from ._interp_base import TranscribeInterpreter
+from ._base import TranscribeInterpreter
 
 
-class InitializationInterpreter(TranscribeInterpreter):
+class LeafInitializer(TranscribeInterpreter):
+    '''Creates numeric tensors for the leaf nodes in an AST.'''
 
     def scalar(self, value, payload):
         return None
