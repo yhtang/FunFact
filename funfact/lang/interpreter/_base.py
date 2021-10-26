@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 import copy
 from numbers import Real
 from typing import Iterable, Union, Any
-from ._ast import _ASNode, _AST, Primitives as P
-from ._tensor import AbstractIndex, AbstractTensor
+from funfact.lang._ast import _ASNode, _AST, Primitives as P
+from funfact.lang._tensor import AbstractIndex, AbstractTensor
 
 
 '''An interpreter traverses an abstract syntax tree (AST) in a depth-first
@@ -168,8 +168,8 @@ class TranscribeInterpreter(ABC):
         return type(tsrex)(self(tsrex.root))
 
 
-class MergeInterpreter:
-    '''The merge interpreter merges several homologus ASTs by concatenating the
+class PayloadMerger:
+    '''The payload merger combines several homologus ASTs by concatenating the
     payloads of each group of same-place nodes as a tuple.'''
     def __call__(self, *nodes: _ASNode):
         head = copy.copy(nodes[0])

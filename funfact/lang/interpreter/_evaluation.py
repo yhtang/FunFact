@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-from ._interp_base import ROOFInterpreter
+from ._base import ROOFInterpreter
 from ._einop import _einop
 
 
@@ -13,7 +13,7 @@ def _map_index(index_map, idx):
         return index_map[idx]
 
 
-class EvaluationInterpreter(ROOFInterpreter):
+class Evaluator(ROOFInterpreter):
     '''The evaluation interpreter evaluates an initialized tensor expression.
     '''
 

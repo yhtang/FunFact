@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from ._interp_base import TranscribeInterpreter
+from ._base import TranscribeInterpreter
 
 
-class ASCIIInterpreter(TranscribeInterpreter):
+class ASCIIRenderer(TranscribeInterpreter):
     '''Creates ASCII representations for tensor expressions.'''
 
     def scalar(self, value, payload):
