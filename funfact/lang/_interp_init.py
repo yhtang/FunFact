@@ -6,40 +6,40 @@ from ._interp_base import TranscribeInterpreter
 
 class InitializationInterpreter(TranscribeInterpreter):
 
-    def scalar(self, leaf):
+    def scalar(self, value, payload):
         return None
 
-    def tensor(self, leaf):
-        if leaf.initializer is not None:
-            ini = leaf.initializer
+    def tensor(self, value, payload):
+        if value.initializer is not None:
+            ini = value.initializer
         else:
             def ini(shape):
                 return np.random.randn(*shape)
-        return ini(leaf.shape)
+        return ini(value.shape)
 
-    def index(self, leaf):
+    def index(self, value, payload):
         return None
 
-    def index_notation(self, tensor, *indices):
+    def index_notation(self, tensor, indices, payload):
         return None
 
-    def call(self, tsrex, f):
+    def call(self, f, x, payload):
         return None
 
-    def pow(self, base, exponent):
+    def pow(self, base, exponent, payload):
         return None
 
-    def neg(self, tsrex):
+    def neg(self, x, payload):
         return None
 
-    def div(self, lhs, rhs):
+    def div(self, lhs, rhs, payload):
         return None
 
-    def mul(self, lhs, rhs):
+    def mul(self, lhs, rhs, payload):
         return None
 
-    def add(self, lhs, rhs):
+    def add(self, lhs, rhs, payload):
         return None
 
-    def sub(self, lhs, rhs):
+    def sub(self, lhs, rhs, payload):
         return None
