@@ -109,6 +109,13 @@ class TranscribeInterpreter(ABC):
     ]
     Numeric = Union[Tensorial, Real]
 
+    def as_payload(k):
+        def wrapper(f):
+            def wrapped_f(*args, **kwargs):
+                return k, f(*args, **kwargs)
+            return wrapped_f
+        return wrapper
+
     @abstractmethod
     def scalar(self, value: Real, **payload: Any):
         pass
@@ -160,8 +167,16 @@ class TranscribeInterpreter(ABC):
         for name, value in node.fields_fixed.items():
             setattr(node, name, _deep_apply(self, value, node))
         rule = getattr(self, node.name)
-        key, value = rule(**node.fields)
-        setattr(node, key, value)
+        payload = rule(**node.fields)
+        if isinstance(payload, dict):
+            node.__dict__.update(**payload)
+        elif isinstance(payload, list):
+            for key, value in payload:
+                setattr(node, key, value)
+        elif isinstance(payload, tuple) and len(payload) == 2:
+            setattr(node, *payload)
+        else:
+            raise TypeError(f'Uncognizable type for payload {payload}')
         return node
 
     def __ror__(self, tsrex: _AST):
