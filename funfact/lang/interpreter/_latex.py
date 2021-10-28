@@ -15,35 +15,35 @@ class LatexRenderer(ROOFInterpreter):
         else:
             return value
 
-    def scalar(self, value, payload):
+    def scalar(self, value, **kwargs):
         return str(value)
 
-    def tensor(self, value, payload):
+    def tensor(self, value, **kwargs):
         return value._repr_tex_()
 
-    def index(self, value, payload):
+    def index(self, value, **kwargs):
         return value._repr_tex_()
 
-    def index_notation(self, tensor, indices, payload):
+    def index_notation(self, tensor, indices, **kwargs):
         return fr'''{{{tensor}}}_{{{''.join(indices)}}}'''
 
-    def call(self, f, x, payload):
+    def call(self, f, x, **kwargs):
         return fr'\operatorname{{{f}}}{{{x}}}'
 
-    def pow(self, base, exponent, payload):
+    def pow(self, base, exponent, **kwargs):
         return fr'{{{base}}}^{{{exponent}}}'
 
-    def neg(self, x, payload):
+    def neg(self, x, **kwargs):
         return fr'-{x}'
 
-    def div(self, lhs, rhs, payload):
+    def div(self, lhs, rhs, **kwargs):
         return fr'{lhs} / {rhs}'
 
-    def mul(self, lhs, rhs, payload):
+    def mul(self, lhs, rhs, **kwargs):
         return fr'{lhs} \times {rhs}'
 
-    def add(self, lhs, rhs, payload):
+    def add(self, lhs, rhs, **kwargs):
         return fr'{lhs} + {rhs}'
 
-    def sub(self, lhs, rhs, payload):
+    def sub(self, lhs, rhs, **kwargs):
         return fr'{lhs} - {rhs}'

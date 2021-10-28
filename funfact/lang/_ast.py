@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from dataclasses import make_dataclass, field
+from dataclasses import make_dataclass, field, asdict
 import inspect
 from numbers import Real
 from typing import Iterable, Union, Any
@@ -15,15 +15,21 @@ class Primitives:
 
     def primitive(precedence):
         def make_primitive(f):
+            args = inspect.getfullargspec(f).args
             p = make_dataclass(
                 f.__name__,
-                inspect.getfullargspec(f).args + [
-                    ('payload', Any, field(default=None))
-                ],
+                args,
                 bases=(_ASNode,)
             )
             p.name = property(lambda self: f.__name__)
             p.precedence = property(lambda self: precedence)
+            p.fields = property(lambda self: self.__dict__)
+            p.fields_fixed = property(lambda self: {
+                k: v for k, v in self.__dict__.items() if k in args
+            })
+            p.fields_payload = property(lambda self: {
+                k: v for k, v in self.__dict__.items() if k not in args
+            })
             return p
         return make_primitive
 

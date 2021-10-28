@@ -21,12 +21,12 @@ class TsrEx(_AST):
                 filter(
                     lambda elem: isinstance(elem, _ASNode),
                     flatten_if(
-                        node.__dict__.values(),
+                        node.fields_fixed.values(),
                         lambda elem: isinstance(elem, (list, tuple))
                     )
                 )
             ),
-            get_text=lambda node: node.payload
+            get_text=lambda node: node.ascii
         ),
         draw=asciitree.drawing.BoxStyle(
             gfx={

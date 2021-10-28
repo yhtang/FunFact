@@ -6,6 +6,7 @@ from numbers import Real
 from typing import Iterable, Union, Any
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
+from funfact.util.iterable import flatten_if
 
 
 '''An interpreter traverses an abstract syntax tree (AST) in a depth-first
@@ -43,58 +44,58 @@ class ROOFInterpreter(ABC):
     by another transcribe interpreter.'''
 
     @abstractmethod
-    def scalar(self, value: Real, payload: Any):
+    def scalar(self, value: Real, **payload: Any):
         pass
 
     @abstractmethod
-    def tensor(self, value: AbstractTensor, payload: Any):
+    def tensor(self, value: AbstractTensor, **payload: Any):
         pass
 
     @abstractmethod
-    def index(self, value: AbstractIndex, payload: Any):
+    def index(self, value: AbstractIndex, **payload: Any):
         pass
 
     @abstractmethod
     def index_notation(
-        self, tensor: Any, indices: Iterable[Any], payload: Any
+        self, tensor: Any, indices: Iterable[Any], **payload: Any
     ):
         pass
 
     @abstractmethod
-    def call(self, f: str, x: Any, payload: Any):
+    def call(self, f: str, x: Any, **payload: Any):
         pass
 
     @abstractmethod
-    def pow(self, base: Any, exponent: Any, payload: Any):
+    def pow(self, base: Any, exponent: Any, **payload: Any):
         pass
 
     @abstractmethod
-    def neg(self, x: Any, payload: Any):
+    def neg(self, x: Any, **payload: Any):
         pass
 
     @abstractmethod
-    def mul(self, lhs: Any, rhs: Any, payload: Any):
+    def mul(self, lhs: Any, rhs: Any, **payload: Any):
         pass
 
     @abstractmethod
-    def div(self, lhs: Any, rhs: Any, payload: Any):
+    def div(self, lhs: Any, rhs: Any, **payload: Any):
         pass
 
     @abstractmethod
-    def add(self, lhs: Any, rhs: Any, payload: Any):
+    def add(self, lhs: Any, rhs: Any, **payload: Any):
         pass
 
     @abstractmethod
-    def sub(self, lhs: Any, rhs: Any, payload: Any):
+    def sub(self, lhs: Any, rhs: Any, **payload: Any):
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):
-        operands = {
+        fields_fixed = {
             name: _deep_apply(self, value, node)
-            for name, value in node.__dict__.items()
+            for name, value in node.fields_fixed.items()
         }
         rule = getattr(self, node.name)
-        return rule(**operands)
+        return rule(**fields_fixed, **node.fields_payload)
 
     def __ror__(self, tsrex: _AST):
         return self(tsrex.root)
@@ -109,59 +110,58 @@ class TranscribeInterpreter(ABC):
     Numeric = Union[Tensorial, Real]
 
     @abstractmethod
-    def scalar(self, value: Real, payload: Any):
+    def scalar(self, value: Real, **payload: Any):
         pass
 
     @abstractmethod
-    def tensor(self, value: AbstractTensor, payload: Any):
+    def tensor(self, value: AbstractTensor, **payload: Any):
         pass
 
     @abstractmethod
-    def index(self, value: AbstractIndex, payload: Any):
+    def index(self, value: AbstractIndex, **payload: Any):
         pass
 
     @abstractmethod
     def index_notation(
-        self, tensor: P.tensor, indices: Iterable[P.index], payload: Any
+        self, tensor: P.tensor, indices: Iterable[P.index], **payload: Any
     ):
         pass
 
     @abstractmethod
-    def call(self, f: str, x: Tensorial, payload: Any):
+    def call(self, f: str, x: Tensorial, **payload: Any):
         pass
 
     @abstractmethod
-    def pow(self, base: Numeric, exponent: Numeric, payload: Any):
+    def pow(self, base: Numeric, exponent: Numeric, **payload: Any):
         pass
 
     @abstractmethod
-    def neg(self, x: Numeric, payload: Any):
+    def neg(self, x: Numeric, **payload: Any):
         pass
 
     @abstractmethod
-    def mul(self, lhs: Numeric, rhs: Numeric, payload: Any):
+    def mul(self, lhs: Numeric, rhs: Numeric, **payload: Any):
         pass
 
     @abstractmethod
-    def div(self, lhs: Numeric, rhs: Numeric, payload: Any):
+    def div(self, lhs: Numeric, rhs: Numeric, **payload: Any):
         pass
 
     @abstractmethod
-    def add(self, lhs: Numeric, rhs: Numeric, payload: Any):
+    def add(self, lhs: Numeric, rhs: Numeric, **payload: Any):
         pass
 
     @abstractmethod
-    def sub(self, lhs: Numeric, rhs: Numeric, payload: Any):
+    def sub(self, lhs: Numeric, rhs: Numeric, **payload: Any):
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)
-        node.__dict__.update(**{
-            name: _deep_apply(self, value, node)
-            for name, value in node.__dict__.items()
-        })
+        for name, value in node.fields_fixed.items():
+            setattr(node, name, _deep_apply(self, value, node))
         rule = getattr(self, node.name)
-        node.payload = rule(**node.__dict__)
+        key, value = rule(**node.fields)
+        setattr(node, key, value)
         return node
 
     def __ror__(self, tsrex: _AST):
@@ -173,13 +173,31 @@ class PayloadMerger:
     payloads of each group of same-place nodes as a tuple.'''
     def __call__(self, *nodes: _ASNode):
         head = copy.copy(nodes[0])
-        for name in head.__dict__.keys():
-            head.__dict__[name] = _deep_apply_batch(
+        for name in head.fields_fixed:
+            setattr(head, name, _deep_apply_batch(
                 self,
                 *[getattr(n, name) for n in nodes]
-            )
-        head.payload = tuple([n.payload for n in nodes])
+            ))
+        for n in nodes:
+            head.fields.update(n.fields_payload)
         return head
 
     def __ror__(self, tsrex_list: Iterable[_AST]):
         return type(tsrex_list[0])(self(*[tsrex.root for tsrex in tsrex_list]))
+
+
+def depth_first_apply(node: _ASNode, action: callable, gen=False):
+    '''Applies a custom action to all nodes of the tree in DFS manner.'''
+    for child in flatten_if(
+        node.fields_fixed.values(),
+        lambda elem: isinstance(elem, (list, tuple))
+    ):
+        if isinstance(child, _ASNode):
+            if gen:
+                yield from depth_first_apply(child, action, gen)
+            else:
+                depth_first_apply(child, action, gen)
+    if gen:
+        yield from action(node)
+    else:
+        action(node)

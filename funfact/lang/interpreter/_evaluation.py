@@ -17,11 +17,11 @@ class Evaluator(ROOFInterpreter):
     '''The evaluation interpreter evaluates an initialized tensor expression.
     '''
 
-    def scalar(self, value, payload):
+    def scalar(self, value, **kwargs):
         return value
 
-    def tensor(self, value, payload):
-        return payload[0]
+    def tensor(self, value, data=None, **kwargs):
+        return data
 
     def index(self, value, payload):
         return value.symbol
@@ -35,8 +35,8 @@ class Evaluator(ROOFInterpreter):
     def pow(self, base, exponent, payload):
         return (np.power(base[0], exponent), payload[1])
 
-    def neg(self, x, payload):
-        return (-x[0], payload[1])
+    def neg(self, x, live_indices=None, **kwargs):
+        return (-x[0], live_indices)
 
     @staticmethod
     def _binary_operator(op, lhs, rhs, specs):
