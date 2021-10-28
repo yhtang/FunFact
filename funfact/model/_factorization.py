@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from funfact.lang.interpreter import (
+    depth_first_apply,
     LeafInitializer,
     PayloadMerger,
     IndexPropagator,
@@ -25,18 +26,14 @@ class Factorization:
     _evaluator = Evaluator()
 
     def __init__(self, tsrex, initialize=True):
-        if initialize is True:
-            self.tsrex = tsrex | self._leaf_initializer
-        else:
-            self.tsrex = tsrex
+        self._tsrex = (
+            (tsrex | self._leaf_initializer) if initialize is True else tsrex,
+            (tsrex | self._index_propagator)
+        ) | self._payload_merger
 
     @property
     def tsrex(self):
         return self._tsrex
-
-    @tsrex.setter
-    def tsrex(self, _tsrex):
-        self._tsrex = _tsrex
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''
@@ -44,10 +41,7 @@ class Factorization:
 
     def forward(self):
         '''Evaluate the tensor expression the result.'''
-        out, _ = (
-            self.tsrex,
-            self.tsrex | self._index_propagator
-        ) | self._payload_merger | self._evaluator
+        out, _ = self.tsrex | self._evaluator
         return out
 
     def getattr(self, tensor_name):
@@ -58,4 +52,8 @@ class Factorization:
     def factors(self):
         '''A flattened list of optimizable parameters of the primitive and all
         its children. For use with a gradient optimizer.'''
-        raise NotImplementedError()
+        def get_data(n):
+            if n.data is not None:
+                yield n.data
+
+        return list(depth_first_apply(self.tsrex.root, get_data, True))
