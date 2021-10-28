@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 from funfact.lang.interpreter import (
     depth_first_apply,
+    EinsteinSpecGenerator,
+    Evaluator,
     LeafInitializer,
     PayloadMerger,
-    IndexPropagator,
-    Evaluator
+    IndexPropagator
 )
 
 
@@ -23,12 +24,13 @@ class Factorization:
     _leaf_initializer = LeafInitializer()
     _payload_merger = PayloadMerger()
     _index_propagator = IndexPropagator()
+    _einspec_generator = EinsteinSpecGenerator()
     _evaluator = Evaluator()
 
     def __init__(self, tsrex, initialize=True):
         self._tsrex = (
             (tsrex | self._leaf_initializer) if initialize is True else tsrex,
-            (tsrex | self._index_propagator)
+            (tsrex | self._index_propagator | self._einspec_generator)
         ) | self._payload_merger
 
     @property
@@ -41,8 +43,7 @@ class Factorization:
 
     def forward(self):
         '''Evaluate the tensor expression the result.'''
-        out, _ = self.tsrex | self._evaluator
-        return out
+        return self.tsrex | self._evaluator
 
     def getattr(self, tensor_name):
         '''Implements attribute-based access of factor tensors.'''

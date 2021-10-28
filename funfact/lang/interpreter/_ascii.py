@@ -6,42 +6,50 @@ from ._base import TranscribeInterpreter
 class ASCIIRenderer(TranscribeInterpreter):
     '''Creates ASCII representations for tensor expressions.'''
 
-    _key = 'ascii'
+    as_payload = TranscribeInterpreter.as_payload('ascii')
 
+    @as_payload
     def scalar(self, value, **kwargs):
-        return (self._key, str(value))
+        return str(value)
 
+    @as_payload
     def tensor(self, value, **kwargs):
-        return (self._key, value.symbol)
+        return value.symbol
 
+    @as_payload
     def index(self, value, **kwargs):
-        return (self._key, value.symbol)
+        return value.symbol
 
+    @as_payload
     def index_notation(self, tensor, indices, **kwargs):
-        return (
-            self._key,
-            '{}[{}]'.format(
-                tensor.ascii, ','.join([i.ascii for i in indices])
-            )
+        return '{}[{}]'.format(
+            tensor.ascii, ','.join([i.ascii for i in indices])
         )
 
+    @as_payload
     def call(self, f, x, **kwargs):
-        return (self._key, f)
+        return f
 
+    @as_payload
     def pow(self, base, exponent, **kwargs):
-        return (self._key, 'pow')
+        return 'pow'
 
+    @as_payload
     def neg(self, x, **kwargs):
-        return (self._key, '-')
+        return '-'
 
+    @as_payload
     def div(self, lhs, rhs, **kwargs):
-        return (self._key, '/')
+        return '/'
 
+    @as_payload
     def mul(self, lhs, rhs, **kwargs):
-        return (self._key, '*')
+        return '*'
 
+    @as_payload
     def add(self, lhs, rhs, **kwargs):
-        return (self._key, '+')
+        return '+'
 
+    @as_payload
     def sub(self, lhs, rhs, **kwargs):
-        return (self._key, '-')
+        return '-'

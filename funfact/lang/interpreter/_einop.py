@@ -4,8 +4,8 @@ import numpy as np
 
 
 def _einop(spec: str, lhs, rhs, op):
-    '''Einstein operation between two nd arrays. The specification string 'spec'
-        is expected to be ordered alphabetically for the left hand side.'''
+    '''Einstein operation between two nd arrays. The specification string
+    'spec' is expected to be ordered alphabetically for the left hand side.'''
     # parse specification string
     lhs_spec, rhs_spec = spec.split(',')
     # transpose rhs

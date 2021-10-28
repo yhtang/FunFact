@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import itertools as it
 from numbers import Real
 from typing import Iterable, Union
 from ._base import TranscribeInterpreter
@@ -16,48 +17,50 @@ class IndexPropagator(TranscribeInterpreter):
     ]
     Numeric = Union[Tensorial, Real]
 
-    _key = 'live_indices'
+    as_payload = TranscribeInterpreter.as_payload('live_indices')
 
+    @as_payload
     def scalar(self, value: Real, **kwargs):
-        return (self._key, None)
+        return []
 
+    @as_payload
     def tensor(self, value: AbstractTensor, **kwargs):
-        return (self._key, None)
+        return []
 
+    @as_payload
     def index(self, value: AbstractIndex, **kwargs):
-        return (self._key, value.symbol)
+        return [value.symbol]
 
+    @as_payload
     def index_notation(
         self, tensor: P.tensor, indices: Iterable[P.index], **kwargs
     ):
-        return (self._key, [i.live_indices for i in indices])
+        return list(it.chain.from_iterable([i.live_indices for i in indices]))
 
+    @as_payload
     def call(self, f: str, x: Tensorial, **kwargs):
-        return (self._key, x.live_indices)
+        return x.live_indices
 
+    @as_payload
     def pow(self, base: Numeric, exponent: Numeric, **kwargs):
-        raise NotImplementedError('The current implementation seems incorrect')
-        return (self._key, None)
+        return base.live_indices + exponent.live_indices
 
+    @as_payload
     def neg(self, x: Numeric, **kwargs):
-        return (self._key, x.live_indices)
+        return x.live_indices
 
+    @as_payload
     def mul(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        diff_lhs = [x for x in lhs.live_indices if x not in rhs.live_indices]
-        diff_rhs = [x for x in rhs.live_indices if x not in lhs.live_indices]
-        return (self._key, diff_lhs + diff_rhs)
+        return set(lhs.live_indices).symmetric_difference(rhs.live_indices)
 
+    @as_payload
     def div(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        diff_lhs = [x for x in lhs.live_indices if x not in rhs.live_indices]
-        diff_rhs = [x for x in rhs.live_indices if x not in lhs.live_indices]
-        return (self._key, diff_lhs + diff_rhs)
+        return set(lhs.live_indices).symmetric_difference(rhs.live_indices)
 
+    @as_payload
     def add(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        diff_lhs = [x for x in lhs.live_indices if x not in rhs.live_indices]
-        diff_rhs = [x for x in rhs.live_indices if x not in lhs.live_indices]
-        return (self._key, diff_lhs + diff_rhs)
+        return set(lhs.live_indices).symmetric_difference(rhs.live_indices)
 
+    @as_payload
     def sub(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        diff_lhs = [x for x in lhs.live_indices if x not in rhs.live_indices]
-        diff_rhs = [x for x in rhs.live_indices if x not in lhs.live_indices]
-        return (self._key, diff_lhs + diff_rhs)
+        return set(lhs.live_indices).symmetric_difference(rhs.live_indices)
