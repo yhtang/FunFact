@@ -45,13 +45,22 @@ class Factorization:
         '''Evaluate the tensor expression the result.'''
         return self.tsrex | self._evaluator
 
-    def __getattr__(self, tensor_name):
+    def __getitem__(self, tensor_name):
         '''Implements attribute-based access of factor tensors.'''
         for n in dfs_filter(
             lambda n: n.name == 'tensor' and n.value.symbol == tensor_name,
             self.tsrex.root
         ):
             return n.data
+        raise AttributeError(f'No factor tensor named {tensor_name}.')
+
+    def __setitem__(self, tensor_name, tensor_data):
+        '''Implements attribute-based access of factor tensors.'''
+        for n in dfs_filter(
+            lambda n: n.name == 'tensor' and n.value.symbol == tensor_name,
+            self.tsrex.root
+        ):
+            return setattr(n, 'data', tensor_data)
         raise AttributeError(f'No factor tensor named {tensor_name}.')
 
     @property
