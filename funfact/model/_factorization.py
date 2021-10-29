@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import copy
 from funfact.lang.interpreter import (
-    depth_first_apply,
+    dfs_filter,
     EinsteinSpecGenerator,
     Evaluator,
     LeafInitializer,
@@ -45,16 +46,30 @@ class Factorization:
         '''Evaluate the tensor expression the result.'''
         return self.tsrex | self._evaluator
 
-    def getattr(self, tensor_name):
+    def __getattr__(self, tensor_name):
         '''Implements attribute-based access of factor tensors.'''
-        raise NotImplementedError()
+        for n in dfs_filter(
+            lambda n: n.name == 'tensor' and n.value.symbol == tensor_name,
+            self.tsrex.root
+        ):
+            return n.data
+        raise AttributeError(f'There is no factor tensor called {tensor_name}.')
 
     @property
     def factors(self):
         '''A flattened list of optimizable parameters of the primitive and all
         its children. For use with a gradient optimizer.'''
-        def get_data(n):
-            if n.data is not None:
-                yield n.data
+        return [
+            n.data for n in dfs_filter(
+                lambda n: n.name == 'tensor', self.tsrex.root
+            )
+        ]
 
-        return list(depth_first_apply(self.tsrex.root, get_data, True))
+    @factors.setter
+    def factors(self, tensors):
+        '''A flattened list of optimizable parameters of the primitive and all
+        its children. For use with a gradient optimizer.'''
+        for i, n in enumerate(
+            dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root)
+        ):
+            n.data = tensors[i]
