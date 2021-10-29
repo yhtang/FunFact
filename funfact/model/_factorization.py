@@ -53,7 +53,7 @@ class Factorization:
             self.tsrex.root
         ):
             return n.data
-        raise AttributeError(f'There is no factor tensor called {tensor_name}.')
+        raise AttributeError(f'No factor tensor named {tensor_name}.')
 
     @property
     def factors(self):
