@@ -201,18 +201,16 @@ class PayloadMerger:
         return type(tsrex_list[0])(self(*[tsrex.root for tsrex in tsrex_list]))
 
 
-def depth_first_apply(node: _ASNode, action: callable, gen=False):
-    '''Applies a custom action to all nodes of the tree in DFS manner.'''
+def dfs_filter(function: callable, node: _ASNode):
+    '''Returns an iterator that loop over all nodes in an AST in a depth-first
+    manner for which `function` evaluates to trues.'''
+
     for child in flatten_if(
         node.fields_fixed.values(),
         lambda elem: isinstance(elem, (list, tuple))
     ):
         if isinstance(child, _ASNode):
-            if gen:
-                yield from depth_first_apply(child, action, gen)
-            else:
-                depth_first_apply(child, action, gen)
-    if gen:
-        yield from action(node)
-    else:
-        action(node)
+            yield from dfs_filter(function, child)
+
+    if function(node) is True:
+        yield node
