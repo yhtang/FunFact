@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import copy
 from funfact.lang.interpreter import (
     dfs_filter,
     EinsteinSpecGenerator,
