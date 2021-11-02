@@ -25,6 +25,7 @@ def run_apidoc(_):
 
     current_dir = os.path.abspath(os.path.dirname(__file__))
     module = os.path.join(current_dir, "..", "funfact")
+    exclude = '**/test_*'
 
     apidir = os.path.join(current_dir, "apidoc")
     argv = [
@@ -33,7 +34,8 @@ def run_apidoc(_):
         "--no-toc",
         "--separate",
         "-o", apidir,
-        module
+        module,
+        exclude
     ]
 
     try:
@@ -62,7 +64,7 @@ def setup(app):
 
 
 # -- Project information -----------------------------------------------------
-project = 'SymFac'
+project = 'FunFact'
 copyright = '2021, LBNL'
 author = 'Yu-Hang "Maxin" Tang'
 
