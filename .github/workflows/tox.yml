@@ -25,4 +25,4 @@ jobs:
           tox_env: ${{ matrix.tox_env }}
     strategy:
       matrix:
-        tox_env: [py37, py38, py39]
+        tox_env: [py37, py38, py39, coverage]
