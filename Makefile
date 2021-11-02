@@ -6,7 +6,10 @@ default: lint
 
 
 lint:
-	flake8 --max-line-length=80 funfact/ example/
+	flake8 \
+		--max-line-length=80 \
+		--per-file-ignores "test_*.py":F401 \
+		funfact/ example/
 
 test:
 	tox -e py38
