@@ -1,21 +1,8 @@
-SymFac: Symbolic Factorization for Matrices and Tensors
-=======================================================
-
-.. .. image:: https://gitlab.com/yhtang/graphdot/badges/master/pipeline.svg
-..    :target: https://gitlab.com/yhtang/graphdot/commits/master
-
-.. .. image:: https://gitlab.com/yhtang/graphdot/badges/master/coverage.svg
-..    :target: https://gitlab.com/yhtang/graphdot/commits/master
+FunFact: Functional Factorization of Algebraic Tensors
+======================================================
 
 .. .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
 ..    :TARGET: https://opensource.org/licenses/BSD-3-Clause
-
-.. .. image:: https://badge.fury.io/py/graphdot.svg
-..    :target: https://badge.fury.io/py/graphdot
-
-.. .. image:: https://readthedocs.org/projects/graphdot/badge/?version=latest&style=flat
-..    :target: https://graphdot.readthedocs.org/
-
 
 
 Features
