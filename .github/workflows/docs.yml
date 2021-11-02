@@ -1,6 +1,6 @@
-# Run tests defined in tox.ini
+# Run documentation generation through Tox
 
-name: Tox
+name: Docs
 
 # Controls when the workflow will run
 on:
@@ -12,7 +12,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  tox:
+  docs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # runs-on: self-hosted
@@ -22,7 +22,4 @@ jobs:
       - uses: actions/checkout@v2
       - uses: fedora-python/tox-github-action@v0.4
         with:
-          tox_env: ${{ matrix.tox_env }}
-    strategy:
-      matrix:
-        tox_env: [py37, py38, py39, coverage]
+          tox_env: docs
