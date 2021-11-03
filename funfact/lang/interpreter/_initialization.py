@@ -1,11 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import numpy as np
+import jax.numpy as np
+import jax
+#from jax import random
+#import numpy as np
 from ._base import TranscribeInterpreter
+
+
+
+class JaxRng:
+    
+    def __init__(self, key=0):
+        self.key = jax.random.PRNGKey(key)
+        
+    def rand(self, size, dtype=np.float32):
+        self.key, subkey = jax.random.split(self.key)
+        return jax.random.normal(subkey, size, dtype)
 
 
 class LeafInitializer(TranscribeInterpreter):
     '''Creates numeric tensors for the leaf nodes in an AST.'''
+
+    def __init__(self,seed=0):
+        self.rng = JaxRng(seed)
 
     as_payload = TranscribeInterpreter.as_payload('data')
 
@@ -19,7 +36,8 @@ class LeafInitializer(TranscribeInterpreter):
             ini = value.initializer
         else:
             def ini(shape):
-                return np.random.randn(*shape)
+                #return np.random.randn(*shape)
+                return self.rng.rand(shape)
         return ini(value.shape)
 
     @as_payload

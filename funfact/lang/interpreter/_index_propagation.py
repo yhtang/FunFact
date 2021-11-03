@@ -51,16 +51,16 @@ class IndexPropagator(TranscribeInterpreter):
 
     @as_payload
     def mul(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        return set(lhs.live_indices).symmetric_difference(rhs.live_indices)
+        return list(set(lhs.live_indices).symmetric_difference(rhs.live_indices))
 
     @as_payload
     def div(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        return set(lhs.live_indices).symmetric_difference(rhs.live_indices)
+        return list(set(lhs.live_indices).symmetric_difference(rhs.live_indices))
 
     @as_payload
     def add(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        return set(lhs.live_indices).symmetric_difference(rhs.live_indices)
+        return list(set(lhs.live_indices).symmetric_difference(rhs.live_indices))
 
     @as_payload
     def sub(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        return set(lhs.live_indices).symmetric_difference(rhs.live_indices)
+        return list(set(lhs.live_indices).symmetric_difference(rhs.live_indices))
