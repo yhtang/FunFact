@@ -1,0 +1,28 @@
+# Primary CI workflow\
+name: CI
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+      - uses: py-actions/flake8@v1
+        with:
+          max-line-length: "80"
+          args: "--per-file-ignores test_*.py:F401"
+          path: "funfact"
+  tox:
+    runs-on: ubuntu-latest
+    name: Unit Test
+    steps:
+      - uses: actions/checkout@v2
+      - uses: fedora-python/tox-github-action@v0.4
+        with:
+          tox_env: ${{ matrix.tox_env }}
+    strategy:
+      matrix:
+        tox_env: [py37, py38, py39, coverage, docs]

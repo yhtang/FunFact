@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import io
 import re
-import sys
 from treelib import Tree
 import torch
 from funfact.util.iterable import flatten_dict

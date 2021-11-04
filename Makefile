@@ -1,4 +1,4 @@
-.PHONY: setup dev docs test test-coverage
+.PHONY: lint test test-coverage docs
 
 VENV ?= venv
 
@@ -18,5 +18,5 @@ test-coverage:
 	tox -e coverage
 
 docs:
-	m2r2 CHANGELOG.md
+	# m2r2 CHANGELOG.md
 	cd docs && make html
