@@ -3,7 +3,6 @@
 import numpy as np
 from pycuda.driver import (
     managed_empty,
-    managed_empty_like,
     managed_zeros
 )
 from pycuda.driver import mem_attach_flags as ma_flags

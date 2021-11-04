@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 """Fun-Fact"""
 from .lang import index, indices, tensor
-from .lang._math import *
+from .lang._math import *  # noqa: F401, F403
+
+
+__all__ = ['index', 'indices', 'tensor']
 
 
 __version__ = '0.5.7'

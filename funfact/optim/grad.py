@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import copy
 import warnings
 import tqdm
 import numpy as np
