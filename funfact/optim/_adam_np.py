@@ -21,9 +21,9 @@ class Adam:
         new_factors = self.x.factors
         for i in range(len(self.x.factors)):
             self.M[i] = self.beta1 * self.M[i] + \
-                      (1 - self.beta1) * grad_factors[i]
+                (1 - self.beta1) * grad_factors[i]
             self.V[i] = self.beta2 * self.V[i] + \
-                      (1 - self.beta2) * grad_factors[i] * grad_factors[i]
+                (1 - self.beta2) * grad_factors[i] * grad_factors[i]
             mhat = self.M[i] / (1 - self.beta1)
             vhat = self.V[i] / (1 - self.beta2)
             new_factors[i] -= self.lr * np.reciprocal(

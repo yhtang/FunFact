@@ -12,7 +12,7 @@ def mse_loss(model, target):
     return (np.square(np.subtract(model, target))).mean(axis=None)
 
 
-def factorize(tsrex, target, lr=0.1, beta1=0.9, beta2=0.999, 
+def factorize(tsrex, target, lr=0.1, beta1=0.9, beta2=0.999,
               epsilon=1e-7, nsteps=10000):
     '''Gradient descent optimizer for functional factorizations.
 
