@@ -13,7 +13,7 @@ jobs:
       - uses: py-actions/flake8@v1
         with:
           max-line-length: "80"
-          args: "--per-file-ignores 'test_*.py':F401"
+          args: "--per-file-ignores test_*.py:F401"
           path: "funfact"
   tox:
     runs-on: ubuntu-latest
