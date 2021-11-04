@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import numpy as np
+import jax.numpy as np
 from ._base import ROOFInterpreter
 from ._einop import _einop
 

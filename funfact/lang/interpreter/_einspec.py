@@ -68,21 +68,25 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return None
 
     @as_payload
-    def mul(self, lhs: Numeric, rhs: Numeric, **kwargs):
+    def mul(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
         map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'
+        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
+               f'->{map(live_indices)}'
 
     @as_payload
-    def div(self, lhs: Numeric, rhs: Numeric, **kwargs):
+    def div(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
         map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'
+        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
+               f'->{map(live_indices)}'
 
     @as_payload
-    def add(self, lhs: Numeric, rhs: Numeric, **kwargs):
+    def add(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
         map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'
+        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
+               f'->{map(live_indices)}'
 
     @as_payload
-    def sub(self, lhs: Numeric, rhs: Numeric, **kwargs):
+    def sub(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
         map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'
+        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
+               f'->{map(live_indices)}'

@@ -8,8 +8,10 @@ from funfact.lang.interpreter import (
     PayloadMerger,
     IndexPropagator
 )
+from jax.tree_util import register_pytree_node_class
 
 
+@register_pytree_node_class
 class Factorization:
     '''A factorization model is a concrete realization of a tensor expression.
     The factor tensors of the model can be optimized to obtain a better
@@ -81,3 +83,12 @@ class Factorization:
             dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root)
         ):
             n.data = tensors[i]
+
+    def tree_flatten(self):
+        return self.factors, self.tsrex
+
+    @classmethod
+    def tree_unflatten(cls, tsrex, tensors):
+        unflatten = cls(tsrex, initialize=False)
+        unflatten.factors = tensors
+        return unflatten
