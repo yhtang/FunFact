@@ -17,7 +17,7 @@ jobs:
           path: "funfact"
   tox:
     runs-on: ubuntu-latest
-    name: Unit Tests
+    name: Unit Test
     steps:
       - uses: actions/checkout@v2
       - uses: fedora-python/tox-github-action@v0.4
