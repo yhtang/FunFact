@@ -10,6 +10,7 @@ from funfact.lang.interpreter import (
 )
 from jax.tree_util import register_pytree_node_class
 
+
 @register_pytree_node_class
 class Factorization:
     '''A factorization model is a concrete realization of a tensor expression.
@@ -64,7 +65,6 @@ class Factorization:
             return setattr(n, 'data', tensor_data)
         raise AttributeError(f'No factor tensor named {tensor_name}.')
 
-    
     @property
     def factors(self):
         '''A flattened list of optimizable parameters of the primitive and all
@@ -84,7 +84,6 @@ class Factorization:
         ):
             n.data = tensors[i]
 
-    
     def tree_flatten(self):
         return self.factors, self.tsrex
 

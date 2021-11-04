@@ -7,10 +7,12 @@ from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
 
+
 def ordered_symmetric_difference(lhs_indices, rhs_indices):
     diff_lhs = [x for x in lhs_indices if x not in rhs_indices]
     diff_rhs = [x for x in rhs_indices if x not in lhs_indices]
     return diff_lhs + diff_rhs
+
 
 class IndexPropagator(TranscribeInterpreter):
     '''The index propagator analyzes which of the indices survive in a
