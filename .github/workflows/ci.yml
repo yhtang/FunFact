@@ -6,22 +6,18 @@ jobs:
     runs-on: ubuntu-latest
     name: Lint
     steps:
-      - name: Check out source repository
-        uses: actions/checkout@v2
-      - name: Set up Python environment
-        uses: actions/setup-python@v1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
         with:
           python-version: "3.8"
-      - name: flake8 Lint
-        uses: py-actions/flake8@v1
+      - uses: py-actions/flake8@v1
         with:
-          ignore: "F401"
           max-line-length: "80"
           args: "--per-file-ignores 'test_*.py':F401"
           path: "funfact"
   tox:
     runs-on: ubuntu-latest
-    name: Tox
+    name: Unit Tests
     steps:
       - uses: actions/checkout@v2
       - uses: fedora-python/tox-github-action@v0.4
