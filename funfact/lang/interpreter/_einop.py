@@ -6,8 +6,8 @@ import re
 
 
 def _einop(spec: str, lhs, rhs, op):
-    '''Einstein operation between two nd arrays. 
-    
+    '''Einstein operation between two nd arrays.
+
     Parameters
     ----------
     spec: str
@@ -27,21 +27,21 @@ def _einop(spec: str, lhs, rhs, op):
     '''
 
     # parse input spec string
-    lhs_spec, rhs_spec, res_spec = re.split(r'\W+', spec)    
+    lhs_spec, rhs_spec, res_spec = re.split(r'\W+', spec)
     lhs_spec = list(lhs_spec)
     rhs_spec = list(rhs_spec)
     res_spec = list(res_spec)
-    
+
     # reorder lhs and rhs in alphabetical order
     lhs_order = numpy.argsort(lhs_spec)
     lhs = np.transpose(lhs, lhs_order)
     rhs_order = numpy.argsort(rhs_spec)
     rhs = np.transpose(rhs, rhs_order)
-    
+
     # determine all indices in alphabetical order
     indices_all = set(lhs_spec).union(rhs_spec)
     indices_all = sorted(list(indices_all))
-    
+
     # determine dimensions of lhs and rhs tensors,
     # contraction axis, and remaining indices
     dim_lhs = []
@@ -59,16 +59,16 @@ def _einop(spec: str, lhs, rhs, op):
             dim_rhs.append(None)
         if c not in res_spec:
             con_ax.append(i)
-        else:    
+        else:
             indices_rem.append(c)
-            
+
     dim_lhs = tuple(dim_lhs)
     dim_rhs = tuple(dim_rhs)
     con_ax = tuple(con_ax)
-    
+
     # compute the contraction in alphabetical order
     result = np.sum(op(lhs[dim_lhs], rhs[dim_rhs]), axis=con_ax)
-    
+
     # reorder contraction according to res_spec
     dictionary = dict(zip(indices_rem, numpy.arange(len(indices_rem))))
     res_order = [dictionary[key] for key in res_spec]
