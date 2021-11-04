@@ -13,7 +13,7 @@ class JaxRng:
     def __init__(self, key=0):
         self.key = jax.random.PRNGKey(key)
         
-    def rand(self, size, dtype=np.float32):
+    def normal(self, size, dtype=np.float32):
         self.key, subkey = jax.random.split(self.key)
         return jax.random.normal(subkey, size, dtype)
 
@@ -36,8 +36,7 @@ class LeafInitializer(TranscribeInterpreter):
             ini = value.initializer
         else:
             def ini(shape):
-                #return np.random.randn(*shape)
-                return self.rng.rand(shape)
+                return self.rng.normal(shape)
         return ini(value.shape)
 
     @as_payload
