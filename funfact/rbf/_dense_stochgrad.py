@@ -53,7 +53,7 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
         #     self.loss(torch.zeros(1), torch.zeros(1))
         # except Exception as e:
         #     raise AssertionError(
-        #         f'The given loss function does not accept two arguments:\n{e}'
+        #         f'The loss function does not accept two arguments:\n{e}'
         #     )
 
         if isinstance(algorithm, str):
@@ -100,7 +100,8 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
 
         u0 = rng.normal(0.0, 0.1, (N, R, E)) if u0 is None else u0
         v0 = rng.normal(0.0, 0.1, (M, R, E)) if v0 is None else v0
-        a0 = rng.normal(0.0, np.std(target) / np.sqrt(R), (R, E)) if a0 is None else a0
+        a0 = rng.normal(0.0, np.std(target) / np.sqrt(R),
+                        (R, E)) if a0 is None else a0
         b0 = rng.normal(0.0, 1.0, (E,)) if b0 is None else b0
 
         u = self._as_cuda_array(u0, dtype=np.float32, order='F')
@@ -185,7 +186,8 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
             'fith() only works for symmetric matrices'
 
         u0 = rng.normal(0.0, 0.1, (N, R, E)) if u0 is None else u0
-        a0 = rng.normal(0.0, np.std(target) / np.sqrt(R), (R, E)) if a0 is None else a0
+        a0 = rng.normal(0.0, np.std(target) / np.sqrt(R),
+                        (R, E)) if a0 is None else a0
         b0 = rng.normal(0.0, 1.0, (E,)) if b0 is None else b0
 
         u = self._as_cuda_array(u0, dtype=np.float32, order='F')

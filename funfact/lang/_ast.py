@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from dataclasses import make_dataclass, field, asdict
+from dataclasses import make_dataclass
 import inspect
 from numbers import Real
-from typing import Iterable, Union, Any
+from typing import Iterable, Union
 from ._tensor import AbstractIndex, AbstractTensor
 
 

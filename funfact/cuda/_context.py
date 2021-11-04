@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from re import A
 import pycuda.driver as cuda
 
 

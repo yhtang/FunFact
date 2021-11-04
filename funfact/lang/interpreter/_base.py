@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 import copy
 from numbers import Real
-from typing import Iterable, Union, Any
+from typing import Any, Callable, Iterable, Union
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
 from funfact.util.iterable import flatten_if
@@ -201,7 +201,7 @@ class PayloadMerger:
         return type(tsrex_list[0])(self(*[tsrex.root for tsrex in tsrex_list]))
 
 
-def dfs_filter(function: callable, node: _ASNode):
+def dfs_filter(function: Callable[[_ASNode], bool], node: _ASNode):
     '''Returns an iterator that loop over all nodes in an AST in a depth-first
     manner for which `function` evaluates to trues.'''
 

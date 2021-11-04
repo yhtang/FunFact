@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*-
 from collections import namedtuple
 import dill
-import numpy as np
 import torch
-import tqdm
-import warnings
 
 
 def as_namedtuple(name, **kwargs):
