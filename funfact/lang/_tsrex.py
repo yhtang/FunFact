@@ -140,6 +140,10 @@ def tensor(*spec, initializer=None):
         AbstractTensor.n_nameless += 1
         size = spec
 
+    if hasattr(size[0], "__len__"):
+        data = size[0]
+        size = size[0].shape
+
     return TsrEx(P.tensor(
-        AbstractTensor(symbol, *size, initializer=initializer))
+        AbstractTensor(symbol, *size, initializer=initializer, data=data))
     )

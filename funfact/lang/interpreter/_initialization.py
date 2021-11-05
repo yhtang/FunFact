@@ -29,6 +29,8 @@ class LeafInitializer(TranscribeInterpreter):
 
     @as_payload
     def tensor(self, value, **kwargs):
+        if value.data is not None:
+            return value.data
         if value.initializer is not None:
             ini = value.initializer
         else:
