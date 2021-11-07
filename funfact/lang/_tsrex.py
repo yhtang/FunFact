@@ -4,6 +4,7 @@ import re
 import typing
 import asciitree
 from funfact.util.iterable import as_namedtuple, flatten_if
+from funfact.util.typing import _is_tensor
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import ASCIIRenderer, LatexRenderer
 from ._tensor import AbstractTensor, AbstractIndex
@@ -113,13 +114,26 @@ def tensor(*spec, initializer=None):
     spec:
         Formats supported:
 
-        * symbol, size...
-        * size...
+        * symbol, size...: a alphanumeric symbol followed by the size for each
+                           dimension.
+        * size...: size of each dimension.
+        * symbol, tensor: a alphanumeric symbol followed by a concrete tensor
+                          such as ``np.eye(3)`` or ``rand(10, 7)``.
+        * tensor: a concrete tensor.
 
     initializer:
         Initialization distribution
+
+    Returns
+    -------
+    tsrex: TsrEx
+        A tensor expression representing a single tensor object.
     '''
-    if isinstance(spec[0], str):
+    if len(spec) == 2 and isinstance(spec[0], str) and _is_tensor(spec[1]):
+        raise NotImplementedError()
+    elif len(spec) == 1 and _is_tensor(spec[1]):
+        raise NotImplementedError()
+    elif isinstance(spec[0], str):
         symbol, *size = spec
     else:
         symbol = f'Anonymous_{AbstractTensor.n_nameless}'
