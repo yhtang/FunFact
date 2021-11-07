@@ -17,16 +17,20 @@ class Identifier(ABC):
     @symbol.setter
     def symbol(self, string: str):
         m = re.fullmatch(r'([a-zA-Z]+)(?:_(\d+))?', string)
-        if m is None:
-            raise RuntimeError(
-                f'{repr(string)} is not a valid symbol.\n'
-                'A symbol must be alphabetic and optionally followed by an '
-                'underscore and a numeric subscript. '
-                'Examples: i, j, k_0, lhs, etc.'
-            )
-        self._letter, self._number = m.groups()
-        if self._letter == 'Anonymous':
-            self._letter = r'\varphi'
+        try:
+            self._letter, self._number = m.groups()
+        except AttributeError:
+            m = re.fullmatch(r'__(\d+)', string)
+            try:
+                self._letter = r'\lambda'
+                self._number, = m.groups()
+            except AttributeError:
+                raise RuntimeError(
+                    f'{repr(string)} is not a valid symbol.\n'
+                    'A symbol must be alphabetic and optionally followed by '
+                    'an underscore and a numeric subscript. '
+                    'Examples: i, j, k_0, lhs, etc.'
+                )
 
     @abstractmethod
     def _repr_tex_(self):

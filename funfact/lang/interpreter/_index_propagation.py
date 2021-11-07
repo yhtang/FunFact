@@ -70,3 +70,7 @@ class IndexPropagator(TranscribeInterpreter):
     @as_payload
     def sub(self, lhs: Numeric, rhs: Numeric, **kwargs):
         return ordered_symmetric_difference(lhs.live_indices, rhs.live_indices)
+
+    @as_payload
+    def let(self, dst: Iterable[P.index], src: Numeric, **kwargs):
+        return list(it.chain.from_iterable([i.live_indices for i in dst]))

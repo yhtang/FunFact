@@ -45,3 +45,7 @@ class Evaluator(ROOFInterpreter):
 
     def sub(self, lhs, rhs, einspec, **kwargs):
         return self._binary_operator(np.subtract, lhs, rhs, einspec)
+
+    def let(self, dst, src, einspec, **kwargs):
+        src_spec, dst_spec = einspec.split('->')
+        return np.transpose(src, [src_spec.index(i) for i in dst_spec])

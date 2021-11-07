@@ -90,3 +90,8 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         map = IndexMap()
         return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
                f'->{map(live_indices)}'
+
+    @as_payload
+    def let(self, dst, src: Numeric, live_indices, **kwargs):
+        map = IndexMap()
+        return f'{map(src.live_indices)}->{map(live_indices)}'

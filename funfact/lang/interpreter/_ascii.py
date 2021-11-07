@@ -53,3 +53,7 @@ class ASCIIRenderer(TranscribeInterpreter):
     @as_payload
     def sub(self, lhs, rhs, **kwargs):
         return '-'
+
+    @as_payload
+    def let(self, dst, src, **kwargs):
+        return '=='

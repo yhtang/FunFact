@@ -47,3 +47,6 @@ class LatexRenderer(ROOFInterpreter):
 
     def sub(self, lhs, rhs, **kwargs):
         return fr'{lhs} - {rhs}'
+
+    def let(self, dst, src, **kwargs):
+        return fr'''\boxed{{\phantom{{x}}}}_{{{''.join(dst)}}} = {src}'''

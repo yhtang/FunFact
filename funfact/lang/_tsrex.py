@@ -84,7 +84,6 @@ class TsrEx(_AST):
         return self._as_tree(P.pow(self._as_node(base)), self.root)
 
     def __getitem__(self, indices):
-        assert isinstance(self.root, P.tensor)
         tsrnode = self.root
         if isinstance(indices, typing.Iterable):
             assert len(indices) == tsrnode.value.ndim,\
@@ -96,6 +95,14 @@ class TsrEx(_AST):
             assert 1 == tsrnode.value.ndim,\
                 f"Indices {indices} does not match the rank of tensor {self}."
             return TsrEx(P.index_notation(tsrnode, (indices.root,)))
+
+    def __eq__(self, rhs):
+        if not isinstance(self.root, P.index_notation):
+            raise SyntaxError(
+                f'Only an index notation can act as the left-hand side of '
+                f'assignment. Got {self.root}.'
+            )
+        return TsrEx(P.let(self.root.indices, rhs.root))
 
 
 def index(symbol):
@@ -136,7 +143,8 @@ def tensor(*spec, initializer=None):
     elif isinstance(spec[0], str):
         symbol, *size = spec
     else:
-        symbol = f'Anonymous_{AbstractTensor.n_nameless}'
+        # internal format for anonymous symbols
+        symbol = f'__{AbstractTensor.n_nameless}'
         AbstractTensor.n_nameless += 1
         size = spec
 
