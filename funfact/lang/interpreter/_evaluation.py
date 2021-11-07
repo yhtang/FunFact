@@ -16,10 +16,13 @@ class Evaluator(ROOFInterpreter):
     def scalar(self, value, **kwargs):
         return value
 
-    def tensor(self, value, data, **kwargs):
+    def tensor(self, abstract, data, **kwargs):
         return data
 
-    def index(self, value, **kwargs):
+    def index(self, item, **kwargs):
+        return None
+
+    def indices(self, items, **kwargs):
         return None
 
     def index_notation(self, tensor, indices, **kwargs):
@@ -45,3 +48,7 @@ class Evaluator(ROOFInterpreter):
 
     def sub(self, lhs, rhs, einspec, **kwargs):
         return self._binary_operator(np.subtract, lhs, rhs, einspec)
+
+    def let(self, src, indices, einspec, **kwargs):
+        src_spec, dst_spec = einspec.split('->')
+        return np.transpose(src, [src_spec.index(i) for i in dst_spec])

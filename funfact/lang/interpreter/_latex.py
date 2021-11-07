@@ -18,14 +18,17 @@ class LatexRenderer(ROOFInterpreter):
     def scalar(self, value, **kwargs):
         return str(value)
 
-    def tensor(self, value, **kwargs):
-        return value._repr_tex_()
+    def tensor(self, abstract, **kwargs):
+        return abstract._repr_tex_()
 
-    def index(self, value, **kwargs):
-        return value._repr_tex_()
+    def index(self, item, **kwargs):
+        return item._repr_tex_()
+
+    def indices(self, items, **kwargs):
+        return ''.join(items)
 
     def index_notation(self, tensor, indices, **kwargs):
-        return fr'''{{{tensor}}}_{{{''.join(indices)}}}'''
+        return fr'''{{{tensor}}}_{{{indices}}}'''
 
     def call(self, f, x, **kwargs):
         return fr'\operatorname{{{f}}}{{{x}}}'
@@ -47,3 +50,6 @@ class LatexRenderer(ROOFInterpreter):
 
     def sub(self, lhs, rhs, **kwargs):
         return fr'{lhs} - {rhs}'
+
+    def let(self, src, indices, **kwargs):
+        return fr'''{{{src}}}\rightarrow_{{{indices}}}'''

@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 import copy
 from numbers import Real
-from typing import Any, Callable, Iterable, Union
+from typing import Any, Callable, Iterable, Tuple, Union
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
 from funfact.util.iterable import flatten_if
@@ -48,11 +48,15 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def tensor(self, value: AbstractTensor, **payload: Any):
+    def tensor(self, abstract: AbstractTensor, **payload: Any):
         pass
 
     @abstractmethod
-    def index(self, value: AbstractIndex, **payload: Any):
+    def index(self, item: AbstractIndex, **payload: Any):
+        pass
+
+    @abstractmethod
+    def indices(self, items: AbstractIndex, **payload: Any):
         pass
 
     @abstractmethod
@@ -89,6 +93,10 @@ class ROOFInterpreter(ABC):
     def sub(self, lhs: Any, rhs: Any, **payload: Any):
         pass
 
+    @abstractmethod
+    def let(self, src: Any, indices: Any, **payload: Any):
+        pass
+
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         fields_fixed = {
             name: _deep_apply(self, value, node)
@@ -105,7 +113,8 @@ class TranscribeInterpreter(ABC):
     '''A transcribe interpreter creates a modified copy of an AST while
     traversing it.'''
     Tensorial = Union[
-        P.index_notation, P.call, P.pow, P.neg, P.mul, P.div, P.add, P.sub
+        P.index_notation, P.call, P.pow, P.neg, P.mul, P.div, P.add, P.sub,
+        P.let
     ]
     Numeric = Union[Tensorial, Real]
 
@@ -121,16 +130,20 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def tensor(self, value: AbstractTensor, **payload: Any):
+    def tensor(self, abstract: AbstractTensor, **payload: Any):
         pass
 
     @abstractmethod
-    def index(self, value: AbstractIndex, **payload: Any):
+    def index(self, item: AbstractIndex, **payload: Any):
+        pass
+
+    @abstractmethod
+    def indices(self, items: Tuple[AbstractIndex], **payload: Any):
         pass
 
     @abstractmethod
     def index_notation(
-        self, tensor: P.tensor, indices: Iterable[P.index], **payload: Any
+        self, tensor: P.tensor, indices: P.indices, **payload: Any
     ):
         pass
 
@@ -160,6 +173,10 @@ class TranscribeInterpreter(ABC):
 
     @abstractmethod
     def sub(self, lhs: Numeric, rhs: Numeric, **payload: Any):
+        pass
+
+    @abstractmethod
+    def let(self, src: Numeric, indices: P.indices, **payload: Any):
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):

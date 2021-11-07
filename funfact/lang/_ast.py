@@ -3,7 +3,7 @@
 from dataclasses import make_dataclass
 import inspect
 from numbers import Real
-from typing import Iterable, Union
+from typing import Tuple
 from ._tensor import AbstractIndex, AbstractTensor
 
 
@@ -38,27 +38,28 @@ class Primitives:
         '''a scalar number'''
 
     @primitive(precedence=0)
-    def index(value: AbstractIndex):
+    def tensor(abstract: AbstractTensor):
+        '''an abstract tensor'''
+
+    @primitive(precedence=0)
+    def index(item: AbstractIndex):
         '''an index'''
 
     @primitive(precedence=0)
-    def tensor(value: AbstractTensor):
-        '''an abstract tensor'''
+    def indices(items: Tuple[AbstractIndex]):
+        '''a tuple of indices'''
 
     @primitive(precedence=1)
-    def index_notation(
-        tensor: _ASNode,
-        indices: Union[AbstractIndex, Iterable[AbstractIndex]]
-    ):
-        '''indexed notation for a single tensor'''
+    def index_notation(tensor: _ASNode, indices: _ASNode):
+        '''indexed notation for a single tensor: tensor[indices...]'''
 
     @primitive(precedence=2)
     def call(f: str, x: _ASNode):
-        '''nonlinear function call'''
+        '''general function call: f(x)'''
 
     @primitive(precedence=3)
     def pow(base: _ASNode, exponent: _ASNode):
-        '''raise to power'''
+        '''raise to power: base**exponent'''
 
     @primitive(precedence=4)
     def neg(x: _ASNode):
@@ -66,19 +67,23 @@ class Primitives:
 
     @primitive(precedence=5)
     def mul(lhs: _ASNode, rhs: _ASNode):
-        '''elementwise multiplication, Hadamard product'''
+        '''multiplication'''
 
     @primitive(precedence=5)
     def div(lhs: _ASNode, rhs: _ASNode):
-        '''elementwise division'''
+        '''division'''
 
     @primitive(precedence=6)
     def add(lhs: _ASNode, rhs: _ASNode):
-        '''elementwise addition'''
+        '''addition'''
 
     @primitive(precedence=6)
     def sub(lhs: _ASNode, rhs: _ASNode):
-        '''elementwise subtraction'''
+        '''subtraction'''
+
+    @primitive(precedence=7)
+    def let(src: _ASNode, indices: _ASNode):
+        '''explicit specify output indices'''
 
     @classmethod
     def as_primitive(cls, value):
