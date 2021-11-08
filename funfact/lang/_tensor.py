@@ -73,7 +73,7 @@ class AbstractTensor(Identifier):
 
     n_nameless = 0
 
-    def __init__(self, symbol, *size, initializer=None, data=None):
+    def __init__(self, symbol, *size, initializer=None):
         self.symbol = symbol
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):
@@ -83,7 +83,6 @@ class AbstractTensor(Identifier):
                 )
         self._shape = tuple(map(int, size))
         self.initializer = initializer
-        self.data = data
 
     @property
     def shape(self):
@@ -97,14 +96,12 @@ class AbstractTensor(Identifier):
         return str(self.symbol)
 
     def __repr__(self):
-        return '{cls}({symbol}, {shape}{initializer}{data})'.format(
+        return '{cls}({symbol}, {shape}{initializer})'.format(
             cls=type(self).__qualname__,
             symbol=repr(self.symbol),
             shape=self.shape,
             initializer=f', initializer={repr(self.initializer)}'
-                        if self.initializer is not None else '',
-            data=f', data={repr(self.data)}'
-                        if self.data is not None else ''
+                        if self.initializer is not None else ''
         )
 
     def _repr_tex_(self):
