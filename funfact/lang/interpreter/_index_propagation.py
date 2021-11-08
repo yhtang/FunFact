@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import itertools as it
 from numbers import Real
-from typing import Union
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
