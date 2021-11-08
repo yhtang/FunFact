@@ -51,11 +51,15 @@ class AbstractIndex(Identifier):
     def __repr__(self):
         return f'{type(self).__qualname__}({repr(self.symbol)})'
 
-    def _repr_tex_(self):
-        if self._number is not None:
-            return fr'{{{self._letter}}}_{{{self._number}}}'
+    def _repr_tex_(self, accent=None):
+        if accent is not None:
+            letter = fr'{accent}{{{self._letter}}}'
         else:
-            return fr'{{{self._letter}}}'
+            letter = self._letter
+        if self._number is not None:
+            return fr'{{{letter}}}_{{{self._number}}}'
+        else:
+            return fr'{{{letter}}}'
 
 
 class AbstractTensor(Identifier):

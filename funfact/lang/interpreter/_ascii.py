@@ -17,8 +17,11 @@ class ASCIIRenderer(TranscribeInterpreter):
         return abstract.symbol
 
     @as_payload
-    def index(self, item, **kwargs):
-        return item.symbol
+    def index(self, item, mustkeep, **kwargs):
+        if mustkeep:
+            return f'~{item.symbol}'
+        else:
+            return item.symbol
 
     @as_payload
     def indices(self, items, **kwargs):

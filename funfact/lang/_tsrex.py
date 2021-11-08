@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import dataclasses
 import re
 import asciitree
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
@@ -104,17 +105,15 @@ class ArithmeticMixin:
 
 
 class TsrEx(_BaseEx, ArithmeticMixin):
-
     pass
 
 
 class IndexEx(_BaseEx):
-
-    pass
+    def __invert__(self):
+        return IndexEx(dataclasses.replace(self.root, mustkeep=True))
 
 
 class TensorEx(_BaseEx):
-
     def __getitem__(self, indices):
         return TsrEx(
             P.index_notation(
@@ -127,7 +126,6 @@ class TensorEx(_BaseEx):
 
 
 class EinopEx(TsrEx):
-
     def __rshift__(self, output_indices):
         self.root.outidx = P.indices(
             tuple([i.root for i in as_tuple(output_indices)])
@@ -136,7 +134,7 @@ class EinopEx(TsrEx):
 
 
 def index(symbol):
-    return IndexEx(P.index(AbstractIndex(symbol)))
+    return IndexEx(P.index(AbstractIndex(symbol), mustkeep=False))
 
 
 def indices(symbols):
