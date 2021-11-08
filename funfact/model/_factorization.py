@@ -47,23 +47,31 @@ class Factorization:
         '''Evaluate the tensor expression the result.'''
         return self.tsrex | self._evaluator
 
-    def __getitem__(self, tensor_name):
-        '''Implements attribute-based access of factor tensors.'''
-        for n in dfs_filter(
-            lambda n: n.name == 'tensor' and n.value.symbol == tensor_name,
-            self.tsrex.root
-        ):
-            return n.data
-        raise AttributeError(f'No factor tensor named {tensor_name}.')
+    def __getitem__(self, idx):
+        '''Implements attribute-based access of factor tensors or output
+        elements.'''
+        if isinstance(idx, str):
+            for n in dfs_filter(
+                lambda n: n.name == 'tensor' and n.value.symbol == idx,
+                self.tsrex.root
+            ):
+                return n.data
+            raise AttributeError(f'No factor tensor named {idx}.')
+        elif isinstance(idx, int):
+            raise NotImplementedError()
+        elif isinstance(idx, slice):
+            raise NotImplementedError()
+        elif isinstance(idx, tuple):
+            raise NotImplementedError()
 
-    def __setitem__(self, tensor_name, tensor_data):
+    def __setitem__(self, name, data):
         '''Implements attribute-based access of factor tensors.'''
         for n in dfs_filter(
-            lambda n: n.name == 'tensor' and n.value.symbol == tensor_name,
+            lambda n: n.name == 'tensor' and n.value.symbol == name,
             self.tsrex.root
         ):
-            return setattr(n, 'data', tensor_data)
-        raise AttributeError(f'No factor tensor named {tensor_name}.')
+            return setattr(n, 'data', data)
+        raise AttributeError(f'No factor tensor named {name}.')
 
     @property
     def factors(self):
