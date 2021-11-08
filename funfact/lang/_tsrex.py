@@ -129,9 +129,9 @@ def tensor(*spec, initializer=None):
         size = spec
 
     if hasattr(size[0], "__len__"):
-        data = size[0]
+        initializer = size[0]
         size = size[0].shape
 
     return TsrEx(P.tensor(
-        AbstractTensor(symbol, *size, initializer=initializer, data=data))
+        AbstractTensor(symbol, *size, initializer=initializer))
     )
