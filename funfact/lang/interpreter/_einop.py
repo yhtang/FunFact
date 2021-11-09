@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from typing import Callable
 import jax.numpy as np
 import numpy
 import re
 
 
-def _einop(spec: str, lhs, rhs, op):
-    '''Einstein operation between two nd arrays.
+def _einop(spec: str, lhs, rhs, elementOp: Callable, reductionOp: Callable):
+    '''Generalized Einstein operation between two nd arrays that allows
+    for multiple elementwise and reduction operators.
 
     Parameters
     ----------
@@ -22,8 +24,12 @@ def _einop(spec: str, lhs, rhs, op):
         Left hand side array
     rhs: array
         Right hand side array
-    op: callable
-        Numpy function for Einstein operation
+    elementOp: Callable
+        Elementwise operation. Takes two arrays of same shape and performs
+        elementwise operation in output array.
+    reductionOp: Callable
+        Reduction operation, Takes in array and performs a reduction operation
+        along specified axis.
     '''
 
     # parse input spec string
@@ -67,9 +73,13 @@ def _einop(spec: str, lhs, rhs, op):
     con_ax = tuple(con_ax)
 
     # compute the contraction in alphabetical order
-    result = np.sum(op(lhs[dim_lhs], rhs[dim_rhs]), axis=con_ax)
+    result = reductionOp(elementOp(lhs[dim_lhs], rhs[dim_rhs]), axis=con_ax)
 
     # reorder contraction according to res_spec
     dictionary = dict(zip(indices_rem, numpy.arange(len(indices_rem))))
     res_order = [dictionary[key] for key in res_spec]
     return np.transpose(result, res_order)
+
+
+def logspaceSum(data, axis=None):
+    return np.log(np.sum(np.exp(data), axis=axis))
