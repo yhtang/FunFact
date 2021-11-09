@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import copy
 import jax.numpy as np
 import jax
 from ._base import TranscribeInterpreter
@@ -31,7 +32,7 @@ class LeafInitializer(TranscribeInterpreter):
     def tensor(self, value, **kwargs):
         if value.initializer is not None:
             if not callable(value.initializer):
-                return value.initializer
+                return copy.copy(value.initializer)
             ini = value.initializer
         else:
             def ini(shape):
