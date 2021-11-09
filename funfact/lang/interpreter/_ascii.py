@@ -41,21 +41,6 @@ class ASCIIRenderer(TranscribeInterpreter):
         return '-'
 
     @as_payload
-    def div(self, lhs, rhs, **kwargs):
-        return '/'
-
-    @as_payload
-    def mul(self, lhs, rhs, **kwargs):
-        return '*'
-
-    @as_payload
-    def add(self, lhs, rhs, **kwargs):
-        return '+'
-
-    @as_payload
-    def sub(self, lhs, rhs, **kwargs):
-        return '-'
-
-    @as_payload
-    def let(self, src, indices, **kwargs):
-        return '>>'
+    def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
+        suffix = f' -> {outidx.ascii}' if outidx is not None else ''
+        return f'{reduction}:{pairwise}' + suffix

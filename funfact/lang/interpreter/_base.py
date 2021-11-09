@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 import copy
 from numbers import Real
-from typing import Any, Callable, Iterable, Tuple, Union
+from typing import Any, Callable, Iterable, Optional, Tuple, Union
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
 from funfact.util.iterable import flatten_if
@@ -78,23 +78,8 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def mul(self, lhs: Any, rhs: Any, **payload: Any):
-        pass
-
-    @abstractmethod
-    def div(self, lhs: Any, rhs: Any, **payload: Any):
-        pass
-
-    @abstractmethod
-    def add(self, lhs: Any, rhs: Any, **payload: Any):
-        pass
-
-    @abstractmethod
-    def sub(self, lhs: Any, rhs: Any, **payload: Any):
-        pass
-
-    @abstractmethod
-    def let(self, src: Any, indices: Any, **payload: Any):
+    def ein(self, lhs: Any, rhs: Any, precedence: int, reduction: str,
+            pairwise: str, outidx: Any, **payload: Any):
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):
@@ -113,8 +98,7 @@ class TranscribeInterpreter(ABC):
     '''A transcribe interpreter creates a modified copy of an AST while
     traversing it.'''
     Tensorial = Union[
-        P.index_notation, P.call, P.pow, P.neg, P.mul, P.div, P.add, P.sub,
-        P.let
+        P.index_notation, P.call, P.pow, P.neg, P.ein
     ]
     Numeric = Union[Tensorial, Real]
 
@@ -160,23 +144,8 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def mul(self, lhs: Numeric, rhs: Numeric, **payload: Any):
-        pass
-
-    @abstractmethod
-    def div(self, lhs: Numeric, rhs: Numeric, **payload: Any):
-        pass
-
-    @abstractmethod
-    def add(self, lhs: Numeric, rhs: Numeric, **payload: Any):
-        pass
-
-    @abstractmethod
-    def sub(self, lhs: Numeric, rhs: Numeric, **payload: Any):
-        pass
-
-    @abstractmethod
-    def let(self, src: Numeric, indices: P.indices, **payload: Any):
+    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
+            pairwise: str, outidx: Optional[P.indices], **payload: Any):
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):

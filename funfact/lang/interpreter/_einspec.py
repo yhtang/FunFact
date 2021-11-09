@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from numbers import Real
-from typing import Tuple
+from typing import Optional, Tuple
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
@@ -39,7 +39,7 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return None
 
     @as_payload
-    def tensor(self, value: AbstractTensor, **kwargs):
+    def tensor(self, abstract: AbstractTensor, **kwargs):
         return None
 
     @as_payload
@@ -68,30 +68,9 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return None
 
     @as_payload
-    def mul(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
+    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
+            pairwise: str, outidx: Optional[P.indices], live_indices,
+            **kwargs):
         map = IndexMap()
         return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
                f'->{map(live_indices)}'
-
-    @as_payload
-    def div(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
-        map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
-               f'->{map(live_indices)}'
-
-    @as_payload
-    def add(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
-        map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
-               f'->{map(live_indices)}'
-
-    @as_payload
-    def sub(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
-        map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
-               f'->{map(live_indices)}'
-
-    @as_payload
-    def let(self, src: Numeric, indices: P.indices, live_indices, **kwargs):
-        map = IndexMap()
-        return f'{map(src.live_indices)}->{map(live_indices)}'

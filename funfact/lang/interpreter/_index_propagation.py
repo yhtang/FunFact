@@ -2,15 +2,11 @@
 # -*- coding: utf-8 -*-
 import itertools as it
 from numbers import Real
+from typing import Optional
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
-
-
-def ordered_symmetric_difference(lhs_indices, rhs_indices):
-    diff_lhs = [x for x in lhs_indices if x not in rhs_indices]
-    diff_rhs = [x for x in rhs_indices if x not in lhs_indices]
-    return diff_lhs + diff_rhs
+from funfact.util.set import ordered_symmdiff
 
 
 class IndexPropagator(TranscribeInterpreter):
@@ -57,21 +53,9 @@ class IndexPropagator(TranscribeInterpreter):
         return x.live_indices
 
     @as_payload
-    def mul(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        return ordered_symmetric_difference(lhs.live_indices, rhs.live_indices)
-
-    @as_payload
-    def div(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        return ordered_symmetric_difference(lhs.live_indices, rhs.live_indices)
-
-    @as_payload
-    def add(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        return ordered_symmetric_difference(lhs.live_indices, rhs.live_indices)
-
-    @as_payload
-    def sub(self, lhs: Numeric, rhs: Numeric, **kwargs):
-        return ordered_symmetric_difference(lhs.live_indices, rhs.live_indices)
-
-    @as_payload
-    def let(self, src: Numeric, indices: P.indices, **kwargs):
-        return indices.live_indices
+    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
+            pairwise: str, outidx: Optional[P.indices], **kwargs):
+        if outidx is not None:
+            return outidx.live_indices
+        else:
+            return ordered_symmdiff(lhs.live_indices, rhs.live_indices)

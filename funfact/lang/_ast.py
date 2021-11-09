@@ -3,7 +3,7 @@
 from dataclasses import make_dataclass
 import inspect
 from numbers import Real
-from typing import Tuple
+from typing import Optional, Tuple
 from ._tensor import AbstractIndex, AbstractTensor
 
 
@@ -13,7 +13,7 @@ class _ASNode:
 
 class Primitives:
 
-    def primitive(precedence):
+    def primitive(precedence=None):
         def make_primitive(f):
             args = inspect.getfullargspec(f).args
             p = make_dataclass(
@@ -22,7 +22,8 @@ class Primitives:
                 bases=(_ASNode,)
             )
             p.name = property(lambda self: f.__name__)
-            p.precedence = property(lambda self: precedence)
+            if precedence is not None:
+                p.precedence = property(lambda self: precedence)
             p.fields = property(lambda self: self.__dict__)
             p.fields_fixed = property(lambda self: {
                 k: v for k, v in self.__dict__.items() if k in args
@@ -65,25 +66,12 @@ class Primitives:
     def neg(x: _ASNode):
         '''elementwise negation'''
 
-    @primitive(precedence=5)
-    def mul(lhs: _ASNode, rhs: _ASNode):
-        '''multiplication'''
-
-    @primitive(precedence=5)
-    def div(lhs: _ASNode, rhs: _ASNode):
-        '''division'''
-
-    @primitive(precedence=6)
-    def add(lhs: _ASNode, rhs: _ASNode):
-        '''addition'''
-
-    @primitive(precedence=6)
-    def sub(lhs: _ASNode, rhs: _ASNode):
-        '''subtraction'''
-
-    @primitive(precedence=7)
-    def let(src: _ASNode, indices: _ASNode):
-        '''explicit specify output indices'''
+    @primitive(precedence=None)
+    def ein(
+        lhs: _ASNode, rhs: _ASNode, precedence: int,
+        reduction: str, pairwise: str, outidx: Optional[_ASNode]
+    ):
+        '''pairwise einsum-like operations between tensors'''
 
     @classmethod
     def as_primitive(cls, value):

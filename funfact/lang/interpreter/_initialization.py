@@ -64,21 +64,5 @@ class LeafInitializer(TranscribeInterpreter):
         return None
 
     @as_payload
-    def div(self, lhs, rhs, **kwargs):
-        return None
-
-    @as_payload
-    def mul(self, lhs, rhs, **kwargs):
-        return None
-
-    @as_payload
-    def add(self, lhs, rhs, **kwargs):
-        return None
-
-    @as_payload
-    def sub(self, lhs, rhs, **kwargs):
-        return None
-
-    @as_payload
-    def let(self, dst, src, **kwargs):
+    def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         return None
