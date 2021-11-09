@@ -130,9 +130,14 @@ def tensor(*spec, initializer=None):
         A tensor expression representing a single tensor object.
     '''
     if len(spec) == 2 and isinstance(spec[0], str) and _is_tensor(spec[1]):
-        raise NotImplementedError()
-    elif len(spec) == 1 and _is_tensor(spec[1]):
-        raise NotImplementedError()
+        symbol = spec[0]
+        initializer = spec[1]
+        size = initializer.shape
+    elif len(spec) == 1 and _is_tensor(spec[0]):
+        symbol = f'Anonymous_{AbstractTensor.n_nameless}'
+        AbstractTensor.n_nameless += 1
+        initializer = spec[0]
+        size = initializer.shape
     elif isinstance(spec[0], str):
         symbol, *size = spec
     else:
