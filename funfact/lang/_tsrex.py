@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
-import typing
 import asciitree
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from funfact.util.typing import _is_tensor
