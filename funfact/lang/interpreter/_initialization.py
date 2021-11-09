@@ -32,7 +32,7 @@ class LeafInitializer(TranscribeInterpreter):
     def tensor(self, value, **kwargs):
         if value.initializer is not None:
             if not callable(value.initializer):
-                return copy.copy(value.initializer)
+                return copy.deepcopy(value.initializer)
             ini = value.initializer
         else:
             def ini(shape):
