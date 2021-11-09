@@ -60,7 +60,7 @@ class Factorization:
         elif isinstance(idx, int):
             raise NotImplementedError()
         elif isinstance(idx, slice):
-            raise NotImplementedError()
+            return self.forward()
         elif isinstance(idx, tuple):
             raise NotImplementedError()
 
