@@ -52,7 +52,7 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, **payload: Any):
+    def index(self, item: AbstractIndex, mustkeep: bool, **payload: Any):
         pass
 
     @abstractmethod
@@ -102,12 +102,19 @@ class TranscribeInterpreter(ABC):
     ]
     Numeric = Union[Tensorial, Real]
 
-    def as_payload(k):
-        def wrapper(f):
-            def wrapped_f(*args, **kwargs):
-                return k, f(*args, **kwargs)
-            return wrapped_f
-        return wrapper
+    def as_payload(*k):
+        if len(k) == 1:
+            def wrapper(f):
+                def wrapped_f(*args, **kwargs):
+                    return k[0], f(*args, **kwargs)
+                return wrapped_f
+            return wrapper
+        else:
+            def wrapper(f):
+                def wrapped_f(*args, **kwargs):
+                    return dict(zip(k, f(*args, **kwargs)))
+                return wrapped_f
+            return wrapper
 
     @abstractmethod
     def scalar(self, value: Real, **payload: Any):
@@ -118,7 +125,7 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, **payload: Any):
+    def index(self, item: AbstractIndex, mustkeep: bool, **payload: Any):
         pass
 
     @abstractmethod

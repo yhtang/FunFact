@@ -43,7 +43,7 @@ class Primitives:
         '''an abstract tensor'''
 
     @primitive(precedence=0)
-    def index(item: AbstractIndex):
+    def index(item: AbstractIndex, mustkeep: bool):
         '''an index'''
 
     @primitive(precedence=0)

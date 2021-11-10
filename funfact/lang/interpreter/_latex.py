@@ -30,8 +30,9 @@ class LatexRenderer(ROOFInterpreter):
     def tensor(self, abstract, **kwargs):
         return abstract._repr_tex_()
 
-    def index(self, item, **kwargs):
-        return item._repr_tex_()
+    def index(self, item, mustkeep, **kwargs):
+        accent = r'\widetilde' if mustkeep else None
+        return fr'{{{item._repr_tex_(accent=accent)}}}'
 
     def indices(self, items, **kwargs):
         return ''.join(items)
