@@ -5,6 +5,10 @@ import numpy
 import re
 
 
+def logspace_sum(data, axis=None):
+    return np.log(np.sum(np.exp(data), axis=axis))
+
+
 class DummyBackend:
 
     add = np.add
@@ -13,6 +17,7 @@ class DummyBackend:
     div = np.divide
     min = np.min
     sum = np.sum
+    logspace_sum = logspace_sum
 
 
 def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
@@ -82,7 +87,6 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     op_redu = getattr(DummyBackend, reduction)
     op_pair = getattr(DummyBackend, pairwise)
 
-    print('op_redu', op_redu)
     result = op_redu(op_pair(lhs[dim_lhs], rhs[dim_rhs]), axis=con_ax)
 
     # reorder contraction according to res_spec
