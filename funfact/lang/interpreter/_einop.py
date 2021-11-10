@@ -93,7 +93,3 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     dictionary = dict(zip(indices_rem, numpy.arange(len(indices_rem))))
     res_order = [dictionary[key] for key in res_spec]
     return np.transpose(result, res_order)
-
-
-def logspaceSum(data, axis=None):
-    return np.log(np.sum(np.exp(data), axis=axis))
