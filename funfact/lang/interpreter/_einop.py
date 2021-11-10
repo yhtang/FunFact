@@ -87,10 +87,13 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     op_redu = getattr(DummyBackend, reduction)
     op_pair = getattr(DummyBackend, pairwise)
 
-    print('op_redu', op_redu)
     result = op_redu(op_pair(lhs[dim_lhs], rhs[dim_rhs]), axis=con_ax)
 
     # reorder contraction according to res_spec
     dictionary = dict(zip(indices_rem, numpy.arange(len(indices_rem))))
     res_order = [dictionary[key] for key in res_spec]
     return np.transpose(result, res_order)
+
+
+def logspaceSum(data, axis=None):
+    return np.log(np.sum(np.exp(data), axis=axis))
