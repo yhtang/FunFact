@@ -6,7 +6,7 @@ from typing import Optional
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
-from funfact.util.set import ordered_symmdiff, ordered_union, ordered_setminus
+from funfact.util.set import ordered_union, ordered_setminus
 
 
 class IndexPropagator(TranscribeInterpreter):
@@ -63,13 +63,29 @@ class IndexPropagator(TranscribeInterpreter):
     @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], **kwargs):
+        '''
+        ╔════════════╗
+        ║     ╔══════╬═════╗
+        ║   ╭─╫────╮ ║  L2 ║
+        ║   │ ║K1  │ ║     ║
+        ║   │ ║ ╭──┼─╫─╮   ║
+        ║   ╰─╫─┼──╯ ║ │   ║
+        ║     ║ │  K2║ │   ║
+        ║ L1  ║ ╰────╫─╯   ║
+        ╚═════╬══════╝     ║
+              ╚════════════╝
+        '''
         # indices marked as keep on either side should stay
         live_indices = ordered_union(lhs.live_indices, rhs.live_indices)
         keep_indices = ordered_union(lhs.keep_indices, rhs.keep_indices)
         if outidx is None:
-            lhs_out = [i for i in lhs.live_indices if (i not in rhs.live_indices or i in keep_indices)]
-            rhs_out = [i for i in rhs.live_indices if (i not in lhs.live_indices or i in keep_indices)]
-            implied_out = ordered_union(lhs_out, rhs_out)
+            l_outer = ordered_setminus(lhs.live_indices, rhs.live_indices)
+            r_outer = ordered_setminus(rhs.live_indices, lhs.live_indices)
+            elementwise = ordered_setminus(
+                ordered_union(lhs.keep_indices, rhs.keep_indices),
+                ordered_union(l_outer, r_outer)
+            )
+            implied_out = l_outer + elementwise + r_outer
             return implied_out, []
         else:
             explicit_out = outidx.live_indices
