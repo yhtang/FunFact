@@ -5,7 +5,17 @@ import numpy
 import re
 
 
-def _einop(spec: str, lhs, rhs, op):
+class DummyBackend:
+
+    add = np.add
+    sub = np.subtract
+    mul = np.multiply
+    div = np.divide
+    min = np.min
+    sum = np.sum
+
+
+def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     '''Einstein operation between two nd arrays.
 
     Parameters
@@ -22,8 +32,10 @@ def _einop(spec: str, lhs, rhs, op):
         Left hand side array
     rhs: array
         Right hand side array
-    op: callable
-        Numpy function for Einstein operation
+    reduction: str
+        Name of the reduction operator
+    pairwise: str
+        Name of the pairwise operator
     '''
 
     # parse input spec string
@@ -67,7 +79,11 @@ def _einop(spec: str, lhs, rhs, op):
     con_ax = tuple(con_ax)
 
     # compute the contraction in alphabetical order
-    result = np.sum(op(lhs[dim_lhs], rhs[dim_rhs]), axis=con_ax)
+    op_redu = getattr(DummyBackend, reduction)
+    op_pair = getattr(DummyBackend, pairwise)
+
+    print('op_redu', op_redu)
+    result = op_redu(op_pair(lhs[dim_lhs], rhs[dim_rhs]), axis=con_ax)
 
     # reorder contraction according to res_spec
     dictionary = dict(zip(indices_rem, numpy.arange(len(indices_rem))))

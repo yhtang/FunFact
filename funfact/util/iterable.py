@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from collections import namedtuple
+from typing import Iterable
 
 
 def flatten(iterable):
@@ -90,3 +91,10 @@ def map_or_call(iterable, mapping):
 
 def as_namedtuple(title, **kwargs):
     return namedtuple(title, kwargs.keys())(*kwargs.values())
+
+
+def as_tuple(elements):
+    if isinstance(elements, Iterable):
+        return tuple(elements)
+    else:
+        return (elements,)

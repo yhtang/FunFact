@@ -13,18 +13,20 @@ class ASCIIRenderer(TranscribeInterpreter):
         return str(value)
 
     @as_payload
-    def tensor(self, value, **kwargs):
-        return value.symbol
+    def tensor(self, abstract, **kwargs):
+        return abstract.symbol
 
     @as_payload
-    def index(self, value, **kwargs):
-        return value.symbol
+    def index(self, item, **kwargs):
+        return item.symbol
+
+    @as_payload
+    def indices(self, items, **kwargs):
+        return ','.join([i.ascii for i in items])
 
     @as_payload
     def index_notation(self, tensor, indices, **kwargs):
-        return '{}[{}]'.format(
-            tensor.ascii, ','.join([i.ascii for i in indices])
-        )
+        return f'{tensor.ascii}[{indices.ascii}]'
 
     @as_payload
     def call(self, f, x, **kwargs):
@@ -39,17 +41,6 @@ class ASCIIRenderer(TranscribeInterpreter):
         return '-'
 
     @as_payload
-    def div(self, lhs, rhs, **kwargs):
-        return '/'
-
-    @as_payload
-    def mul(self, lhs, rhs, **kwargs):
-        return '*'
-
-    @as_payload
-    def add(self, lhs, rhs, **kwargs):
-        return '+'
-
-    @as_payload
-    def sub(self, lhs, rhs, **kwargs):
-        return '-'
+    def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
+        suffix = f' -> {outidx.ascii}' if outidx is not None else ''
+        return f'{reduction}:{pairwise}' + suffix
