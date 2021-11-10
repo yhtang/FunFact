@@ -29,18 +29,22 @@ class LeafInitializer(TranscribeInterpreter):
         return None
 
     @as_payload
-    def tensor(self, value, **kwargs):
-        if value.initializer is not None:
-            if not callable(value.initializer):
-                return copy.deepcopy(value.initializer)
-            ini = value.initializer
+    def tensor(self, abstract, **kwargs):
+        if abstract.initializer is not None:
+            if not callable(abstract.initializer):
+                init_val = copy.deepcopy(abstract.initializer)
+            else:
+                init_val = abstract.initializer(abstract.shape)
         else:
-            def ini(shape):
-                return self.rng.normal(shape)
-        return ini(value.shape)
+            init_val = self.rng.normal(abstract.shape)
+        return init_val
 
     @as_payload
-    def index(self, value, **kwargs):
+    def index(self, item, **kwargs):
+        return None
+
+    @as_payload
+    def indices(self, items, **kwargs):
         return None
 
     @as_payload
@@ -60,17 +64,5 @@ class LeafInitializer(TranscribeInterpreter):
         return None
 
     @as_payload
-    def div(self, lhs, rhs, **kwargs):
-        return None
-
-    @as_payload
-    def mul(self, lhs, rhs, **kwargs):
-        return None
-
-    @as_payload
-    def add(self, lhs, rhs, **kwargs):
-        return None
-
-    @as_payload
-    def sub(self, lhs, rhs, **kwargs):
+    def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         return None

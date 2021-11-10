@@ -52,7 +52,7 @@ class Factorization:
         elements.'''
         if isinstance(idx, str):
             for n in dfs_filter(
-                lambda n: n.name == 'tensor' and n.value.symbol == idx,
+                lambda n: n.name == 'tensor' and n.abstract.symbol == idx,
                 self.tsrex.root
             ):
                 return n.data
@@ -67,7 +67,7 @@ class Factorization:
     def __setitem__(self, name, data):
         '''Implements attribute-based access of factor tensors.'''
         for n in dfs_filter(
-            lambda n: n.name == 'tensor' and n.value.symbol == name,
+            lambda n: n.name == 'tensor' and n.abstract.symbol == name,
             self.tsrex.root
         ):
             return setattr(n, 'data', data)

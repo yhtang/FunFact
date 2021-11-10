@@ -10,16 +10,19 @@ class Evaluator(ROOFInterpreter):
     '''
 
     @staticmethod
-    def _binary_operator(op, lhs, rhs, spec):
-        return _einop(spec, lhs, rhs, op)
+    def _binary_operator(reduction, pairwise, lhs, rhs, spec):
+        return _einop(spec, lhs, rhs, reduction, pairwise)
 
     def scalar(self, value, **kwargs):
         return value
 
-    def tensor(self, value, data, **kwargs):
+    def tensor(self, abstract, data, **kwargs):
         return data
 
-    def index(self, value, **kwargs):
+    def index(self, item, **kwargs):
+        return None
+
+    def indices(self, items, **kwargs):
         return None
 
     def index_notation(self, tensor, indices, **kwargs):
@@ -34,14 +37,6 @@ class Evaluator(ROOFInterpreter):
     def neg(self, x, **kwargs):
         return -x
 
-    def div(self, lhs, rhs, einspec, **kwargs):
-        return self._binary_operator(np.divide, lhs, rhs, einspec)
-
-    def mul(self, lhs, rhs, einspec, **kwargs):
-        return self._binary_operator(np.multiply, lhs, rhs, einspec)
-
-    def add(self, lhs, rhs, einspec, **kwargs):
-        return self._binary_operator(np.add, lhs, rhs, einspec)
-
-    def sub(self, lhs, rhs, einspec, **kwargs):
-        return self._binary_operator(np.subtract, lhs, rhs, einspec)
+    def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, einspec,
+            **kwargs):
+        return self._binary_operator(reduction, pairwise, lhs, rhs, einspec)

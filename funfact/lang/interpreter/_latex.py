@@ -3,6 +3,15 @@
 from ._base import ROOFInterpreter
 
 
+_omap = dict(
+    add='+',
+    sub='-',
+    mul=r'\times',
+    div='/',
+    min=r'\min'
+)
+
+
 class LatexRenderer(ROOFInterpreter):
 
     def __call__(self, node, parent=None):
@@ -18,14 +27,17 @@ class LatexRenderer(ROOFInterpreter):
     def scalar(self, value, **kwargs):
         return str(value)
 
-    def tensor(self, value, **kwargs):
-        return value._repr_tex_()
+    def tensor(self, abstract, **kwargs):
+        return abstract._repr_tex_()
 
-    def index(self, value, **kwargs):
-        return value._repr_tex_()
+    def index(self, item, **kwargs):
+        return item._repr_tex_()
+
+    def indices(self, items, **kwargs):
+        return ''.join(items)
 
     def index_notation(self, tensor, indices, **kwargs):
-        return fr'''{{{tensor}}}_{{{''.join(indices)}}}'''
+        return fr'''{{{tensor}}}_{{{indices}}}'''
 
     def call(self, f, x, **kwargs):
         return fr'\operatorname{{{f}}}{{{x}}}'
@@ -36,14 +48,13 @@ class LatexRenderer(ROOFInterpreter):
     def neg(self, x, **kwargs):
         return fr'-{x}'
 
-    def div(self, lhs, rhs, **kwargs):
-        return fr'{lhs} / {rhs}'
-
-    def mul(self, lhs, rhs, **kwargs):
-        return fr'{lhs} \times {rhs}'
-
-    def add(self, lhs, rhs, **kwargs):
-        return fr'{lhs} + {rhs}'
-
-    def sub(self, lhs, rhs, **kwargs):
-        return fr'{lhs} - {rhs}'
+    def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
+        if reduction == 'sum':
+            op = _omap[pairwise]
+        else:
+            op = r'\underset{{{}:{}}}{{\star}}'.format(
+                _omap[reduction], _omap[pairwise]
+            )
+        body = fr'{lhs} {op} {rhs}'
+        suffix = fr'\rightarrow_{{{outidx}}}' if outidx is not None else ''
+        return body + suffix

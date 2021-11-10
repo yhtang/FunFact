@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from numbers import Real
-from typing import Iterable, Union
+from typing import Optional, Tuple
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
@@ -29,10 +29,8 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     '''The Einstein summation specification generator creates NumPy-style spec
     strings for tensor contraction operations.'''
 
-    Tensorial = Union[
-        P.index_notation, P.call, P.pow, P.neg, P.mul, P.div, P.add, P.sub
-    ]
-    Numeric = Union[Tensorial, Real]
+    Tensorial = TranscribeInterpreter.Tensorial
+    Numeric = TranscribeInterpreter.Numeric
 
     as_payload = TranscribeInterpreter.as_payload('einspec')
 
@@ -41,17 +39,19 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return None
 
     @as_payload
-    def tensor(self, value: AbstractTensor, **kwargs):
+    def tensor(self, abstract: AbstractTensor, **kwargs):
         return None
 
     @as_payload
-    def index(self, value: AbstractIndex, **kwargs):
+    def index(self, item: AbstractIndex, **kwargs):
         return None
 
     @as_payload
-    def index_notation(
-        self, tensor: P.tensor, indices: Iterable[P.index],  **kwargs
-    ):
+    def indices(self, items: Tuple[P.index], **kwargs):
+        return None
+
+    @as_payload
+    def index_notation(self, tensor: P.tensor, indices: P.indices,  **kwargs):
         return None
 
     @as_payload
@@ -68,25 +68,9 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return None
 
     @as_payload
-    def mul(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
-        map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
-               f'->{map(live_indices)}'
-
-    @as_payload
-    def div(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
-        map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
-               f'->{map(live_indices)}'
-
-    @as_payload
-    def add(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
-        map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
-               f'->{map(live_indices)}'
-
-    @as_payload
-    def sub(self, lhs: Numeric, rhs: Numeric, live_indices, **kwargs):
+    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
+            pairwise: str, outidx: Optional[P.indices], live_indices,
+            **kwargs):
         map = IndexMap()
         return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
                f'->{map(live_indices)}'
