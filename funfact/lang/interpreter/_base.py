@@ -106,7 +106,7 @@ class TranscribeInterpreter(ABC):
         if len(k) == 1:
             def wrapper(f):
                 def wrapped_f(*args, **kwargs):
-                    return *k, f(*args, **kwargs)
+                    return k[0], f(*args, **kwargs)
                 return wrapped_f
             return wrapper
         else:
