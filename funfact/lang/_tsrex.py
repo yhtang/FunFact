@@ -55,52 +55,52 @@ class ArithmeticMixin:
 
     def __add__(self, rhs):
         return EinopEx(P.ein(
-            self.root, self._as_node(rhs), 6, 'sum', 'add', None
+            self.root, _BaseEx(rhs).root, 6, 'sum', 'add', None
         ))
 
     def __radd__(self, lhs):
         return EinopEx(P.ein(
-            self._as_node(lhs), self.root, 6, 'sum', 'add', None
+            _BaseEx(lhs).root, self.root, 6, 'sum', 'add', None
         ))
 
     def __sub__(self, rhs):
         return EinopEx(P.ein(
-            self.root, self._as_node(rhs), 6, 'sum', 'sub', None
+            self.root, _BaseEx(rhs).root, 6, 'sum', 'sub', None
         ))
 
     def __rsub__(self, lhs):
         return EinopEx(P.ein(
-            self._as_node(lhs), self.root, 6, 'sum', 'sub', None
+            _BaseEx(lhs).root, self.root, 6, 'sum', 'sub', None
         ))
 
     def __mul__(self, rhs):
         return EinopEx(P.ein(
-            self.root, self._as_node(rhs), 5, 'sum', 'mul', None
+            self.root, _BaseEx(rhs).root, 5, 'sum', 'mul', None
         ))
 
     def __rmul__(self, lhs):
         return EinopEx(P.ein(
-            self._as_node(lhs), self.root, 5, 'sum', 'mul', None
+            _BaseEx(lhs).root, self.root, 5, 'sum', 'mul', None
         ))
 
     def __div__(self, rhs):
         return EinopEx(P.ein(
-            self.root, self._as_node(rhs), 5, 'sum', 'div', None
+            self.root, _BaseEx(rhs).root, 5, 'sum', 'div', None
         ))
 
     def __rdiv__(self, lhs):
         return EinopEx(P.ein(
-            self._as_node(lhs), self.root, 5, 'sum', 'div', None
+            _BaseEx(lhs).root, self.root, 5, 'sum', 'div', None
         ))
 
     def __neg__(self):
         return TsrEx(P.neg(self.root))
 
     def __pow__(self, exponent):
-        return TsrEx(P.pow(self.root, self._as_node(exponent)))
+        return TsrEx(P.pow(self.root, _BaseEx(exponent).root))
 
     def __rpow__(self, base):
-        return TsrEx(P.pow(self._as_node(base)), self.root)
+        return TsrEx(P.pow(_BaseEx(base).root, self.root))
 
 
 class TsrEx(_BaseEx, ArithmeticMixin):
@@ -186,9 +186,3 @@ def tensor(*spec, initializer=None):
     return TensorEx(P.tensor(
         AbstractTensor(symbol, *size, initializer=initializer))
     )
-
-
-def minplus(lhs: TsrEx, rhs: TsrEx):
-    return EinopEx(P.ein(
-        lhs._as_node(lhs), rhs._as_node(rhs), 6, 'min', 'add', None
-    ))

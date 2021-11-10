@@ -81,17 +81,17 @@ class Primitives:
             return cls.scalar(value=value)
         else:
             raise TypeError(
-                f'Cannot use {value} of type {type(value)} in'
-                'a tensor expression.'
+                f'Cannot use {value} of type {type(value)} in '
+                f'a tensor expression.'
             )
 
 
 class _AST:
 
     def __init__(self, data=None):
-        if isinstance(data, type(self)):
+        try:  # copy-construct from another AST
             self.root = data.root
-        else:
+        except AttributeError:
             try:
                 self.root = Primitives.as_primitive(data)
             except TypeError:
@@ -106,11 +106,3 @@ class _AST:
     @root.setter
     def root(self, r):
         self._root = r
-
-    @classmethod
-    def _as_tree(cls, t):
-        return cls(t)
-
-    @classmethod
-    def _as_node(cls, t):
-        return cls._as_tree(t).root
