@@ -10,7 +10,13 @@ def minplus(lhs: TsrEx, rhs: TsrEx):
     ))
 
 
-def logspacesum(lhs: TsrEx, rhs: TsrEx):
+def logsumexp(lhs: TsrEx, rhs: TsrEx):
     return EinopEx(P.ein(
-        _BaseEx(lhs).root, _BaseEx(rhs).root, 6, 'logspace_sum', 'add', None
+        _BaseEx(lhs).root, _BaseEx(rhs).root, 6, 'log_sum_exp', 'add', None
+    ))
+
+
+def viterbi(lhs: TsrEx, rhs: TsrEx):
+    return EinopEx(P.ein(
+        _BaseEx(lhs).root, _BaseEx(rhs).root, 6, 'max', 'log_add_exp', None
     ))
