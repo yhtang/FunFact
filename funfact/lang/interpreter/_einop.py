@@ -5,7 +5,11 @@ import numpy
 import re
 
 
-def logspace_sum(data, axis=None):
+def log_add_exp(lhs, rhs):
+    return np.log(np.add(np.exp(lhs), np.exp(rhs)))
+
+
+def log_sum_exp(data, axis=None):
     return np.log(np.sum(np.exp(data), axis=axis))
 
 
@@ -15,9 +19,11 @@ class DummyBackend:
     sub = np.subtract
     mul = np.multiply
     div = np.divide
+    log_add_exp = log_add_exp
     min = np.min
+    max = np.max
     sum = np.sum
-    logspace_sum = logspace_sum
+    log_sum_exp = log_sum_exp
 
 
 def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):

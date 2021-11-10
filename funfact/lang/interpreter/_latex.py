@@ -8,7 +8,10 @@ _omap = dict(
     sub='-',
     mul=r'\times',
     div='/',
-    min=r'\min'
+    min=r'\min',
+    max=r'\max',
+    log_sum_exp='LSE',
+    log_add_exp='LAE'
 )
 
 
