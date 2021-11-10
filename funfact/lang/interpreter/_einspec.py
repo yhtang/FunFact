@@ -43,7 +43,7 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return None
 
     @as_payload
-    def index(self, item: AbstractIndex, **kwargs):
+    def index(self, item: AbstractIndex, mustkeep: bool, **kwargs):
         return None
 
     @as_payload

@@ -17,7 +17,7 @@ class SyntaxValidator:
     def tensor(self, node: _ASNode, parent: _ASNode):
         pass
 
-    def index(self, node: _ASNode, parent: _ASNode):
+    def index(self, node: _ASNode, mustkeep: bool, parent: _ASNode):
         pass
 
     def indices(self, node: _ASNode, parent: _ASNode):
