@@ -5,7 +5,7 @@ from ._ast import _ASNode, _AST, Primitives
 
 
 def test_primitive_decator():
-    
+
     # create new primitive
     @Primitives.primitive(precedence=1)
     def prim(arg1, arg2):
@@ -19,7 +19,7 @@ def test_primitive_decator():
     assert hasattr(prim, 'fields')
     assert hasattr(prim, 'fields_fixed')
     assert hasattr(prim, 'fields_payload')
-    
+
     # check for node instance properties
     node = prim('a', False)
     assert node.name == 'prim'
