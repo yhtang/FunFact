@@ -30,7 +30,7 @@ class IndexPropagator(TranscribeInterpreter):
 
     @as_payload
     def index(self, item: AbstractIndex, mustkeep: bool, **kwargs):
-        return [item.symbol], [item.symbol] if mustkeep else []
+        return [item], [item] if mustkeep else []
 
     @as_payload
     def indices(self, items: AbstractIndex, **kwargs):
