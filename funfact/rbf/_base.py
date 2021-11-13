@@ -104,7 +104,7 @@ class RBFExpansionBasePyCUDA:
 
         @property
         def funrank(self):
-            return len(self.x[-1])
+            return len(self.x[-2])
 
         def __getattr__(self, a):
             return self.x[self.x_names.index(a)]

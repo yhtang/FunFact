@@ -208,7 +208,7 @@ class RBFExpansionDenseStochasticGrad(RBFExpansionBasePyCUDA):
                 thread_per_block=self.cuda_thread_per_block,
                 block_per_inst=self.cuda_block_per_inst
             ),
-            'rbf_expansion_ensemble'
+            'rbf_expansion_ensemble_stochgrad'
         )
 
         def f_cuda(x):

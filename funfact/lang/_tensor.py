@@ -38,6 +38,12 @@ class Symbol:
 
 class Identifiable(ABC):
 
+    # to be provisioned by subclasses
+    # TODO: a better apporach is to directly implement a safe dict
+    _anon_regitry: dict
+    _anon_registry_lock: multiprocessing.Lock
+    _natural_letter: str
+
     @staticmethod
     def _latex_encode(s):
         if s == '#':
@@ -69,7 +75,7 @@ class Identifiable(ABC):
 
     @classmethod
     def _make_symbol(cls, u):
-        with cls._lock:
+        with cls._anon_registry_lock:
             if u in cls._anon_regitry:
                 return cls._anon_regitry[u]
             else:
@@ -81,7 +87,7 @@ class Identifiable(ABC):
 class AbstractIndex(Identifiable):
 
     _anon_regitry = {}
-    _lock = multiprocessing.Lock()
+    _anon_registry_lock = multiprocessing.Lock()
     _natural_letter = '#'
     '''the default letter to use for anonymous indices.'''
 
@@ -123,7 +129,7 @@ class AbstractTensor(Identifiable):
     '''
 
     _anon_regitry = {}
-    _lock = multiprocessing.Lock()
+    _anon_registry_lock = multiprocessing.Lock()
     _natural_letter = u'λ'
     '''the default letter to use for anonymous tensors.'''
 
