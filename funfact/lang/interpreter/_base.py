@@ -194,9 +194,22 @@ class PayloadMerger:
         return type(tsrex_list[0])(self(*[tsrex.root for tsrex in tsrex_list]))
 
 
+def dfs(node: _ASNode):
+    '''Returns an iterator that loop over all nodes in an AST in a depth-first
+    manner.'''
+
+    for child in flatten_if(
+        node.fields_fixed.values(),
+        lambda elem: isinstance(elem, (list, tuple))
+    ):
+        if isinstance(child, _ASNode):
+            yield from dfs(child)
+        yield node
+
+
 def dfs_filter(function: Callable[[_ASNode], bool], node: _ASNode):
     '''Returns an iterator that loop over all nodes in an AST in a depth-first
-    manner for which `function` evaluates to trues.'''
+    manner for which `function` evaluates to true.'''
 
     for child in flatten_if(
         node.fields_fixed.values(),
