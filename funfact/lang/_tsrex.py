@@ -133,12 +133,17 @@ class EinopEx(TsrEx):
         return self
 
 
-def index(symbol):
+def index(symbol=None):
     return IndexEx(P.index(AbstractIndex(symbol), mustkeep=False))
 
 
-def indices(symbols):
-    return [index(s) for s in re.split(r'[,\s]+', symbols)]
+def indices(spec):
+    if isinstance(spec, int):
+        return [index() for i in range(spec)]
+    elif isinstance(spec, str):
+        return [index(s) for s in re.split(r'[,\s]+', spec)]
+    else:
+        raise RuntimeError(f'Cannot create indices from {spec}.')
 
 
 def tensor(*spec, initializer=None):
@@ -165,22 +170,23 @@ def tensor(*spec, initializer=None):
         A tensor expression representing a single tensor object.
     '''
     if len(spec) == 2 and isinstance(spec[0], str) and _is_tensor(spec[1]):
+        # name + concrete tensor
         symbol = spec[0]
         initializer = spec[1]
         size = initializer.shape
     elif len(spec) == 1 and _is_tensor(spec[0]):
-        symbol = f'Anonymous_{AbstractTensor.n_nameless}'
-        AbstractTensor.n_nameless += 1
+        # concrete tensor only
+        symbol = None
         initializer = spec[0]
         size = initializer.shape
     elif isinstance(spec[0], str):
+        # name + size
         symbol, *size = spec
     else:
-        # internal format for anonymous symbols
-        symbol = f'__{AbstractTensor.n_nameless}'
-        AbstractTensor.n_nameless += 1
+        # size only
+        symbol = None
         size = spec
 
     return TensorEx(P.tensor(
-        AbstractTensor(symbol, *size, initializer=initializer))
+        AbstractTensor(*size, symbol=symbol, initializer=initializer))
     )
