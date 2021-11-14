@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import dataclasses
 import re
+import sys
 import asciitree
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from funfact.util.typing import _is_tensor
@@ -10,46 +11,77 @@ from .interpreter import ASCIIRenderer, LatexRenderer
 from ._tensor import AbstractTensor, AbstractIndex
 
 
+class ASCIITreeFactory:
+
+    @staticmethod
+    def _make_printer(*extra_fields):
+        return asciitree.LeftAligned(
+            traverse=as_namedtuple(
+                'TsrExTraversal',
+                get_root=lambda root: root,
+                get_children=lambda node: list(
+                    filter(
+                        lambda elem: isinstance(elem, _ASNode),
+                        flatten_if(
+                            node.fields_fixed.values(),
+                            lambda elem: isinstance(elem, (list, tuple))
+                        )
+                    )
+                ),
+                get_text=lambda node: node.ascii + ' ' + ' '.join([
+                    f'({v}: {getattr(node, v)})' for v in extra_fields
+                ])
+            ),
+            draw=asciitree.drawing.BoxStyle(
+                gfx={
+                    'UP_AND_RIGHT': u'\u2570',
+                    'HORIZONTAL': u'\u2500',
+                    'VERTICAL': u'\u2502',
+                    'VERTICAL_AND_RIGHT': u'\u251c'
+                },
+                horiz_len=2,
+                label_space=0,
+                label_format=' {}',
+                indent=1
+            )
+        )
+
+    class ASCIITree:
+        def __init__(self, root, factory):
+            self._root = root
+            self._factory = factory
+            self._ascii_intr = ASCIIRenderer()
+
+        def __repr__(self):
+            return self._factory()(
+                self._ascii_intr(self._root)
+            )
+
+        def __call__(self, *fields, stdout=True):
+            ascii = self._factory(*fields)(
+                self._ascii_intr(self._root)
+            )
+            if stdout:
+                sys.stdout.write(ascii)
+                sys.stdout.flush()
+            else:
+                return ascii
+
+    def __call__(self, root):
+        return self.ASCIITree(root, self._make_printer)
+
+
 class _BaseEx(_AST):
 
     _latex_intr = LatexRenderer()
+    _asciitree_factory = ASCIITreeFactory()
 
     def _repr_html_(self):
         return f'''$${self._latex_intr(self.root)}$$'''
 
-    _ascii_intr = ASCIIRenderer()
-    _asciitree = asciitree.LeftAligned(
-        traverse=as_namedtuple(
-            'TsrExTraversal',
-            get_root=lambda root: root,
-            get_children=lambda node: list(
-                filter(
-                    lambda elem: isinstance(elem, _ASNode),
-                    flatten_if(
-                        node.fields_fixed.values(),
-                        lambda elem: isinstance(elem, (list, tuple))
-                    )
-                )
-            ),
-            get_text=lambda node: node.ascii
-        ),
-        draw=asciitree.drawing.BoxStyle(
-            gfx={
-                'UP_AND_RIGHT': u'\u2570',
-                'HORIZONTAL': u'\u2500',
-                'VERTICAL': u'\u2502',
-                'VERTICAL_AND_RIGHT': u'\u251c'
-            },
-            horiz_len=2,
-            label_space=0,
-            label_format=' {}',
-            indent=1
-        )
-    )
-
     @property
     def asciitree(self):
-        return self._asciitree(self._ascii_intr(self.root))
+        return self._asciitree_factory(self.root)
 
 
 class ArithmeticMixin:
