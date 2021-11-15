@@ -43,8 +43,8 @@ class Primitives:
         '''an abstract tensor'''
 
     @primitive(precedence=0)
-    def index(item: AbstractIndex, mustkeep: bool):
-        '''an index'''
+    def index(item: AbstractIndex, bound: bool):
+        '''an index; bound indices are not reduced even if appear twice'''
 
     @primitive(precedence=0)
     def indices(items: Tuple[AbstractIndex]):

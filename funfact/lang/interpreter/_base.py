@@ -52,7 +52,7 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, mustkeep: bool, **payload: Any):
+    def index(self, item: AbstractIndex, bound: bool, **payload: Any):
         pass
 
     @abstractmethod
@@ -125,7 +125,7 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, mustkeep: bool, **payload: Any):
+    def index(self, item: AbstractIndex, bound: bool, **payload: Any):
         pass
 
     @abstractmethod

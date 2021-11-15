@@ -25,7 +25,7 @@ class SyntaxValidator:
                     f'its concrete-tensor initializer of {ini.shape}.'
                 )
 
-    def index(self, node: _ASNode, mustkeep: bool, parent: _ASNode):
+    def index(self, node: _ASNode, bound: bool, parent: _ASNode):
         pass
 
     def indices(self, node: _ASNode, parent: _ASNode):

@@ -170,7 +170,7 @@ class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin):
 
 class IndexEx(_BaseEx):
     def __invert__(self):
-        return IndexEx(dataclasses.replace(self.root, mustkeep=True))
+        return IndexEx(dataclasses.replace(self.root, bound=True))
 
 
 class TensorEx(_BaseEx):
@@ -194,7 +194,7 @@ class EinopEx(TsrEx):
 
 
 def index(symbol=None):
-    return IndexEx(P.index(AbstractIndex(symbol), mustkeep=False))
+    return IndexEx(P.index(AbstractIndex(symbol), bound=False))
 
 
 def indices(spec):
