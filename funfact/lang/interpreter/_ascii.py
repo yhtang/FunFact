@@ -14,14 +14,14 @@ class ASCIIRenderer(TranscribeInterpreter):
 
     @as_payload
     def tensor(self, abstract, **kwargs):
-        return abstract.symbol
+        return str(abstract.symbol)
 
     @as_payload
     def index(self, item, mustkeep, **kwargs):
         if mustkeep:
-            return f'~{item.symbol}'
+            return f'~{str(item.symbol)}'
         else:
-            return item.symbol
+            return str(item.symbol)
 
     @as_payload
     def indices(self, items, **kwargs):

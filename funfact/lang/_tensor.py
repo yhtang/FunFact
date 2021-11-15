@@ -1,36 +1,67 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+import multiprocessing
 import re
 import numbers
+import uuid
 
 
-class Identifier(ABC):
+@dataclass(init=False)
+class Symbol:
 
-    @property
-    def symbol(self):
-        if self._number is not None:
-            return f'{self._letter}_{self._number}'
+    letter: str
+    number: str = None
+
+    def __init__(self, s):
+        if isinstance(s, tuple):
+            self.letter, self.number = s
         else:
-            return self._letter
-
-    @symbol.setter
-    def symbol(self, string: str):
-        m = re.fullmatch(r'([a-zA-Z]+)(?:_(\d+))?', string)
-        try:
-            self._letter, self._number = m.groups()
-        except AttributeError:
-            m = re.fullmatch(r'__(\d+)', string)
+            m = re.fullmatch(r'([a-zA-Z]+)(?:_(\d+))?', s)
             try:
-                self._letter = r'\lambda'
-                self._number, = m.groups()
+                self.letter, self.number = m.groups()
             except AttributeError:
                 raise RuntimeError(
-                    f'{repr(string)} is not a valid symbol.\n'
-                    'A symbol must be alphabetic and optionally followed by '
-                    'an underscore and a numeric subscript. '
-                    'Examples: i, j, k_0, lhs, etc.'
+                    f'{repr(s)} is not a valid symbol, which '
+                    'must be alphabetic and optionally followed by '
+                    'an underscore and a numeric subscript, such as '
+                    'i, j, k_0, lhs, etc.'
                 )
+
+    def __str__(self):
+        if self.number is not None:
+            return f'{self.letter}_{self.number}'
+        else:
+            return self.letter
+
+
+class Identifiable(ABC):
+
+    # to be provisioned by subclasses
+    # TODO: a better apporach is to directly implement a safe dict
+    _anon_regitry: dict
+    _anon_registry_lock: multiprocessing.Lock
+    _natural_letter: str
+
+    @staticmethod
+    def _latex_encode(s):
+        if s == '#':
+            return r'\#'
+        elif s == u'λ':
+            return r'\lambda'
+        else:
+            return s
+
+    def __init__(self, symbol: str = None):
+        self.uuid = uuid.uuid4()
+        if symbol is not None:
+            self.symbol = Symbol(symbol)
+        else:
+            self.symbol = self._make_symbol(self.uuid)
+
+    def __hash__(self):
+        return self.uuid.int
 
     @abstractmethod
     def _repr_tex_(self):
@@ -39,11 +70,29 @@ class Identifier(ABC):
     def _repr_html_(self):
         return f'''$${self._repr_tex_()}$$'''
 
+    def __eq__(self, other):
+        return self.uuid == other.uuid
 
-class AbstractIndex(Identifier):
+    @classmethod
+    def _make_symbol(cls, u):
+        with cls._anon_registry_lock:
+            if u in cls._anon_regitry:
+                return cls._anon_regitry[u]
+            else:
+                i = str(len(cls._anon_regitry))
+                cls._anon_regitry[u] = s = Symbol((cls._natural_letter, i))
+                return s
 
-    def __init__(self, symbol):
-        self.symbol = symbol
+
+class AbstractIndex(Identifiable):
+
+    _anon_regitry = {}
+    _anon_registry_lock = multiprocessing.Lock()
+    _natural_letter = '#'
+    '''the default letter to use for anonymous indices.'''
+
+    def __init__(self, symbol=None):
+        super().__init__(symbol)
 
     def __str__(self):
         return str(self.symbol)
@@ -52,17 +101,17 @@ class AbstractIndex(Identifier):
         return f'{type(self).__qualname__}({repr(self.symbol)})'
 
     def _repr_tex_(self, accent=None):
+        letter = self._latex_encode(self.symbol.letter)
+        number = self.symbol.number
         if accent is not None:
-            letter = fr'{accent}{{{self._letter}}}'
-        else:
-            letter = self._letter
-        if self._number is not None:
-            return fr'{{{letter}}}_{{{self._number}}}'
+            letter = fr'{accent}{{{letter}}}'
+        if number is not None:
+            return fr'{{{letter}}}_{{{number}}}'
         else:
             return fr'{{{letter}}}'
 
 
-class AbstractTensor(Identifier):
+class AbstractTensor(Identifiable):
     '''An abstract tensor is a symbolic representation of a multidimensional
     array and is convenient for specifying **tensor expressions**. At
     construction, it does not allocate memory nor populate elements, but rather
@@ -79,10 +128,13 @@ class AbstractTensor(Identifier):
         or tuple.
     '''
 
-    n_nameless = 0
+    _anon_regitry = {}
+    _anon_registry_lock = multiprocessing.Lock()
+    _natural_letter = u'λ'
+    '''the default letter to use for anonymous tensors.'''
 
-    def __init__(self, symbol, *size, initializer=None):
-        self.symbol = symbol
+    def __init__(self, *size, symbol=None, initializer=None):
+        super().__init__(symbol)
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):
                 raise RuntimeError(
@@ -113,7 +165,9 @@ class AbstractTensor(Identifier):
         )
 
     def _repr_tex_(self):
-        if self._number is not None:
-            return fr'\boldsymbol{{{self._letter}}}^{{({self._number})}}'
+        letter = self._latex_encode(self.symbol.letter)
+        number = self.symbol.number
+        if number is not None:
+            return fr'\boldsymbol{{{letter}}}^{{({number})}}'
         else:
-            return fr'\boldsymbol{{{self._letter}}}'
+            return fr'\boldsymbol{{{letter}}}'

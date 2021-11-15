@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
 from ._base import _deep_apply
+from funfact.util.typing import _is_tensor
 
 
 class SyntaxValidator:
@@ -15,7 +16,14 @@ class SyntaxValidator:
         pass
 
     def tensor(self, node: _ASNode, parent: _ASNode):
-        pass
+        abst = node.abstract
+        ini = node.abstract.initializer
+        if _is_tensor(ini):
+            if ini.shape != abst.shape:
+                raise SyntaxError(
+                    f'The shape {abst.shape} of tensor {abst} does not match '
+                    f'its concrete-tensor initializer of {ini.shape}.'
+                )
 
     def index(self, node: _ASNode, mustkeep: bool, parent: _ASNode):
         pass
