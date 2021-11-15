@@ -169,7 +169,7 @@ class TranscribeInterpreter(ABC):
         elif isinstance(payload, tuple) and len(payload) == 2:
             setattr(node, *payload)
         else:
-            raise TypeError(f'Uncognizable type for payload {payload}')
+            raise TypeError(f'Unrecognizable type for payload {payload}')
         return node
 
     def __ror__(self, tsrex: _AST):
