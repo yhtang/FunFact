@@ -6,7 +6,7 @@ from typing import Optional
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._tensor import AbstractIndex, AbstractTensor
-from funfact.util.set import ordered_union, ordered_setminus
+from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
 class IndexPropagator(TranscribeInterpreter):
@@ -86,7 +86,12 @@ class IndexPropagator(TranscribeInterpreter):
                 ordered_union(l_outer, r_outer)
             )
             implied_out = l_outer + elementwise + r_outer
-            return implied_out, []
+            return implied_out, ordered_setminus(
+                keep_indices, ordered_intersect(
+                    lhs.live_indices,
+                    rhs.live_indices
+                )
+            )
         else:
             explicit_out = outidx.live_indices
             for i in keep_indices:
