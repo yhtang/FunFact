@@ -139,6 +139,7 @@ class ArithmeticMixin:
 
 
 class IndexRenamingMixin:
+    '''Rename the free indices of a tensor expression.'''
 
     def __getitem__(self, indices):
 
