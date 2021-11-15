@@ -18,7 +18,7 @@ def read(*filenames, **kwargs):
     return sep.join(buf)
 
 
-long_description = read('README.md')
+long_description = read('README.rst')
 
 
 class Tox(TestCommand):
@@ -44,12 +44,27 @@ setup(
     install_requires=[
         'numpy>=1.17',
         'deap>=1.3',
-        'torch>=1.7',
-        'treelib>=1.6'
-        'tqdm>=4.55'
+        'treelib>=1.6',
+        'tqdm>=4.55',
+        'dill>=0.3.3',
+        'matplotlib>=3.4',
+        'scipy>=1.7.1',
+        'asciitree>=0.3.3',
+        'jax[cpu]>=0.2.24',
     ],
     extras_require={
-        'docs': ['sphinx', 'sphinx-rtd-theme'],
+        'docs': [
+            'sphinx',
+            'sphinx-rtd-theme',
+            'm2r2',
+        ],
+        'devel': [
+            'expectexception>=0.1.1',
+            'tox>=3.24.4',
+            'pytest>=4.6.11',
+            'pytest-cov>=3.0.0',
+            'flake8>=4.0.1',
+        ]
     },
     cmdclass={'test': Tox},
     author_email='Tang.Maxin@gmail.com',
@@ -57,7 +72,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(exclude='test'),
-    package_data={'': ['README.md', 'symfac/cpp/*']},
+    package_data={'': ['README.md', 'funfact/cpp/*']},
     platforms='any',
     classifiers=[
         'Programming Language :: Python',
@@ -69,6 +84,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ]
