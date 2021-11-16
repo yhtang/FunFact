@@ -10,7 +10,7 @@ from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
     dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator
 )
-from ._tensor import AbstractTensor, AbstractIndex
+from ._tensor import AbstractIndex, AbstractTensor
 
 
 class ASCIITreeFactory:
@@ -147,7 +147,9 @@ class IndexRenamingMixin:
 
         if len(indices) != len(tsrex.root.live_indices):
             raise SyntaxError(
-                'Incorrect number of indices.'
+                f'Incorrect number of indices. '
+                f'Expects {len(tsrex.root.live_indices)}, '
+                f'got {len(indices)}.'
             )
 
         index_map = {}

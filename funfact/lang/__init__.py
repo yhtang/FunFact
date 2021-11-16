@@ -3,4 +3,4 @@
 from ._tsrex import index, indices, tensor
 
 
-__all__ = ['index', 'indices', 'tensor']
+__all__ = ['index', 'indices', 'tensor', 'special']
