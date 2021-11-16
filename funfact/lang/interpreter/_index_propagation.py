@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import itertools as it
-from numbers import Real
 from typing import Optional
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
-from funfact.lang._tensor import AbstractIndex, AbstractTensor
+from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
@@ -21,7 +20,7 @@ class IndexPropagator(TranscribeInterpreter):
     )
 
     @as_payload
-    def scalar(self, value: Real, **kwargs):
+    def literal(self, value: LiteralValue, **kwargs):
         return [], []
 
     @as_payload

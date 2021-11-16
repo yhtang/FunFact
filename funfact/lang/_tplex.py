@@ -26,8 +26,8 @@ class TemplateEx:
     @staticmethod
     def _is_placeholder(n):
         return (
-            isinstance(n, P.index_notation) and
-            n.tensor.abstract.symbol == '0'
+            isinstance(n, P.literal) and
+            n.value.raw == 0
         )
 
     def __init__(self, template):

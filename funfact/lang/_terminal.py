@@ -40,10 +40,11 @@ class Symbol:
         return f'{type(self).__qualname__}({self.letter}, {self.number})'
 
     def __str__(self):
+        letter = self.letter or ''
         if self.number is not None:
-            return f'{self.letter}_{self.number}'
+            return f'{letter}_{self.number}'
         else:
-            return self.letter
+            return letter
 
     @classmethod
     def _make_symbol(cls, u):
@@ -52,7 +53,7 @@ class Symbol:
                 return cls._anon_registry[u]
             else:
                 i = str(len(cls._anon_registry))
-                cls._anon_registry[u] = s = ('', i)
+                cls._anon_registry[u] = s = (None, i)
                 return s
 
 
@@ -75,6 +76,23 @@ class LaTexReprMixin(ABC):
 
     def _repr_html_(self):
         return f'''$${self._repr_tex_()}$$'''
+
+
+class LiteralValue(Identifiable, LaTexReprMixin):
+
+    def __init__(self, raw, latex=None):
+        super().__init__()
+        self.raw = raw
+        self.latex = latex
+
+    def __str__(self):
+        return str(self.raw)
+
+    def __repr__(self):
+        return f'{type(self).__qualname__}({str(self.raw)}, {self.latex})'
+
+    def _repr_tex_(self):
+        return self.latex
 
 
 class AbstractIndex(Identifiable, LaTexReprMixin):
@@ -158,40 +176,9 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         )
 
     def _repr_tex_(self):
-        letter = Symbol._latex_encode(self.symbol.letter)
+        letter = self.symbol.letter or r'\lambda'
         number = self.symbol.number
         if number is not None:
             return fr'\boldsymbol{{{letter}}}^{{({number})}}'
         else:
             return fr'\boldsymbol{{{letter}}}'
-
-
-class _SpecialTensor(Identifiable, LaTexReprMixin):
-    '''A special tensor such as Kronecker delta, shifting operator, etc.
-
-    Parameters
-    ----------
-    name: str
-        The name of the special tensor.
-    ndim: int
-        Dimensionality of the special tensor.
-    '''
-
-    def __init__(self, symbol, tex, **kwargs):
-        super().__init__()
-        self.symbol = symbol
-        self.tex = tex
-        self.__dict__.update(**kwargs)
-
-    def __str__(self):
-        return self.symbol
-
-    def __repr__(self):
-        return '{cls}({symbol}, {tex})'.format(
-            cls=type(self).__qualname__,
-            symbol=repr(self.symbol),
-            tex=self.tex
-        )
-
-    def _repr_tex_(self):
-        return self.tex

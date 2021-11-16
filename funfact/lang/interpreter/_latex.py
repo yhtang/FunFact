@@ -27,8 +27,8 @@ class LatexRenderer(ROOFInterpreter):
         else:
             return value
 
-    def scalar(self, value, **kwargs):
-        return str(value)
+    def literal(self, value, **kwargs):
+        return value._repr_tex_()
 
     def tensor(self, abstract, **kwargs):
         return abstract._repr_tex_()

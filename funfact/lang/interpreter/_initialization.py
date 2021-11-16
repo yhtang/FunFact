@@ -25,7 +25,7 @@ class LeafInitializer(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload('data')
 
     @as_payload
-    def scalar(self, value, **kwargs):
+    def literal(self, value, **kwargs):
         return None
 
     @as_payload

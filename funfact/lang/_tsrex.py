@@ -10,7 +10,7 @@ from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
     dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator
 )
-from ._tensor import AbstractIndex, AbstractTensor
+from ._terminal import AbstractIndex, AbstractTensor
 
 
 class ASCIITreeFactory:

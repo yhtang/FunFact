@@ -12,7 +12,7 @@ class SyntaxValidator:
     may still accept a 'payload' argument, which could be potentially produced
     by another transcribe interpreter.'''
 
-    def scalar(self, node: _ASNode, parent: _ASNode):
+    def literal(self, node: _ASNode, parent: _ASNode):
         pass
 
     def tensor(self, node: _ASNode, parent: _ASNode):
