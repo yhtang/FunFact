@@ -17,9 +17,9 @@ def subtree_replace(node, pattern, repl):
         return node
 
 
-class TemplateEx:
+class Template:
     '''A template expression represents a reusable pattern. It must contain one
-    special operand --- a constant tensor of all 1s, which serves as a
+    special operand --- the tensor of all zeros, which serves as a
     placeholder for the actual tensor when the template is being
     instantiated.'''
 
@@ -30,20 +30,24 @@ class TemplateEx:
             n.value.raw == 0
         )
 
-    def __init__(self, template):
-        self.template = template
+    def __init__(self, tplex):
+        self.tplex = tplex
 
     def __getitem__(self, indices):
-        return type(self)(self.template[indices])
+        return type(self)(self.tplex[indices])
 
-    def __matmul__(self, insert):
-        return type(self.template)(
+    def __matmul__(self, actual):
+        return type(self.tplex)(
             subtree_replace(
-                self.template.root,
+                self.tplex.root,
                 self._is_placeholder,
-                insert.root
+                actual.root
             )
         )
 
-    def __rmatmul__(self, insert):
-        return self.__matmul__(insert)
+    def __rmatmul__(self, actual):
+        return self.__matmul__(actual)
+
+
+def template(tplex):
+    return Template(tplex)
