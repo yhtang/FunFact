@@ -8,10 +8,12 @@ from ._index_propagation import IndexPropagator
 from ._initialization import LeafInitializer
 from ._latex import LatexRenderer
 from ._elementwise import ElementEvaluator
+from ._slicing_propagation import SlicingPropagator
 
 
 __all__ = [
     'dfs', 'dfs_filter',
     'ASCIIRenderer', 'Evaluator', 'EinsteinSpecGenerator',  'IndexPropagator',
-    'LeafInitializer', 'LatexRenderer', 'PayloadMerger', 'ElementEvaluator'
+    'LeafInitializer', 'LatexRenderer', 'PayloadMerger', 'ElementEvaluator',
+    'SlicingPropagator'
 ]
