@@ -26,7 +26,7 @@ in indexed notation as
 
    M_{ij} \approx \mathbf{u}_i \mathbf{v}_j.
 
-Moreover, if we relace the standard multiplication operation between
+Moreover, if we replace the standard multiplication operation between
 :math:`\mathbf{u}_i` and :math:`\mathbf{v}_j` by an RBF function
 :math:`\kappa(x, y) = \exp\left[-(x - y)^2\right]`, we then obtain an
 `RBF approximation <https://arxiv.org/abs/2106.02018>`__ of :math:`M`
@@ -41,7 +41,7 @@ Given the rich expressivity of nonlinear operators and functional forms,
 we expect that a proper functional factorization of a tensor can yield
 representations that are more compact than what is possible withtin the
 existing linear framework. However, there is (obviously) no free lunch.
-the challenges to obtain the functional factorization of a tensor is two
+The challenges to obtain the functional factorization of a tensor are two
 fold and involves - Finding the most appropriate **functional form**
 given a specific piece of data, - Finding the **component tensors**
 given the functional form for a specific data.
