@@ -5,14 +5,14 @@ from ._ast import Primitives as P
 from .interpreter._base import _deep_apply
 
 
-def subtree_replace(node, pattern, repl):
-    if pattern(node):
+def _graft(node, select, repl):
+    if select(node):
         return repl
     else:
         node = copy.copy(node)
         for name, value in node.fields_fixed.items():
             setattr(node, name, _deep_apply(
-                subtree_replace, value, pattern, repl
+                _graft, value, select, repl
             ))
         return node
 
@@ -38,7 +38,7 @@ class Template:
 
     def __matmul__(self, actual):
         return type(self.tplex)(
-            subtree_replace(
+            _graft(
                 self.tplex.root,
                 self._is_placeholder,
                 actual.root
