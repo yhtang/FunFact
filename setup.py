@@ -18,7 +18,7 @@ def read(*filenames, **kwargs):
     return sep.join(buf)
 
 
-long_description = read('README.rst')
+long_description = read('README.md')
 
 
 class Tox(TestCommand):
