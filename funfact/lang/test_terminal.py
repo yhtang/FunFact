@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 import numpy as np
-from ._tensor import AbstractIndex, AbstractTensor
+from ._terminal import AbstractIndex, AbstractTensor
 
 
 def test_abstract_index():

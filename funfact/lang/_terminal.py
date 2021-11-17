@@ -1,68 +1,75 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 import multiprocessing
 import re
 import numbers
 import uuid
 
 
-@dataclass(init=False)
 class Symbol:
 
     letter: str
     number: str = None
 
-    def __init__(self, s):
-        if isinstance(s, tuple):
-            self.letter, self.number = s
-        else:
-            m = re.fullmatch(r'([a-zA-Z]+)(?:_(\d+))?', s)
+    # to be provisioned by subclasses
+    # TODO: a better apporach is to directly implement a safe dict
+    _anon_registry: dict
+    _anon_registry_lock: multiprocessing.Lock
+
+    def __init__(self, identifier=None):
+        if isinstance(identifier, tuple):
+            self.letter, self.number = identifier
+        elif isinstance(identifier, str):
+            m = re.fullmatch(r'([a-zA-Z]+)(?:_(\d+))?', identifier)
             try:
                 self.letter, self.number = m.groups()
             except AttributeError:
                 raise RuntimeError(
-                    f'{repr(s)} is not a valid symbol, which '
+                    f'{repr(identifier)} is not a valid symbol, which '
                     'must be alphabetic and optionally followed by '
                     'an underscore and a numeric subscript, such as '
                     'i, j, k_0, lhs, etc.'
                 )
+        elif isinstance(identifier, uuid.UUID):
+            self.letter, self.number = self._make_symbol(identifier)
+        else:
+            raise RuntimeError(f'Cannot create symbol from {identifier}.')
+
+    def __repr__(self):
+        return f'{type(self).__qualname__}({self.letter}, {self.number})'
 
     def __str__(self):
+        letter = self.letter or ''
         if self.number is not None:
-            return f'{self.letter}_{self.number}'
+            return f'{letter}_{self.number}'
         else:
-            return self.letter
+            return letter
+
+    @classmethod
+    def _make_symbol(cls, u):
+        with cls._anon_registry_lock:
+            if u in cls._anon_registry:
+                return cls._anon_registry[u]
+            else:
+                i = str(len(cls._anon_registry))
+                cls._anon_registry[u] = s = (None, i)
+                return s
 
 
 class Identifiable(ABC):
 
-    # to be provisioned by subclasses
-    # TODO: a better apporach is to directly implement a safe dict
-    _anon_regitry: dict
-    _anon_registry_lock: multiprocessing.Lock
-    _natural_letter: str
-
-    @staticmethod
-    def _latex_encode(s):
-        if s == '#':
-            return r'\#'
-        elif s == u'λ':
-            return r'\lambda'
-        else:
-            return s
-
     def __init__(self, symbol: str = None):
         self.uuid = uuid.uuid4()
-        if symbol is not None:
-            self.symbol = Symbol(symbol)
-        else:
-            self.symbol = self._make_symbol(self.uuid)
 
     def __hash__(self):
         return self.uuid.int
 
+    def __eq__(self, other):
+        return self.uuid == other.uuid
+
+
+class LaTexReprMixin(ABC):
     @abstractmethod
     def _repr_tex_(self):
         pass
@@ -70,38 +77,42 @@ class Identifiable(ABC):
     def _repr_html_(self):
         return f'''$${self._repr_tex_()}$$'''
 
-    def __eq__(self, other):
-        return self.uuid == other.uuid
 
-    @classmethod
-    def _make_symbol(cls, u):
-        with cls._anon_registry_lock:
-            if u in cls._anon_regitry:
-                return cls._anon_regitry[u]
-            else:
-                i = str(len(cls._anon_regitry))
-                cls._anon_regitry[u] = s = Symbol((cls._natural_letter, i))
-                return s
+class LiteralValue(Identifiable, LaTexReprMixin):
+
+    def __init__(self, raw, latex=None):
+        super().__init__()
+        self.raw = raw
+        self.latex = latex
+
+    def __str__(self):
+        return str(self.raw)
+
+    def __repr__(self):
+        return f'{type(self).__qualname__}({str(self.raw)}, {self.latex})'
+
+    def _repr_tex_(self):
+        return self.latex
 
 
-class AbstractIndex(Identifiable):
+class AbstractIndex(Identifiable, LaTexReprMixin):
 
-    _anon_regitry = {}
-    _anon_registry_lock = multiprocessing.Lock()
-    _natural_letter = '#'
-    '''the default letter to use for anonymous indices.'''
+    class IndexSymbol(Symbol):
+        _anon_registry = {}
+        _anon_registry_lock = multiprocessing.Lock()
 
     def __init__(self, symbol=None):
-        super().__init__(symbol)
+        super().__init__()
+        self.symbol = self.IndexSymbol(symbol or self.uuid)
 
     def __str__(self):
         return str(self.symbol)
 
     def __repr__(self):
-        return f'{type(self).__qualname__}({repr(self.symbol)})'
+        return f'{type(self).__qualname__}({str(self.symbol)})'
 
     def _repr_tex_(self, accent=None):
-        letter = self._latex_encode(self.symbol.letter)
+        letter = self.symbol.letter or r'\#'
         number = self.symbol.number
         if accent is not None:
             letter = fr'{accent}{{{letter}}}'
@@ -111,7 +122,7 @@ class AbstractIndex(Identifiable):
             return fr'{{{letter}}}'
 
 
-class AbstractTensor(Identifiable):
+class AbstractTensor(Identifiable, LaTexReprMixin):
     '''An abstract tensor is a symbolic representation of a multidimensional
     array and is convenient for specifying **tensor expressions**. At
     construction, it does not allocate memory nor populate elements, but rather
@@ -128,13 +139,12 @@ class AbstractTensor(Identifiable):
         or tuple.
     '''
 
-    _anon_regitry = {}
-    _anon_registry_lock = multiprocessing.Lock()
-    _natural_letter = u'λ'
-    '''the default letter to use for anonymous tensors.'''
+    class TensorSymbol(Symbol):
+        _anon_registry = {}
+        _anon_registry_lock = multiprocessing.Lock()
 
     def __init__(self, *size, symbol=None, initializer=None):
-        super().__init__(symbol)
+        super().__init__()
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):
                 raise RuntimeError(
@@ -142,6 +152,7 @@ class AbstractTensor(Identifiable):
                     f"got {n} for mode {d}."
                 )
         self._shape = tuple(map(int, size))
+        self.symbol = self.TensorSymbol(symbol or self.uuid)
         self.initializer = initializer
 
     @property
@@ -156,16 +167,16 @@ class AbstractTensor(Identifiable):
         return str(self.symbol)
 
     def __repr__(self):
-        return '{cls}({symbol}, {shape}{initializer})'.format(
+        return '{cls}({shape}, {symbol}{initializer})'.format(
             cls=type(self).__qualname__,
-            symbol=repr(self.symbol),
             shape=self.shape,
+            symbol=self.symbol,
             initializer=f', initializer={repr(self.initializer)}'
                         if self.initializer is not None else ''
         )
 
     def _repr_tex_(self):
-        letter = self._latex_encode(self.symbol.letter)
+        letter = self.symbol.letter or r'\lambda'
         number = self.symbol.number
         if number is not None:
             return fr'\boldsymbol{{{letter}}}^{{({number})}}'

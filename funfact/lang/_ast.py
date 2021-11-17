@@ -4,7 +4,7 @@ from dataclasses import make_dataclass
 import inspect
 from numbers import Real
 from typing import Optional, Tuple
-from ._tensor import AbstractIndex, AbstractTensor
+from ._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
 
 class _ASNode:
@@ -35,16 +35,16 @@ class Primitives:
         return make_primitive
 
     @primitive(precedence=0)
-    def scalar(value):
-        '''a scalar number'''
+    def literal(value: LiteralValue):
+        '''a literal value'''
 
     @primitive(precedence=0)
     def tensor(abstract: AbstractTensor):
         '''an abstract tensor'''
 
     @primitive(precedence=0)
-    def index(item: AbstractIndex, mustkeep: bool):
-        '''an index'''
+    def index(item: AbstractIndex, bound: bool):
+        '''an index; bound indices are not reduced even if appear twice'''
 
     @primitive(precedence=0)
     def indices(items: Tuple[AbstractIndex]):
@@ -74,14 +74,14 @@ class Primitives:
         '''pairwise einsum-like operations between tensors'''
 
     @classmethod
-    def as_primitive(cls, value):
-        if isinstance(value, _ASNode):
-            return value
-        elif isinstance(value, Real):
-            return cls.scalar(value=value)
+    def as_primitive(cls, raw):
+        if isinstance(raw, _ASNode):
+            return raw
+        elif isinstance(raw, Real):
+            return cls.literal(value=LiteralValue(raw))
         else:
             raise TypeError(
-                f'Cannot use {value} of type {type(value)} in '
+                f'Cannot use {raw} of type {type(raw)} in '
                 f'a tensor expression.'
             )
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from numbers import Real
 from typing import Optional, Tuple
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
-from funfact.lang._tensor import AbstractIndex, AbstractTensor
+from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
 
 class IndexMap:
@@ -35,7 +34,7 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload('einspec')
 
     @as_payload
-    def scalar(self, value: Real, **kwargs):
+    def literal(self, value: LiteralValue, **kwargs):
         return None
 
     @as_payload
@@ -43,7 +42,7 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return None
 
     @as_payload
-    def index(self, item: AbstractIndex, mustkeep: bool, **kwargs):
+    def index(self, item: AbstractIndex, bound: bool, **kwargs):
         return None
 
     @as_payload

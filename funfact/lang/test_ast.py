@@ -54,10 +54,10 @@ def test_ast():
     def prim():
         pass
 
-    # constract from scalar
+    # constract from scalar literal
     ast = _AST(1)
     assert hasattr(ast, 'root')
-    assert ast.root.name == 'scalar'
+    assert ast.root.name == 'literal'
     # re-assign root
     ast.root = prim()
     assert ast.root.name == 'prim'

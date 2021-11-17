@@ -13,13 +13,15 @@ class Evaluator(ROOFInterpreter):
     def _binary_operator(reduction, pairwise, lhs, rhs, spec):
         return _einop(spec, lhs, rhs, reduction, pairwise)
 
-    def scalar(self, value, **kwargs):
+    def literal(self, value, **kwargs):
+        # TODO: need to specialize for each literal type
+        # e.g. scalar, 1, 0, delta
         return value
 
     def tensor(self, abstract, data, **kwargs):
         return data
 
-    def index(self, item, mustkeep, **kwargs):
+    def index(self, item, bound, **kwargs):
         return None
 
     def indices(self, items, **kwargs):

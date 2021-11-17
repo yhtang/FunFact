@@ -10,7 +10,7 @@ from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
     dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator
 )
-from ._tensor import AbstractTensor, AbstractIndex
+from ._terminal import AbstractIndex, AbstractTensor
 
 
 class ASCIITreeFactory:
@@ -139,6 +139,7 @@ class ArithmeticMixin:
 
 
 class IndexRenamingMixin:
+    '''Rename the free indices of a tensor expression.'''
 
     def __getitem__(self, indices):
 
@@ -146,7 +147,9 @@ class IndexRenamingMixin:
 
         if len(indices) != len(tsrex.root.live_indices):
             raise SyntaxError(
-                'Incorrect number of indices.'
+                f'Incorrect number of indices. '
+                f'Expects {len(tsrex.root.live_indices)}, '
+                f'got {len(indices)}.'
             )
 
         index_map = {}
@@ -169,7 +172,7 @@ class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin):
 
 class IndexEx(_BaseEx):
     def __invert__(self):
-        return IndexEx(dataclasses.replace(self.root, mustkeep=True))
+        return IndexEx(dataclasses.replace(self.root, bound=True))
 
 
 class TensorEx(_BaseEx):
@@ -193,7 +196,7 @@ class EinopEx(TsrEx):
 
 
 def index(symbol=None):
-    return IndexEx(P.index(AbstractIndex(symbol), mustkeep=False))
+    return IndexEx(P.index(AbstractIndex(symbol), bound=False))
 
 
 def indices(spec):

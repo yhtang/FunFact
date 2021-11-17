@@ -5,7 +5,7 @@ import copy
 from numbers import Real
 from typing import Any, Callable, Iterable, Optional, Tuple, Union
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
-from funfact.lang._tensor import AbstractIndex, AbstractTensor
+from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.iterable import flatten_if
 
 
@@ -44,7 +44,7 @@ class ROOFInterpreter(ABC):
     by another transcribe interpreter.'''
 
     @abstractmethod
-    def scalar(self, value: Real, **payload: Any):
+    def literal(self, value: LiteralValue, **payload: Any):
         pass
 
     @abstractmethod
@@ -52,7 +52,7 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, mustkeep: bool, **payload: Any):
+    def index(self, item: AbstractIndex, bound: bool, **payload: Any):
         pass
 
     @abstractmethod
@@ -117,7 +117,7 @@ class TranscribeInterpreter(ABC):
             return wrapper
 
     @abstractmethod
-    def scalar(self, value: Real, **payload: Any):
+    def literal(self, value: LiteralValue, **payload: Any):
         pass
 
     @abstractmethod
@@ -125,7 +125,7 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, mustkeep: bool, **payload: Any):
+    def index(self, item: AbstractIndex, bound: bool, **payload: Any):
         pass
 
     @abstractmethod

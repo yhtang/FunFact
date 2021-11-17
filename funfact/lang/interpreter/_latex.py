@@ -27,14 +27,14 @@ class LatexRenderer(ROOFInterpreter):
         else:
             return value
 
-    def scalar(self, value, **kwargs):
-        return str(value)
+    def literal(self, value, **kwargs):
+        return value._repr_tex_()
 
     def tensor(self, abstract, **kwargs):
         return abstract._repr_tex_()
 
-    def index(self, item, mustkeep, **kwargs):
-        accent = r'\widetilde' if mustkeep else None
+    def index(self, item, bound, **kwargs):
+        accent = r'\widetilde' if bound else None
         return fr'{{{item._repr_tex_(accent=accent)}}}'
 
     def indices(self, items, **kwargs):
