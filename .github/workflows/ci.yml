@@ -26,13 +26,20 @@ jobs:
     strategy:
       matrix:
         tox_env: [py37, py38, py39, coverage, docs]
-  badge:
-    name: Create Awesome Badge
-      uses: schneegans/dynamic-badges-action@v1.1.0
-      with:
-        auth: ${{ secrets.CI_COVERAGE_BADGE_GIST }}
-        gistID: 839011f3f7a6bab680b18cbd9a45d2d3
-        filename: badge.json
-        label: Hello
-        message: World
-        color: orange
+  coverage:
+    runs-on: ubuntu-latest
+    name: Coverage Test
+    steps:
+      - uses: actions/checkout@v2
+      - uses: fedora-python/tox-github-action@v0.4
+        with:
+          tox_env: coverage
+      - name: Create Awesome Badge
+        uses: schneegans/dynamic-badges-action@v1.1.0
+        with:
+          auth: ${{ secrets.CI_COVERAGE_BADGE_GIST }}
+          gistID: 839011f3f7a6bab680b18cbd9a45d2d3
+          filename: badge.json
+          label: Hello
+          message: World
+          color: orange
