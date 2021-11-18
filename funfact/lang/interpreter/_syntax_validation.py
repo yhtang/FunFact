@@ -12,7 +12,7 @@ class SyntaxValidator:
     may still accept a 'payload' argument, which could be potentially produced
     by another transcribe interpreter.'''
 
-    def scalar(self, node: _ASNode, parent: _ASNode):
+    def literal(self, node: _ASNode, parent: _ASNode):
         pass
 
     def tensor(self, node: _ASNode, parent: _ASNode):
@@ -25,7 +25,7 @@ class SyntaxValidator:
                     f'its concrete-tensor initializer of {ini.shape}.'
                 )
 
-    def index(self, node: _ASNode, mustkeep: bool, parent: _ASNode):
+    def index(self, node: _ASNode, bound: bool, parent: _ASNode):
         pass
 
     def indices(self, node: _ASNode, parent: _ASNode):

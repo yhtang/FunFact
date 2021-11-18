@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import itertools as it
-from numbers import Real
 from typing import Optional
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
-from funfact.lang._tensor import AbstractIndex, AbstractTensor
-from funfact.util.set import ordered_union, ordered_setminus
+from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
 class IndexPropagator(TranscribeInterpreter):
@@ -21,7 +20,7 @@ class IndexPropagator(TranscribeInterpreter):
     )
 
     @as_payload
-    def scalar(self, value: Real, **kwargs):
+    def literal(self, value: LiteralValue, **kwargs):
         return [], []
 
     @as_payload
@@ -29,8 +28,8 @@ class IndexPropagator(TranscribeInterpreter):
         return [], []
 
     @as_payload
-    def index(self, item: AbstractIndex, mustkeep: bool, **kwargs):
-        return [item], [item] if mustkeep else []
+    def index(self, item: AbstractIndex, bound: bool, **kwargs):
+        return [item], [item] if bound else []
 
     @as_payload
     def indices(self, items: AbstractIndex, **kwargs):
@@ -76,29 +75,29 @@ class IndexPropagator(TranscribeInterpreter):
               ╚════════════╝
         '''
         # indices marked as keep on either side should stay
-        live_indices = ordered_union(lhs.live_indices, rhs.live_indices)
-        keep_indices = ordered_union(lhs.keep_indices, rhs.keep_indices)
+        live = ordered_union(lhs.live_indices, rhs.live_indices)
+        keep = ordered_union(lhs.keep_indices, rhs.keep_indices)
         if outidx is None:
-            l_outer = ordered_setminus(lhs.live_indices, rhs.live_indices)
-            r_outer = ordered_setminus(rhs.live_indices, lhs.live_indices)
-            elementwise = ordered_setminus(
-                ordered_union(lhs.keep_indices, rhs.keep_indices),
-                ordered_union(l_outer, r_outer)
-            )
-            implied_out = l_outer + elementwise + r_outer
-            return implied_out, []
+            free_l = ordered_setminus(lhs.live_indices, rhs.live_indices)
+            free_r = ordered_setminus(rhs.live_indices, lhs.live_indices)
+            free = ordered_union(free_l, free_r)
+            repeated = ordered_intersect(lhs.live_indices, rhs.live_indices)
+            bound = ordered_setminus(keep, free)
+            lone_keep = ordered_setminus(keep, repeated)
+            implied_survival = free_l + bound + free_r
+            return implied_survival, lone_keep
         else:
-            explicit_out = outidx.live_indices
-            for i in keep_indices:
-                if i not in explicit_out:
+            explicit_survival = outidx.live_indices
+            for i in keep:
+                if i not in explicit_survival:
                     raise SyntaxError(
                         f'Index {i} is marked as non-reducing, yet is missing '
-                        f'from the explicit output list {explicit_out}.'
+                        f'from the explicit output list {explicit_survival}.'
                     )
-            for i in explicit_out:
-                if i not in live_indices:
+            for i in explicit_survival:
+                if i not in live:
                     raise SyntaxError(
                         f'Explicitly specified index {i} does not'
-                        f'existing in the operand indices list {live_indices}.'
+                        f'existing in the operand indices list {live}.'
                     )
-            return explicit_out, []
+            return explicit_survival, []

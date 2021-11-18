@@ -10,7 +10,7 @@ from ._latex import LatexRenderer
 
 
 __all__ = [
-    'dfs_filter',
+    'dfs', 'dfs_filter',
     'ASCIIRenderer', 'Evaluator', 'EinsteinSpecGenerator',  'IndexPropagator',
     'LeafInitializer', 'LatexRenderer', 'PayloadMerger'
 ]

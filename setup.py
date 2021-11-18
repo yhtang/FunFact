@@ -8,19 +8,6 @@ with open('funfact/__init__.py') as fd:
     __version__ = re.search("__version__ = '(.*)'", fd.read()).group(1)
 
 
-def read(*filenames, **kwargs):
-    encoding = kwargs.get('encoding', 'utf-8')
-    sep = kwargs.get('sep', '\n')
-    buf = []
-    for filename in filenames:
-        with io.open(filename, encoding=encoding) as f:
-            buf.append(f.read())
-    return sep.join(buf)
-
-
-long_description = read('README.rst')
-
-
 class Tox(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
@@ -69,7 +56,7 @@ setup(
     cmdclass={'test': Tox},
     author_email='Tang.Maxin@gmail.com',
     description='Functional factorization for matrices and tensors',
-    long_description=long_description,
+    long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     packages=find_packages(exclude='test'),
     package_data={'': ['README.md', 'funfact/cpp/*']},

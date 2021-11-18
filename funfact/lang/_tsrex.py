@@ -7,8 +7,10 @@ import asciitree
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from funfact.util.typing import _is_tensor
 from ._ast import _AST, _ASNode, Primitives as P
-from .interpreter import ASCIIRenderer, LatexRenderer
-from ._tensor import AbstractTensor, AbstractIndex
+from .interpreter import (
+    dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator
+)
+from ._terminal import AbstractIndex, AbstractTensor
 
 
 class ASCIITreeFactory:
@@ -136,13 +138,41 @@ class ArithmeticMixin:
         return TsrEx(P.pow(_BaseEx(base).root, self.root))
 
 
-class TsrEx(_BaseEx, ArithmeticMixin):
+class IndexRenamingMixin:
+    '''Rename the free indices of a tensor expression.'''
+
+    def __getitem__(self, indices):
+
+        tsrex = self | IndexPropagator()
+
+        if len(indices) != len(tsrex.root.live_indices):
+            raise SyntaxError(
+                f'Incorrect number of indices. '
+                f'Expects {len(tsrex.root.live_indices)}, '
+                f'got {len(indices)}.'
+            )
+
+        index_map = {}
+        for old, new_expr in zip(tsrex.root.live_indices, indices):
+            if new_expr.root.name != 'index':
+                raise SyntaxError(
+                    'Indices to a tensor expression must be abstract indices.'
+                )
+            index_map[old] = new_expr.root.item
+
+        for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
+            n.item = index_map.get(n.item, n.item)
+
+        return tsrex | IndexPropagator()
+
+
+class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin):
     pass
 
 
 class IndexEx(_BaseEx):
     def __invert__(self):
-        return IndexEx(dataclasses.replace(self.root, mustkeep=True))
+        return IndexEx(dataclasses.replace(self.root, bound=True))
 
 
 class TensorEx(_BaseEx):
@@ -166,7 +196,7 @@ class EinopEx(TsrEx):
 
 
 def index(symbol=None):
-    return IndexEx(P.index(AbstractIndex(symbol), mustkeep=False))
+    return IndexEx(P.index(AbstractIndex(symbol), bound=False))
 
 
 def indices(spec):
