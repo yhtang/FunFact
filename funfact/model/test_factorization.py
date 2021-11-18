@@ -18,19 +18,19 @@ def test_elementwise():
     # one element
     idx = (1, 0)
     full = fac()[idx]
-    elementwise = np.squeeze(f[idx])
+    elementwise = np.squeeze(fac[idx])
     for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
     # one row
     idx = (1, slice(None))
     full = fac()[idx]
-    elementwise = np.squeeze(f[idx])
+    elementwise = np.squeeze(fac[idx])
     for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
     # one column
     idx = (slice(None), 0)
     full = fac()[idx]
-    elementwise = np.squeeze(f[idx])
+    elementwise = np.squeeze(fac[idx])
     for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
 
@@ -42,12 +42,12 @@ def test_elementwise():
     # one element
     idx = (1, 0)
     full = fac()[idx]
-    elementwise = np.squeeze(f[idx])
+    elementwise = np.squeeze(fac[idx])
     for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
     # slices
     idx = (slice(1, 6), slice(2, 4))
     full = fac()[idx]
-    elementwise = np.squeeze(f[idx])
+    elementwise = np.squeeze(fac[idx])
     for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
