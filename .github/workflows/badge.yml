@@ -7,43 +7,44 @@ on:
     #   - develop
   workflow_dispatch:
 jobs:
-  # tox:
-  #   runs-on: ubuntu-latest
-  #   name: Unit Test
-  #   steps:
-  #     - name: Check out repository
-  #       uses: actions/checkout@v2
-  #     - name: Launch Tox environments
-  #       uses: fedora-python/tox-github-action@v0.4
-  #       with:
-  #         tox_env: ${{ matrix.tox_env }}
-  #   strategy:
-  #     matrix:
-  #       tox_env: [py37, py38, py39, coverage, docs]
   coverage:
     runs-on: ubuntu-latest
     name: Coverage Test
-    # outputs:
-    #   coverage: ${{ steps.tox.outputs.coverage }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
       - id: tox
         name: Launch Tox environment
-        uses: fedora-python/tox-github-action@v0.4
+        uses: yhtang/tox-github-action@master
         with:
           tox_env: coverage
+      - id: test
+        name: test command
+        run: |
+          echo "::set-output name=test::ABC"
       - name: Get coverage number
-        run:
-          echo "ANSWER=42" >> $COVERAGE_RATIO
-          echo "TESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTEST"
-          echo "${{ jobs.tox.outputs }}"
+        # run: >
+        #   echo "${{ steps.tox.outputs }}"
+        #   | awk '/^TOTAL\s+[0-9]+\s+[0-9]+\s+([0-9]+%)/ { print "::set-env name=COVERAGE::"$4 }'
+        run: |
+          echo "TEST1______________________________"
+          echo "${{ steps.tox.outputs }}"
+          echo "TEST2______________________________"
+          echo ${{ steps.tox.outputs }}
+          echo "TEST3______________________________"
+          echo ${{ join(steps.tox.outputs.*, '\n') }}
+          echo "TEST4______________________________"
+          echo ${{ join(steps.test.outputs.*, '\n') }}
+          echo "TEST*______________________________"
+          echo | awk '{ print "A="3 }' >> $GITHUB_ENV
       - name: Create badge endpoint
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.CI_COVERAGE_BADGE_GIST }}
           gistID: 839011f3f7a6bab680b18cbd9a45d2d3
-          filename: coverage.json
+          # filename: coverage-${{ github.ref }}.json
+          filename: badge.json
           label: code coverage
-          message: ${{ env.COVERAGE_RATIO }}
+          # message: $COVERAGE
+          message: ${{ env.A }}
           color: blue
