@@ -1,0 +1,48 @@
+# Badge generation workflow
+name: Badge
+on:
+  push:
+    # branches:
+    #   - master
+    #   - develop
+  workflow_dispatch:
+jobs:
+  # tox:
+  #   runs-on: ubuntu-latest
+  #   name: Unit Test
+  #   steps:
+  #     - name: Check out repository
+  #       uses: actions/checkout@v2
+  #     - name: Launch Tox environments
+  #       uses: fedora-python/tox-github-action@v0.4
+  #       with:
+  #         tox_env: ${{ matrix.tox_env }}
+  #   strategy:
+  #     matrix:
+  #       tox_env: [py37, py38, py39, coverage, docs]
+  coverage:
+    runs-on: ubuntu-latest
+    name: Coverage Test
+    # outputs:
+    #   coverage: ${{ steps.tox.outputs.coverage }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - id: tox
+        name: Launch Tox environment
+        uses: fedora-python/tox-github-action@v0.4
+        with:
+          tox_env: coverage
+      - name: Get coverage number
+        run: echo "ANSWER=42" >> $COVERAGE_RATIO
+        run: echo "TESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTEST"
+        run: echo "${{ jobs.tox.outputs }}"
+      - name: Create badge endpoint
+        uses: schneegans/dynamic-badges-action@v1.1.0
+        with:
+          auth: ${{ secrets.CI_COVERAGE_BADGE_GIST }}
+          gistID: 839011f3f7a6bab680b18cbd9a45d2d3
+          filename: coverage.json
+          label: code coverage
+          message: ${{ env.COVERAGE_RATIO }}
+          color: blue
