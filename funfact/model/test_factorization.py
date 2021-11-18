@@ -67,7 +67,7 @@ def test_elementwise():
     idx = (slice(0, 2), slice(2, 4), 0)
     full = fac()[idx]
     elementwise = np.squeeze(fac[idx])
-    for f, e in zip([full], [elementwise]):
+    for f, e in zip(full, elementwise):
         assert pytest.approx(e, tol) == f
 
     # combination of different contractions
@@ -75,8 +75,13 @@ def test_elementwise():
     B = tensor('B', 4, 3, 2)
     tsrex = A[i, j, k] * B[k, ~j, m]
     fac = Factorization(tsrex)
-    idx = (1, slice(0, 2), 0)
+    idx = (0, 2, 1)
     full = fac()[idx]
     elementwise = np.squeeze(fac[idx])
     for f, e in zip([full], [elementwise]):
+        assert pytest.approx(e, tol) == f
+    idx = (1, slice(0, 2), 0)
+    full = fac()[idx]
+    elementwise = np.squeeze(fac[idx])
+    for f, e in zip(full, elementwise):
         assert pytest.approx(e, tol) == f
