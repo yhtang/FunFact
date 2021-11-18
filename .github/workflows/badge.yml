@@ -34,9 +34,10 @@ jobs:
         with:
           tox_env: coverage
       - name: Get coverage number
-        run: echo "ANSWER=42" >> $COVERAGE_RATIO
-        run: echo "TESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTEST"
-        run: echo "${{ jobs.tox.outputs }}"
+        run:
+          echo "ANSWER=42" >> $COVERAGE_RATIO
+          echo "TESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTEST"
+          echo "${{ jobs.tox.outputs }}"
       - name: Create badge endpoint
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
