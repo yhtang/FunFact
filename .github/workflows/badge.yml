@@ -2,9 +2,9 @@
 name: Badge
 on:
   push:
-    # branches:
-    #   - master
-    #   - develop
+    branches:
+      - master
+      - develop
   workflow_dispatch:
 jobs:
   coverage:
@@ -13,38 +13,25 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
-      - id: tox
-        name: Launch Tox environment
-        uses: yhtang/tox-github-action@master
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
         with:
-          tox_env: coverage
-      - id: test
-        name: test command
+          python-version: 3.8
+      - name: Install dependencies
         run: |
-          echo "::set-output name=test::ABC"
-      - name: Get coverage number
-        # run: >
-        #   echo "${{ steps.tox.outputs }}"
-        #   | awk '/^TOTAL\s+[0-9]+\s+[0-9]+\s+([0-9]+%)/ { print "::set-env name=COVERAGE::"$4 }'
-        run: |
-          echo "TEST1______________________________"
-          echo "${{ steps.tox.outputs }}"
-          echo "TEST2______________________________"
-          echo ${{ steps.tox.outputs }}
-          echo "TEST3______________________________"
-          echo ${{ join(steps.tox.outputs.*, '\n') }}
-          echo "TEST4______________________________"
-          echo ${{ join(steps.test.outputs.*, '\n') }}
-          echo "TEST*______________________________"
-          echo | awk '{ print "A="3 }' >> $GITHUB_ENV
+          python -m pip install --upgrade pip
+          pip install tox tox-gh-actions
+      - name: Obtain coverage number
+        run: >
+          tox -e coverage
+          | awk '/^TOTAL\s+[0-9]+\s+[0-9]+\s+([0-9]+%)/ { print "COVERAGE="$4 }'
+          >> $GITHUB_ENV
       - name: Create badge endpoint
         uses: schneegans/dynamic-badges-action@v1.1.0
         with:
           auth: ${{ secrets.CI_COVERAGE_BADGE_GIST }}
           gistID: 839011f3f7a6bab680b18cbd9a45d2d3
-          # filename: coverage-${{ github.ref }}.json
-          filename: badge.json
-          label: code coverage
-          # message: $COVERAGE
-          message: ${{ env.A }}
+          filename: coverage-${{ github.ref_name }}.json
+          label: coverage
+          message: ${{ env.COVERAGE }}
           color: blue
