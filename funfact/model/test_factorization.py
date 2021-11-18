@@ -19,19 +19,19 @@ def test_elementwise():
     idx = (1, 0)
     full = f()[idx]
     elementwise = np.squeeze(f[idx])
-    for f, e in zip(full, elementwise):
+    for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
     # one row
     idx = (1, slice(None))
     full = f()[idx]
     elementwise = np.squeeze(f[idx])
-    for f, e in zip(full, elementwise):
+    for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
     # one column
     idx = (slice(None), 0)
     full = f()[idx]
     elementwise = np.squeeze(f[idx])
-    for f, e in zip(full, elementwise):
+    for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
 
     # outer product
@@ -44,11 +44,11 @@ def test_elementwise():
     idx = (1, 0)
     full = f()[idx]
     elementwise = np.squeeze(f[idx])
-    for f, e in zip(full, elementwise):
+    for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
     # slices
     idx = (slice(1, 6), slice(2, 4))
     full = f()[idx]
     elementwise = np.squeeze(f[idx])
-    for f, e in zip(full, elementwise):
+    for f, e in zip([full], [elementwise]):
         assert pytest.approx(e, tol) == f
