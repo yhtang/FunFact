@@ -5,7 +5,6 @@ from typing import Optional
 from funfact.lang._ast import _AST, _ASNode, Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from ._base import _deep_apply, TranscribeInterpreter
-from funfact.util.set import ordered_intersect, ordered_setminus, ordered_union
 
 
 class SlicingPropagator():
@@ -48,14 +47,20 @@ class SlicingPropagator():
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], slices, live_indices,
             **kwargs):
-        indices_pl = ordered_intersect(live_indices, lhs.live_indices)
-        indices_pr = ordered_intersect(live_indices, rhs.live_indices)
-        indices_none = ordered_setminus(ordered_union(lhs.live_indices,
-                                        rhs.live_indices), live_indices)
-        lhs.slices = (*slices[:len(indices_pl)],
-                      *((slice(None),) * len(indices_none)))
-        rhs.slices = (*((slice(None),) * len(indices_none)),
-                      *slices[-len(indices_pr):])
+        lhs_slices = []
+        for i in lhs.live_indices:
+            if i in live_indices:
+                lhs_slices.append(slices.pop(0))
+            else:
+                lhs_slices.append(slice(None))
+        rhs_slices = []
+        for i in rhs.live_indices:
+            if i in live_indices:
+                rhs_slices.append(slices.pop(0))
+            else:
+                rhs_slices.append(slice(None))
+        lhs.slices = lhs_slices
+        rhs.slices = rhs_slices
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)

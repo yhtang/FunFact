@@ -7,7 +7,7 @@ from funfact.lang.interpreter import (
     LeafInitializer,
     PayloadMerger,
     IndexPropagator,
-    ElementEvaluator,
+    ElementwiseEvaluator,
     SlicingPropagator
 )
 from jax.tree_util import register_pytree_node_class
@@ -30,7 +30,7 @@ class Factorization:
     _index_propagator = IndexPropagator()
     _einspec_generator = EinsteinSpecGenerator()
     _evaluator = Evaluator()
-    _element_evaluator = ElementEvaluator()
+    _elementwise_evaluator = ElementwiseEvaluator()
 
     def __init__(self, tsrex, initialize=True):
         self._tsrex = (
@@ -50,7 +50,7 @@ class Factorization:
         '''Evaluate the tensor expression the result.'''
         return self.tsrex | self._evaluator
 
-    def getelements(self, idx):
+    def _get_elements(self, idx):
         '''Get elements at index of tensor expression.'''
         new_idx = []
         for i in idx:
@@ -58,8 +58,8 @@ class Factorization:
                 new_idx.append(slice(i, i+1))
             else:
                 new_idx.append(i)
-        _index_slicer = SlicingPropagator(tuple(new_idx))
-        return (self.tsrex | _index_slicer) | self._element_evaluator
+        _index_slicer = SlicingPropagator(new_idx)
+        return self.tsrex | _index_slicer | self._elementwise_evaluator
 
     def __getitem__(self, idx):
         '''Implements attribute-based access of factor tensors or output
@@ -71,12 +71,8 @@ class Factorization:
             ):
                 return n.data
             raise AttributeError(f'No factor tensor named {idx}.')
-        elif isinstance(idx, int):
-            raise self.getelements(idx)
-        elif isinstance(idx, slice):
-            return self.forward()
-        elif isinstance(idx, tuple):
-            return self.getelements(idx)
+        else:
+            return self._get_elements(idx)
 
     def __setitem__(self, name, data):
         '''Implements attribute-based access of factor tensors.'''
