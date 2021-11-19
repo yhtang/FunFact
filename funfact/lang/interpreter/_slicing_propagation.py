@@ -47,17 +47,18 @@ class SlicingPropagator():
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], slices, live_indices,
             **kwargs):
+        slice_dict = dict(zip(live_indices, slices))
         lhs_slices = []
         for i in lhs.live_indices:
-            if i in live_indices:
-                lhs_slices.append(slices.pop(0))
-            else:
+            try:
+                lhs_slices.append(slice_dict[i])
+            except KeyError:
                 lhs_slices.append(slice(None))
         rhs_slices = []
         for i in rhs.live_indices:
-            if i in live_indices:
-                rhs_slices.append(slices.pop(0))
-            else:
+            try:
+                rhs_slices.append(slice_dict[i])
+            except KeyError:
                 rhs_slices.append(slice(None))
         lhs.slices = lhs_slices
         rhs.slices = rhs_slices
