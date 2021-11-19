@@ -8,7 +8,8 @@ from funfact.lang.interpreter import (
     PayloadMerger,
     IndexPropagator,
     ElementwiseEvaluator,
-    SlicingPropagator
+    SlicingPropagator,
+    ShapeAnalyzer
 )
 from jax.tree_util import register_pytree_node_class
 
@@ -29,18 +30,24 @@ class Factorization:
     _payload_merger = PayloadMerger()
     _index_propagator = IndexPropagator()
     _einspec_generator = EinsteinSpecGenerator()
+    _shape_analyzer = ShapeAnalyzer()
     _evaluator = Evaluator()
     _elementwise_evaluator = ElementwiseEvaluator()
 
     def __init__(self, tsrex, initialize=True):
         self._tsrex = (
             (tsrex | self._leaf_initializer) if initialize is True else tsrex,
-            (tsrex | self._index_propagator | self._einspec_generator)
+            (tsrex | self._index_propagator | self._einspec_generator |
+             self._shape_analyzer)
         ) | self._payload_merger
 
     @property
     def tsrex(self):
         return self._tsrex
+
+    @property
+    def shape(self):
+        return self._tsrex.root.shape
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''
