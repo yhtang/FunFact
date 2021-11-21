@@ -21,7 +21,8 @@ class SlicingPropagator():
     def tensor(self, abstract: AbstractTensor, slices, **kwargs):
         abstract.slices = None
 
-    def index(self, item: AbstractIndex, bound: bool, slices, **kwargs):
+    def index(self, item: AbstractIndex, bound: bool, kron: bool, slices,
+              **kwargs):
         item.slices = None
 
     def indices(self, items: AbstractIndex, slices, **kwargs):

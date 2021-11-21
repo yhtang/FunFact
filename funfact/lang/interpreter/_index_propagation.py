@@ -28,7 +28,7 @@ class IndexPropagator(TranscribeInterpreter):
         return [], []
 
     @as_payload
-    def index(self, item: AbstractIndex, bound: bool, **kwargs):
+    def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
         return [item], [item] if bound else []
 
     @as_payload
