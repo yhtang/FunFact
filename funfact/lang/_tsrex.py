@@ -8,7 +8,8 @@ from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from funfact.util.typing import _is_tensor
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
-    dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator
+    dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator, ShapeAnalyzer,
+    EinsteinSpecGenerator
 )
 from ._terminal import AbstractIndex, AbstractTensor
 
@@ -77,6 +78,9 @@ class _BaseEx(_AST):
 
     _latex_intr = LatexRenderer()
     _asciitree_factory = ASCIITreeFactory()
+    _einspec_generator = EinsteinSpecGenerator()
+    _index_propagator = IndexPropagator()
+    _shape_analyzer = ShapeAnalyzer()
 
     def _repr_html_(self):
         return f'''$${self._latex_intr(self.root)}$$'''
@@ -84,6 +88,24 @@ class _BaseEx(_AST):
     @property
     def asciitree(self):
         return self._asciitree_factory(self.root)
+
+    @property
+    def shape(self):
+        return (self | self._index_propagator |
+                self._shape_analyzer).root.shape
+
+    @property
+    def live_indices(self):
+        return (self | self._index_propagator).root.live_indices
+
+    @property
+    def ndim(self):
+        return len(self.live_indices)
+
+    @property
+    def einspec(self):
+        return (self | self._index_propagator |
+                self._einspec_generator).root.einspec
 
 
 class ArithmeticMixin:
