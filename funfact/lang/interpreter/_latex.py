@@ -68,5 +68,5 @@ class LatexRenderer(ROOFInterpreter):
         suffix = fr'\rightarrow_{{{outidx}}}' if outidx is not None else ''
         return body + suffix
 
-    def tran(self, src, dst_indices, **kwargs):
-        return fr'{{{src}}}^{{\mathsf{{T}}: {dst_indices}}}'
+    def tran(self, src, idst, **kwargs):
+        return fr'{{{src}}}^{{\mathsf{{T}}: {idst}}}'

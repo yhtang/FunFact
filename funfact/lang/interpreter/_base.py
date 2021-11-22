@@ -84,7 +84,7 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def tran(self, src: Any, dst_indices: Iterable[Any]):
+    def tran(self, src: Any, idst: Iterable[Any]):
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):
@@ -162,7 +162,7 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def tran(self, src: Numeric, dst_indices: P.indices):
+    def tran(self, src: Numeric, idst: P.indices):
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):

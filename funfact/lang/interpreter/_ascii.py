@@ -51,5 +51,5 @@ class ASCIIRenderer(TranscribeInterpreter):
         return f'{reduction}:{pairwise}' + suffix
 
     @as_payload
-    def tran(self, src, dst_indices, **kwargs):
-        return f'^T[{dst_indices.ascii}]'
+    def tran(self, src, idst, **kwargs):
+        return f'^T[{idst.ascii}]'

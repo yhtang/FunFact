@@ -68,5 +68,5 @@ class LeafInitializer(TranscribeInterpreter):
         return None
 
     @as_payload
-    def tran(self, src, dst_indices, **kwargs):
+    def tran(self, src, idst, **kwargs):
         return None
