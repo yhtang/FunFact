@@ -49,3 +49,7 @@ class ASCIIRenderer(TranscribeInterpreter):
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         suffix = f' -> {outidx.ascii}' if outidx is not None else ''
         return f'{reduction}:{pairwise}' + suffix
+
+    @as_payload
+    def tran(self, src, indices, **kwargs):
+        return f'^T[{indices.ascii}]'

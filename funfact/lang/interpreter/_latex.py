@@ -67,3 +67,6 @@ class LatexRenderer(ROOFInterpreter):
         body = fr'{lhs} {op} {rhs}'
         suffix = fr'\rightarrow_{{{outidx}}}' if outidx is not None else ''
         return body + suffix
+
+    def tran(self, src, indices, **kwargs):
+        return fr'{{{src}}}^{{\mathsf{{T}}: {indices}}}'
