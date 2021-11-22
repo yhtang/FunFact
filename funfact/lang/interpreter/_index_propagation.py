@@ -101,3 +101,7 @@ class IndexPropagator(TranscribeInterpreter):
                         f'existing in the operand indices list {live}.'
                     )
             return explicit_survival, []
+
+    @as_payload
+    def tran(self, src: Numeric, dst_indices: P.indices, **kwargs):
+        return dst_indices.live_indices, dst_indices.keep_indices

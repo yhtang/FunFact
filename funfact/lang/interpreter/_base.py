@@ -83,6 +83,10 @@ class ROOFInterpreter(ABC):
             pairwise: str, outidx: Any, **payload: Any):
         pass
 
+    @abstractmethod
+    def tran(self, src: Any, dst_indices: Iterable[Any]):
+        pass
+
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         fields_fixed = {
             name: _deep_apply(self, value, node)
@@ -155,6 +159,10 @@ class TranscribeInterpreter(ABC):
     @abstractmethod
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], **payload: Any):
+        pass
+
+    @abstractmethod
+    def tran(self, src: Numeric, dst_indices: P.indices):
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):

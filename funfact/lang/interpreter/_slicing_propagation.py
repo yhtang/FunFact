@@ -64,6 +64,9 @@ class SlicingPropagator():
         lhs.slices = lhs_slices
         rhs.slices = rhs_slices
 
+    def tran(self, src: Numeric, dst_indices: P.indices, slices, **kwargs):
+        src.slices = [slices[src.live_indices.index(i)] for i in dst_indices.live_indices]
+
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)
         rule = getattr(self, node.name)

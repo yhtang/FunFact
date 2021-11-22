@@ -166,7 +166,22 @@ class IndexRenamingMixin:
         return tsrex | IndexPropagator()
 
 
-class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin):
+class TranspositionMixin:
+    '''transpose the axes by permuting the live indices into target indices.'''
+    @property
+    def T(self):
+        return self._T(self.root)
+
+    class _T(_BaseEx):
+        def __getitem__(self, indices):
+            return TsrEx(
+                P.tran(self.root,
+                       P.indices(tuple([i.root for i in as_tuple(indices)])))
+            )
+
+
+class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin, TranspositionMixin):
+    '''A general tensor expression'''
     pass
 
 

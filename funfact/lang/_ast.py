@@ -75,6 +75,10 @@ class Primitives:
     ):
         '''pairwise einsum-like operations between tensors'''
 
+    @primitive(precedence=9)
+    def tran(src: _ASNode, dst_indices: _ASNode):
+        '''transposition/axis reordering'''
+
     @classmethod
     def as_primitive(cls, raw):
         if isinstance(raw, _ASNode):
