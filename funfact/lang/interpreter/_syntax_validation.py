@@ -25,8 +25,13 @@ class SyntaxValidator:
                     f'its concrete-tensor initializer of {ini.shape}.'
                 )
 
-    def index(self, node: _ASNode, bound: bool, parent: _ASNode):
-        pass
+    def index(self, node: _ASNode, parent: _ASNode):
+        i = node.item
+        if i.bound and i.kron:
+            raise SyntaxError(
+                f'Index {i} should not simultaneous imply elementwise and '
+                f'Kronecker product operations.'
+            )
 
     def indices(self, node: _ASNode, parent: _ASNode):
         for i in node.items:

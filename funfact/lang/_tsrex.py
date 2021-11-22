@@ -172,7 +172,12 @@ class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin):
 
 class IndexEx(_BaseEx):
     def __invert__(self):
-        return IndexEx(dataclasses.replace(self.root, bound=True))
+        '''Implements the `~i` syntax.'''
+        return IndexEx(dataclasses.replace(self.root, bound=True, kron=False))
+
+    def __iter__(self):
+        '''Implements the `*i` syntax.'''
+        yield IndexEx(dataclasses.replace(self.root, bound=False, kron=True))
 
 
 class TensorEx(_BaseEx):
@@ -196,7 +201,7 @@ class EinopEx(TsrEx):
 
 
 def index(symbol=None):
-    return IndexEx(P.index(AbstractIndex(symbol), bound=False))
+    return IndexEx(P.index(AbstractIndex(symbol), bound=False, kron=False))
 
 
 def indices(spec):

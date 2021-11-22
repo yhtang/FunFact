@@ -43,8 +43,10 @@ class Primitives:
         '''an abstract tensor'''
 
     @primitive(precedence=0)
-    def index(item: AbstractIndex, bound: bool):
-        '''an index; bound indices are not reduced even if appear twice'''
+    def index(item: AbstractIndex, bound: bool, kron: bool):
+        '''an index; bound indices are not reduced even if they appear twice;
+        kron indices lead to kronecker product between the dimensions with the
+        same index.'''
 
     @primitive(precedence=0)
     def indices(items: Tuple[AbstractIndex]):
