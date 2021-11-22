@@ -43,6 +43,6 @@ class Evaluator(ROOFInterpreter):
             **kwargs):
         return self._binary_operator(reduction, pairwise, lhs, rhs, einspec)
 
-    def tran(self, src, idst, einspec, **kwargs):
+    def tran(self, src, indices, einspec, **kwargs):
         in_spec, out_spec = einspec.split('->')
         return np.transpose(src, [in_spec.index(i) for i in out_spec])

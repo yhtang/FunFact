@@ -75,6 +75,6 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
                f'->{map(live_indices)}'
 
     @as_payload
-    def tran(self, src: Numeric, idst: P.indices, live_indices, **kwargs):
+    def tran(self, src: Numeric, indices: P.indices, live_indices, **kwargs):
         map = IndexMap()
         return f'{map(src.live_indices)}->{map(live_indices)}'

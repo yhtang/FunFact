@@ -103,5 +103,5 @@ class IndexPropagator(TranscribeInterpreter):
             return explicit_survival, []
 
     @as_payload
-    def tran(self, src: Numeric, idst: P.indices, **kwargs):
-        return idst.live_indices, idst.keep_indices
+    def tran(self, src: Numeric, indices: P.indices, **kwargs):
+        return indices.live_indices, indices.keep_indices
