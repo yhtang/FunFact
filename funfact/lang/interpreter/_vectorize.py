@@ -47,6 +47,9 @@ class Vectorizer():
             **kwargs):
         pass
 
+    def tran(self, src: Numeric, indices: P.indices, **kwargs):
+        pass
+
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         if parent is None:
             node = copy.deepcopy(node)
