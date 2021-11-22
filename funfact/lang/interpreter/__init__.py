@@ -9,11 +9,12 @@ from ._initialization import LeafInitializer
 from ._latex import LatexRenderer
 from ._elementwise import ElementwiseEvaluator
 from ._slicing_propagation import SlicingPropagator
+from ._vectorize import Vectorizer
 
 
 __all__ = [
     'dfs', 'dfs_filter',
     'ASCIIRenderer', 'Evaluator', 'EinsteinSpecGenerator',  'IndexPropagator',
     'LeafInitializer', 'LatexRenderer', 'PayloadMerger',
-    'ElementwiseEvaluator', 'SlicingPropagator'
+    'ElementwiseEvaluator', 'SlicingPropagator', 'Vectorizer'
 ]
