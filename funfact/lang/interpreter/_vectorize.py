@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import copy
 from typing import Optional
 from funfact.util.iterable import as_tuple
-from funfact.lang._ast import _AST, _ASNode, Primitives as P
+from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
-from ._base import _deep_apply, TranscribeInterpreter
+from ._base import TranscribeInterpreter
 
 
 class Vectorizer(TranscribeInterpreter):
@@ -66,7 +65,8 @@ class Vectorizer(TranscribeInterpreter):
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
             keep_indices, **kwargs):
-        return P.indices([*[P.index(i, bound=False, kron=False) for i in live_indices], self.vec_index])
+        return P.indices([*[P.index(i, bound=False, kron=False) for i in
+                         live_indices], self.vec_index])
 
     @as_payload
     def tran(self, src: Numeric, indices: P.indices, live_indices,
