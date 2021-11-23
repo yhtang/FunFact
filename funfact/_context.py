@@ -4,14 +4,15 @@ import contextlib
 import enum
 
 
+class Eagerness(enum.Enum):
+    LAZY = -1
+    DEFAULT = 0
+    EAGER = 1
+
+
 class _EagerMode:
 
-    class _Eagerness(enum.Enum):
-        LAZY = -1
-        DEFAULT = 0
-        EAGER = 1
-
-    current = _Eagerness.DEFAULT
+    current = Eagerness.DEFAULT
     previous = []
 
     @classmethod
@@ -24,7 +25,7 @@ class _EagerMode:
 
 
 def set_eagerness(mode):
-    _EagerMode.current = _EagerMode._Eagerness(mode)
+    _EagerMode.current = Eagerness(mode)
 
 
 def get_eagerness():
@@ -43,7 +44,7 @@ def pop_eagerness():
 def eager_mode():
     try:
         push_eagerness()
-        set_eagerness(_EagerMode._Eagerness.EAGER)
+        set_eagerness(Eagerness.EAGER)
         yield
     finally:
         pop_eagerness()
@@ -53,7 +54,7 @@ def eager_mode():
 def lazy_mode():
     try:
         push_eagerness()
-        set_eagerness(_EagerMode._Eagerness.LAZY)
+        set_eagerness(Eagerness.LAZY)
         yield
     finally:
         pop_eagerness()
@@ -63,7 +64,7 @@ def lazy_mode():
 def default_mode():
     try:
         push_eagerness()
-        set_eagerness(_EagerMode._Eagerness.DEFAULT)
+        set_eagerness(Eagerness.DEFAULT)
         yield
     finally:
         pop_eagerness()

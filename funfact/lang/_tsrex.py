@@ -4,12 +4,18 @@ import dataclasses
 import re
 import sys
 import asciitree
+from funfact._context import get_eagerness, Eagerness
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from funfact.util.typing import _is_tensor
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
-    dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator, ShapeAnalyzer,
-    EinsteinSpecGenerator
+    dfs_filter,
+    ASCIIRenderer,
+    LatexRenderer,
+    IndexPropagator,
+    ShapeAnalyzer,
+    EinsteinSpecGenerator,
+    Evaluator
 )
 from ._terminal import AbstractIndex, AbstractTensor
 
@@ -81,12 +87,30 @@ class _BaseEx(_AST):
     _einspec_generator = EinsteinSpecGenerator()
     _index_propagator = IndexPropagator()
     _shape_analyzer = ShapeAnalyzer()
+    _evaluator = Evaluator()
+
+    @classmethod
+    def _evaluate(cls, node):
+        pass
 
     def __init__(self, data=None):
         super().__init__(data)
-        self.root = self._einspec_generator(self._shape_analyzer(
-                    self._index_propagator(self.root)))
+        if get_eagerness() >= Eagerness.DEFAULT:
+            self.static_analysis()
+        if get_eagerness() >= Eagerness.EAGER:
+            self.value = self | self._evaluator
+
+    def static_analysis(self):
+        self.root = cls._einspec_generator(
+            cls._shape_analyzer(
+                cls._index_propagator(
+                    self.root
+                )
+            )
+        )
         self._latex = self._latex_intr(self.root)
+
+    def 
 
     def _repr_html_(self):
         return f'''$${self._latex}$$'''
