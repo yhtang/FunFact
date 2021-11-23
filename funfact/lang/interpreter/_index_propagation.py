@@ -28,7 +28,7 @@ class IndexPropagator(TranscribeInterpreter):
         return [], []
 
     @as_payload
-    def index(self, item: AbstractIndex, bound: bool, **kwargs):
+    def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
         return [item], [item] if bound else []
 
     @as_payload
@@ -101,3 +101,7 @@ class IndexPropagator(TranscribeInterpreter):
                         f'existing in the operand indices list {live}.'
                     )
             return explicit_survival, []
+
+    @as_payload
+    def tran(self, src: Numeric, indices: P.indices, **kwargs):
+        return indices.live_indices, indices.keep_indices

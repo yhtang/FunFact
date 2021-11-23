@@ -33,8 +33,13 @@ class LatexRenderer(ROOFInterpreter):
     def tensor(self, abstract, **kwargs):
         return abstract._repr_tex_()
 
-    def index(self, item, bound, **kwargs):
-        accent = r'\widetilde' if bound else None
+    def index(self, item, bound, kron, **kwargs):
+        if bound:
+            accent = r'\widetilde'
+        elif kron:
+            accent = r'\overset{\otimes}'
+        else:
+            accent = None
         return fr'{{{item._repr_tex_(accent=accent)}}}'
 
     def indices(self, items, **kwargs):
@@ -62,3 +67,6 @@ class LatexRenderer(ROOFInterpreter):
         body = fr'{lhs} {op} {rhs}'
         suffix = fr'\rightarrow_{{{outidx}}}' if outidx is not None else ''
         return body + suffix
+
+    def tran(self, src, indices, **kwargs):
+        return fr'{{{src}}}^{{\mathsf{{T}}: {indices}}}'

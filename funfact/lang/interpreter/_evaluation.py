@@ -21,7 +21,7 @@ class Evaluator(ROOFInterpreter):
     def tensor(self, abstract, data, **kwargs):
         return data
 
-    def index(self, item, bound, **kwargs):
+    def index(self, item, bound, kron, **kwargs):
         return None
 
     def indices(self, items, **kwargs):
@@ -42,3 +42,7 @@ class Evaluator(ROOFInterpreter):
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, einspec,
             **kwargs):
         return self._binary_operator(reduction, pairwise, lhs, rhs, einspec)
+
+    def tran(self, src, indices, einspec, **kwargs):
+        in_spec, out_spec = einspec.split('->')
+        return np.transpose(src, [in_spec.index(i) for i in out_spec])

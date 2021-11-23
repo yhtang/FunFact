@@ -52,7 +52,8 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, bound: bool, **payload: Any):
+    def index(self, item: AbstractIndex, bound: bool, kron: bool,
+              **payload: Any):
         pass
 
     @abstractmethod
@@ -80,6 +81,10 @@ class ROOFInterpreter(ABC):
     @abstractmethod
     def ein(self, lhs: Any, rhs: Any, precedence: int, reduction: str,
             pairwise: str, outidx: Any, **payload: Any):
+        pass
+
+    @abstractmethod
+    def tran(self, src: Any, indices: Iterable[Any]):
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):
@@ -125,7 +130,8 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, bound: bool, **payload: Any):
+    def index(self, item: AbstractIndex, bound: bool, kron: bool,
+              **payload: Any):
         pass
 
     @abstractmethod
@@ -155,6 +161,10 @@ class TranscribeInterpreter(ABC):
             pairwise: str, outidx: Optional[P.indices], **payload: Any):
         pass
 
+    @abstractmethod
+    def tran(self, src: Numeric, indices: P.indices):
+        pass
+
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)
         for name, value in node.fields_fixed.items():
@@ -169,7 +179,7 @@ class TranscribeInterpreter(ABC):
         elif isinstance(payload, tuple) and len(payload) == 2:
             setattr(node, *payload)
         else:
-            raise TypeError(f'Uncognizable type for payload {payload}')
+            raise TypeError(f'Unrecognizable type for payload {payload}')
         return node
 
     def __ror__(self, tsrex: _AST):

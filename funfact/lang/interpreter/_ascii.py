@@ -17,9 +17,11 @@ class ASCIIRenderer(TranscribeInterpreter):
         return str(abstract.symbol)
 
     @as_payload
-    def index(self, item, bound, **kwargs):
+    def index(self, item, bound, kron, **kwargs):
         if bound:
             return f'~{str(item.symbol)}'
+        elif kron:
+            return f'*{str(item.symbol)}'
         else:
             return str(item.symbol)
 
@@ -47,3 +49,7 @@ class ASCIIRenderer(TranscribeInterpreter):
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         suffix = f' -> {outidx.ascii}' if outidx is not None else ''
         return f'{reduction}:{pairwise}' + suffix
+
+    @as_payload
+    def tran(self, src, indices, **kwargs):
+        return f'^T[{indices.ascii}]'

@@ -40,7 +40,7 @@ class LeafInitializer(TranscribeInterpreter):
         return init_val
 
     @as_payload
-    def index(self, item, bound, **kwargs):
+    def index(self, item, bound, kron, **kwargs):
         return None
 
     @as_payload
@@ -65,4 +65,8 @@ class LeafInitializer(TranscribeInterpreter):
 
     @as_payload
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
+        return None
+
+    @as_payload
+    def tran(self, src, indices, **kwargs):
         return None

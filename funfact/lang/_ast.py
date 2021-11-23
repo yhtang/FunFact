@@ -43,8 +43,10 @@ class Primitives:
         '''an abstract tensor'''
 
     @primitive(precedence=0)
-    def index(item: AbstractIndex, bound: bool):
-        '''an index; bound indices are not reduced even if appear twice'''
+    def index(item: AbstractIndex, bound: bool, kron: bool):
+        '''an index; bound indices are not reduced even if they appear twice;
+        kron indices lead to kronecker product between the dimensions with the
+        same index.'''
 
     @primitive(precedence=0)
     def indices(items: Tuple[AbstractIndex]):
@@ -72,6 +74,10 @@ class Primitives:
         reduction: str, pairwise: str, outidx: Optional[_ASNode]
     ):
         '''pairwise einsum-like operations between tensors'''
+
+    @primitive(precedence=9)
+    def tran(src: _ASNode, indices: _ASNode):
+        '''transposition/axis reordering'''
 
     @classmethod
     def as_primitive(cls, raw):
