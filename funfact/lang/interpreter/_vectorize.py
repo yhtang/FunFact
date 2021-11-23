@@ -8,60 +8,67 @@ from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from ._base import _deep_apply, TranscribeInterpreter
 
 
-class Vectorizer():
+class Vectorizer(TranscribeInterpreter):
 
     Tensorial = TranscribeInterpreter.Tensorial
     Numeric = TranscribeInterpreter.Numeric
 
-    def literal(self, value: LiteralValue, **kwargs):
-        pass
+    as_payload = TranscribeInterpreter.as_payload('outidx')
 
+    def __init__(self, replicas: int):
+        self.replicas = replicas
+        self.vec_index = P.index(AbstractIndex(), bound=False, kron=False)
+
+    @as_payload
+    def literal(self, value: LiteralValue, **kwargs):
+        return []
+
+    @as_payload
     def tensor(self, abstract: AbstractTensor, **kwargs):
         abstract._shape = as_tuple([*abstract.shape, self.replicas])
         if abstract.initializer is not None:
             if not callable(abstract.initializer):
                 abstract.initializer = abstract.initializer[..., None]
+        return []
 
+    @as_payload
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
-        pass
+        return []
 
+    @as_payload
     def indices(self, items: AbstractIndex, **kwargs):
-        pass
+        return []
 
+    @as_payload
     def index_notation(
-        self, tensor: P.tensor, indices: P.indices, **kwargs
+        self, tensor: P.tensor, indices: P.indices, live_indices,
+        keep_indices, **kwargs
     ):
-        indices.items = tuple([*indices.items, self.vec_index])
+        indices.items.append(self.vec_index)
+        return []
 
-    def call(self, f: str, x: Tensorial, **kwargs):
-        pass
+    @as_payload
+    def call(self, f: str, x: Tensorial, live_indices,
+             keep_indices, **kwargs):
+        return []
 
-    def pow(self, base: Numeric, exponent: Numeric, **kwargs):
-        pass
+    @as_payload
+    def pow(self, base: Numeric, exponent: Numeric, live_indices,
+            keep_indices, **kwargs):
+        return None
 
-    def neg(self, x: Numeric, replicas, **kwargs):
-        pass
+    @as_payload
+    def neg(self, x: Numeric, live_indices,
+            keep_indices, **kwargs):
+        return None
 
+    @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices],
-            **kwargs):
-        pass
+            pairwise: str, outidx: Optional[P.indices], live_indices,
+            keep_indices, **kwargs):
+        return P.indices([*[P.index(i, bound=False, kron=False) for i in live_indices], self.vec_index])
 
-    def tran(self, src: Numeric, indices: P.indices, **kwargs):
-        pass
-
-    def __call__(self, node: _ASNode, parent: _ASNode = None):
-        if parent is None:
-            node = copy.deepcopy(node)
-        rule = getattr(self, node.name)
-        rule(**node.fields)
-        for name, value in node.fields_fixed.items():
-            setattr(node, name, _deep_apply(self, value, node))
-        return node
-
-    def __init__(self, replicas: int):
-        self.replicas = replicas
-        self.vec_index = P.index(AbstractIndex(), bound=True)
-
-    def __ror__(self, tsrex: _AST):
-        return type(tsrex)(self(tsrex.root))
+    @as_payload
+    def tran(self, src: Numeric, indices: P.indices, live_indices,
+             keep_indices, **kwargs):
+        return []
