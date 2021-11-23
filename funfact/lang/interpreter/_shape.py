@@ -72,8 +72,5 @@ class ShapeAnalyzer(TranscribeInterpreter):
 
     @as_payload
     def tran(self, src: Numeric, live_indices, **kwargs):
-        dict_src = dict(zip(src.live_indices, src.shape))
-        shape = []
-        for i in live_indices:
-            shape.append(dict_src[i])
-        return tuple(shape)
+        return tuple(src.shape[src.live_indices.index(i)]
+                     for i in live_indices)

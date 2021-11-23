@@ -82,8 +82,14 @@ class _BaseEx(_AST):
     _index_propagator = IndexPropagator()
     _shape_analyzer = ShapeAnalyzer()
 
+    def __init__(self, data=None):
+        super().__init__(data)
+        self.root = self._einspec_generator(self._shape_analyzer(
+                    self._index_propagator(self.root)))
+        self._latex = self._latex_intr(self.root)
+
     def _repr_html_(self):
-        return f'''$${self._latex_intr(self.root)}$$'''
+        return f'''$${self._latex}$$'''
 
     @property
     def asciitree(self):
@@ -91,12 +97,11 @@ class _BaseEx(_AST):
 
     @property
     def shape(self):
-        return (self | self._index_propagator |
-                self._shape_analyzer).root.shape
+        return self.root.shape
 
     @property
     def live_indices(self):
-        return (self | self._index_propagator).root.live_indices
+        return self.root.live_indices
 
     @property
     def ndim(self):
@@ -104,8 +109,7 @@ class _BaseEx(_AST):
 
     @property
     def einspec(self):
-        return (self | self._index_propagator |
-                self._einspec_generator).root.einspec
+        return self.root.einspec
 
 
 class ArithmeticMixin:
