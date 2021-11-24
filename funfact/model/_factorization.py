@@ -37,13 +37,9 @@ class Factorization:
 
     def __init__(self, tsrex, initialize=True, nvec=1):
         if nvec > 1:
-            tsrex = tsrex | self._index_propagator | Vectorizer(nvec) \
-                    | self._index_propagator
-        else:
-            tsrex = tsrex | self._index_propagator
+            tsrex = tsrex | Vectorizer(nvec)
         if initialize is True:
             tsrex = tsrex | self._leaf_initializer
-        tsrex = tsrex | self._einspec_generator
         self._tsrex = tsrex
 
     @property

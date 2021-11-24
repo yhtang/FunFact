@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import copy
 from typing import Optional
-from funfact.util.iterable import as_tuple
+from funfact.util.iterable import as_tuple, flatten
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from ._base import TranscribeInterpreter
@@ -24,10 +25,6 @@ class Vectorizer(TranscribeInterpreter):
 
     @as_payload
     def tensor(self, abstract: AbstractTensor, **kwargs):
-        abstract._shape = as_tuple([*abstract.shape, self.replicas])
-        if abstract.initializer is not None:
-            if not callable(abstract.initializer):
-                abstract.initializer = abstract.initializer[..., None]
         return []
 
     @as_payload
@@ -43,7 +40,20 @@ class Vectorizer(TranscribeInterpreter):
         self, tensor: P.tensor, indices: P.indices, live_indices,
         keep_indices, **kwargs
     ):
-        indices.items.append(self.vec_index)
+        # update indices.items w/o altering original
+        items = copy.copy(indices.items)
+        items.append(self.vec_index)
+        indices.items = items
+        # update tensor.abstract w/o altering original
+        abstract = copy.copy(tensor.abstract)
+        shape = [abstract.shape]
+        shape.append(self.replicas)
+        abstract._shape = as_tuple(flatten(shape))
+        if abstract.initializer is not None:
+            if not callable(abstract.initializer):
+                initializer = copy.copy(abstract.initializer)
+                abstract.initializer = initializer[..., None]
+        tensor.abstract = abstract
         return []
 
     @as_payload
@@ -54,17 +64,17 @@ class Vectorizer(TranscribeInterpreter):
     @as_payload
     def pow(self, base: Numeric, exponent: Numeric, live_indices,
             keep_indices, **kwargs):
-        return None
+        return []
 
     @as_payload
     def neg(self, x: Numeric, live_indices,
             keep_indices, **kwargs):
-        return None
+        return []
 
     @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
-            keep_indices, **kwargs):
+            **kwargs):
         return P.indices([*[P.index(i, bound=False, kron=False) for i in
                          live_indices], self.vec_index])
 
