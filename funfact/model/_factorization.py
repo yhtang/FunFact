@@ -9,7 +9,8 @@ from funfact.lang.interpreter import (
     IndexPropagator,
     ElementwiseEvaluator,
     SlicingPropagator,
-    ShapeAnalyzer
+    ShapeAnalyzer,
+    Vectorizer
 )
 from jax.tree_util import register_pytree_node_class
 
@@ -34,12 +35,12 @@ class Factorization:
     _evaluator = Evaluator()
     _elementwise_evaluator = ElementwiseEvaluator()
 
-    def __init__(self, tsrex, initialize=True):
-        self._tsrex = (
-            (tsrex | self._leaf_initializer) if initialize is True else tsrex,
-            (tsrex | self._index_propagator | self._einspec_generator |
-             self._shape_analyzer)
-        ) | self._payload_merger
+    def __init__(self, tsrex, initialize=True, nvec=1):
+        if nvec > 1:
+            tsrex = tsrex | Vectorizer(nvec)
+        if initialize is True:
+            tsrex = tsrex | self._leaf_initializer
+        self._tsrex = tsrex
 
     @property
     def tsrex(self):
