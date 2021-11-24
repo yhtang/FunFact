@@ -36,10 +36,13 @@ class Factorization:
     _elementwise_evaluator = ElementwiseEvaluator()
 
     def __init__(self, tsrex, initialize=True, nvec=1):
+        tsrex = tsrex | self._index_propagator
         if nvec > 1:
             tsrex = tsrex | Vectorizer(nvec)
+            tsrex = tsrex | self._index_propagator
         if initialize is True:
             tsrex = tsrex | self._leaf_initializer
+        tsrex = tsrex | self._shape_analyzer | self._einspec_generator
         self._tsrex = tsrex
 
     @property

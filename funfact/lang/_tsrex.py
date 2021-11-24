@@ -4,6 +4,7 @@ import dataclasses
 import re
 import sys
 import asciitree
+import functools
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from funfact.util.typing import _is_tensor
 from ._ast import _AST, _ASNode, Primitives as P
@@ -82,34 +83,35 @@ class _BaseEx(_AST):
     _index_propagator = IndexPropagator()
     _shape_analyzer = ShapeAnalyzer()
 
-    def __init__(self, data=None):
-        super().__init__(data)
-        self.root = self._einspec_generator(self._shape_analyzer(
-                    self._index_propagator(self.root)))
-        self._latex = self._latex_intr(self.root)
-
+    @functools.lru_cache()
     def _repr_html_(self):
-        return f'''$${self._latex}$$'''
+        return f'''$${self._latex_intr(self.root)}$$'''
 
     @property
     def asciitree(self):
         return self._asciitree_factory(self.root)
 
     @property
+    @functools.lru_cache()
     def shape(self):
-        return self.root.shape
+        return self._shape_analyzer(self._index_propagator(
+               self.root)).shape
 
     @property
+    @functools.lru_cache()
     def live_indices(self):
-        return self.root.live_indices
+        return self._index_propagator(self.root).live_indices
 
     @property
+    @functools.lru_cache()
     def ndim(self):
         return len(self.live_indices)
 
     @property
+    @functools.lru_cache()
     def einspec(self):
-        return self.root.einspec
+        return self._einspec_generator(self._index_propagator(
+               self.root)).einspec
 
 
 class ArithmeticMixin:
