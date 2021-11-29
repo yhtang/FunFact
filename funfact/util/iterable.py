@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from collections import namedtuple
-from typing import Iterable
+from typing import List, Tuple
 
 
 def flatten(iterable):
@@ -94,7 +94,7 @@ def as_namedtuple(title, **kwargs):
 
 
 def as_tuple(elements):
-    if isinstance(elements, Iterable):
+    if isinstance(elements, (List, Tuple)):
         return tuple(elements)
     else:
         return (elements,)
