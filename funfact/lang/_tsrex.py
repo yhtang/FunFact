@@ -173,20 +173,28 @@ class IndexRenamingMixin:
 
         tsrex = self | IndexPropagator()
 
-        if len(indices) != len(tsrex.root.live_indices):
+        live_old = tsrex.root.live_indices
+        if len(indices) != len(live_old):
             raise SyntaxError(
                 f'Incorrect number of indices. '
-                f'Expects {len(tsrex.root.live_indices)}, '
+                f'Expects {len(live_old)}, '
                 f'got {len(indices)}.'
             )
 
-        index_map = {}
-        for old, new_expr in zip(tsrex.root.live_indices, indices):
+        for new_expr in indices:
             if new_expr.root.name != 'index':
                 raise SyntaxError(
                     'Indices to a tensor expression must be abstract indices.'
                 )
-            index_map[old] = new_expr.root.item
+        live_new = [i.root.item for i in indices]
+
+        index_map = dict(zip(live_old, live_new))
+        # if a 'new' live index is already used as a dummy one, replace the
+        # dummy usage with an anonymous index to avoid conflict.
+        for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
+            i = n.item
+            if i not in live_old and i in live_new:
+                index_map[i] = AbstractIndex()
 
         for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
             n.item = index_map.get(n.item, n.item)
