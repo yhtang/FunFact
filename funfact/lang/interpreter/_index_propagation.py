@@ -29,7 +29,7 @@ class IndexPropagator(TranscribeInterpreter):
 
     @as_payload
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
-        return [item], [item] if bound else [], [item] if kron else []
+        return [item], [item] if bound or kron else [], [item] if kron else []
 
     @as_payload
     def indices(self, items: AbstractIndex, **kwargs):
@@ -85,10 +85,9 @@ class IndexPropagator(TranscribeInterpreter):
             free_r = ordered_setminus(rhs.live_indices, lhs.live_indices)
             free = ordered_union(free_l, free_r)
             repeated = ordered_intersect(lhs.live_indices, rhs.live_indices)
-            keep_bound = ordered_setminus(keep, free)
-            kron_bound = ordered_setminus(kron, free)
+            bound = ordered_setminus(keep, free)
             lone_keep = ordered_setminus(keep, repeated)
-            implied_survival = free_l + keep_bound + kron_bound + free_r
+            implied_survival = free_l + bound + free_r
             return implied_survival, lone_keep, kron
         else:
             explicit_survival = outidx.live_indices

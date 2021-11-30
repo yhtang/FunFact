@@ -51,19 +51,22 @@ class ShapeAnalyzer(TranscribeInterpreter):
     @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
-            **kwargs):
+            kron_indices, **kwargs):
         dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
         dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
         shape = []
         for i in live_indices:
             if i in lhs.live_indices and i in rhs.live_indices:
-                if dict_lhs[i] != dict_rhs[i]:
-                    raise SyntaxError(
-                        f'Dimension of contracting index on left-hand side '
-                        f'({dict_lhs[i]}) does not match dimension of '
-                        f'right-hand side ({dict_lhs[i]}).'
-                    )
-                shape.append(dict_lhs[i])
+                if i in kron_indices:
+                    shape.append(dict_lhs[i]*dict_rhs[i])
+                else:
+                    if dict_lhs[i] != dict_rhs[i]:
+                        raise SyntaxError(
+                            f'Dimension of contracting index on left-hand side'
+                            f' ({dict_lhs[i]}) does not match dimension of '
+                            f'right-hand side ({dict_lhs[i]}).'
+                        )
+                    shape.append(dict_lhs[i])
             elif i in lhs.live_indices:
                 shape.append(dict_lhs[i])
             else:
