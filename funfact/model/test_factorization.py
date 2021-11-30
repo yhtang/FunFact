@@ -108,3 +108,76 @@ def test_elementwise():
     elementwise = np.squeeze(fac[idx])
     for f, e in zip(full, elementwise):
         assert pytest.approx(e, tol) == f
+
+
+def test_Kronecker():
+    tol = 2 * np.finfo(np.float32).eps
+    dataA = np.reshape(np.arange(0, 6), (2, 3))
+    dataB = np.reshape(np.arange(6, 15), (3, 3))
+    A = tensor('A', dataA)
+    B = tensor('B', dataB)
+    i, j, k = indices('i, j, k')
+
+    # regular Kronecker product
+    tsrex = A[[*i, *j]] * B[i, j]
+    fac = Factorization(tsrex)
+    out = fac()
+    expected_shape = (6, 9)
+    for o, f, e in zip(out.shape, fac.shape, expected_shape):
+        assert o == e
+        assert o == f
+    ref = np.kron(dataA, dataB)
+    for o, r in zip(out, ref):
+        assert pytest.approx(o, tol) == r
+
+    # Kronecker product along first axis (Khatri-Rao)
+    tsrex = A[[*i, ~j]] * B[i, j]
+    fac = Factorization(tsrex)
+    out = fac()
+    expected_shape = (6, 3)
+    for o, f, e in zip(out.shape, fac.shape, expected_shape):
+        assert o == e
+        assert o == f
+    ref = np.vstack([np.kron(dataA[:, k], dataB[:, k]) for k in
+                    range(dataB.shape[1])]).T
+    for o, r in zip(out, ref):
+        assert pytest.approx(o, tol) == r
+
+    # Kronecker product along first axis, reduction second
+    tsrex = A[[*i,  j]] * B[i, j]
+    fac = Factorization(tsrex)
+    out = fac()
+    expected_shape = (6,)
+    for o, f, e in zip(out.shape, fac.shape, expected_shape):
+        assert o == e
+        assert o == f
+
+    # Matrix product
+    tsrex = A[[i,   j]] * B[j, k]
+    fac = Factorization(tsrex)
+    out = fac()
+    expected_shape = (2, 3)
+    for o, f, e in zip(out.shape, fac.shape, expected_shape):
+        assert o == e
+        assert o == f
+    ref = dataA @ dataB
+    for o, r in zip(out, ref):
+        assert pytest.approx(o, tol) == r
+
+    # No reduction
+    tsrex = A[[i,  ~j]] * B[j, k]
+    fac = Factorization(tsrex)
+    out = fac()
+    expected_shape = (2, 3, 3)
+    for o, f, e in zip(out.shape, fac.shape, expected_shape):
+        assert o == e
+        assert o == f
+
+    # Kronecker product inner axis
+    tsrex = A[[i,  *j]] * B[j, k]
+    fac = Factorization(tsrex)
+    out = fac()
+    expected_shape = (2, 9, 3)
+    for o, f, e in zip(out.shape, fac.shape, expected_shape):
+        assert o == e
+        assert o == f
