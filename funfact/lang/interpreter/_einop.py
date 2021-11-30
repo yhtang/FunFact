@@ -28,7 +28,7 @@ class DummyBackend:
 
 def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     '''Einstein operation between two nd arrays.
-
+    TODO: update documentation.
     Parameters
     ----------
     spec: str
@@ -50,10 +50,11 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     '''
 
     # parse input spec string
-    lhs_spec, rhs_spec, res_spec = re.split(r'\W+', spec)
+    lhs_spec, rhs_spec, res_spec, kron_spec = re.split(r'\W+', spec)
     lhs_spec = list(lhs_spec)
     rhs_spec = list(rhs_spec)
     res_spec = list(res_spec)
+    kron_spec = list(kron_spec)
 
     # reorder lhs and rhs in alphabetical order
     lhs_order = numpy.argsort(lhs_spec)
@@ -85,15 +86,30 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
         else:
             indices_rem.append(c)
 
-    dim_lhs = tuple(dim_lhs)
-    dim_rhs = tuple(dim_rhs)
-    con_ax = tuple(con_ax)
+    # broadcast dimensions
+    lhs = lhs[tuple(dim_lhs)]
+    rhs = rhs[tuple(dim_rhs)]
+
+    # blow up kron indices
+    shape_lhs = lhs.shape
+    shape_rhs = rhs.shape
+    tile_lhs = []
+    tile_rhs = []
+    for i, c in enumerate(indices_all):
+        if c in kron_spec:
+            tile_lhs.append(shape_rhs[i])
+            tile_rhs.append(shape_lhs[i])
+        else:
+            tile_lhs.append(1)
+            tile_rhs.append(1)
+    lhs = np.tile(lhs, tuple(tile_lhs))
+    rhs = np.tile(rhs, tuple(tile_rhs))
 
     # compute the contraction in alphabetical order
     op_redu = getattr(DummyBackend, reduction)
     op_pair = getattr(DummyBackend, pairwise)
 
-    result = op_redu(op_pair(lhs[dim_lhs], rhs[dim_rhs]), axis=con_ax)
+    result = op_redu(op_pair(lhs, rhs), axis=tuple(con_ax))
 
     # reorder contraction according to res_spec
     dictionary = dict(zip(indices_rem, numpy.arange(len(indices_rem))))
