@@ -92,7 +92,7 @@ class LiteralValue(Identifiable, LaTexReprMixin):
         return f'{type(self).__qualname__}({str(self.raw)}, {self.latex})'
 
     def _repr_tex_(self):
-        return self.latex
+        return self.latex or str(self)
 
 
 class AbstractIndex(Identifiable, LaTexReprMixin):
