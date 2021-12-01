@@ -4,11 +4,13 @@ import dataclasses
 import re
 import sys
 import asciitree
+import functools
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from funfact.util.typing import _is_tensor
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
-    dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator
+    dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator, ShapeAnalyzer,
+    EinsteinSpecGenerator
 )
 from ._terminal import AbstractIndex, AbstractTensor
 
@@ -77,13 +79,39 @@ class _BaseEx(_AST):
 
     _latex_intr = LatexRenderer()
     _asciitree_factory = ASCIITreeFactory()
+    _einspec_generator = EinsteinSpecGenerator()
+    _index_propagator = IndexPropagator()
+    _shape_analyzer = ShapeAnalyzer()
 
+    @functools.lru_cache()
     def _repr_html_(self):
         return f'''$${self._latex_intr(self.root)}$$'''
 
     @property
     def asciitree(self):
         return self._asciitree_factory(self.root)
+
+    @property
+    @functools.lru_cache()
+    def shape(self):
+        return self._shape_analyzer(self._index_propagator(
+               self.root)).shape
+
+    @property
+    @functools.lru_cache()
+    def live_indices(self):
+        return self._index_propagator(self.root).live_indices
+
+    @property
+    @functools.lru_cache()
+    def ndim(self):
+        return len(self.live_indices)
+
+    @property
+    @functools.lru_cache()
+    def einspec(self):
+        return self._einspec_generator(self._index_propagator(
+               self.root)).einspec
 
 
 class ArithmeticMixin:
@@ -145,20 +173,28 @@ class IndexRenamingMixin:
 
         tsrex = self | IndexPropagator()
 
-        if len(indices) != len(tsrex.root.live_indices):
+        live_old = tsrex.root.live_indices
+        if len(indices) != len(live_old):
             raise SyntaxError(
                 f'Incorrect number of indices. '
-                f'Expects {len(tsrex.root.live_indices)}, '
+                f'Expects {len(live_old)}, '
                 f'got {len(indices)}.'
             )
 
-        index_map = {}
-        for old, new_expr in zip(tsrex.root.live_indices, indices):
+        for new_expr in indices:
             if new_expr.root.name != 'index':
                 raise SyntaxError(
                     'Indices to a tensor expression must be abstract indices.'
                 )
-            index_map[old] = new_expr.root.item
+        live_new = [i.root.item for i in indices]
+
+        index_map = dict(zip(live_old, live_new))
+        # if a 'new' live index is already used as a dummy one, replace the
+        # dummy usage with an anonymous index to avoid conflict.
+        for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
+            i = n.item
+            if i not in live_old and i in live_new:
+                index_map[i] = AbstractIndex()
 
         for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
             n.item = index_map.get(n.item, n.item)

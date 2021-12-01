@@ -69,10 +69,10 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
-            **kwargs):
+            kron_indices, **kwargs):
         map = IndexMap()
         return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
-               f'->{map(live_indices)}'
+               f'->{map(live_indices)}|{map(kron_indices)}'
 
     @as_payload
     def tran(self, src: Numeric, indices: P.indices, live_indices, **kwargs):
