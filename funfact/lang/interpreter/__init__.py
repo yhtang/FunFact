@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from ._ascii import ASCIIRenderer
-from ._base import dfs_filter, PayloadMerger
+from ._base import dfs, dfs_filter, PayloadMerger
 from ._evaluation import Evaluator
 from ._einspec import EinsteinSpecGenerator
 from ._index_propagation import IndexPropagator
