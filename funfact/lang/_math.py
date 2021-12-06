@@ -5,6 +5,7 @@ from ._ast import Primitives as _P
 
 
 def abs(x): return _T(_P.call('abs', _BaseEx(x).root))
+def conj(x): return _T(_P.call('conj', _BaseEx(x).root))
 def exp(x): return _T(_P.call('exp', _BaseEx(x).root))
 def log(x): return _T(_P.call('log', _BaseEx(x).root))
 def sin(x): return _T(_P.call('sin', _BaseEx(x).root))
