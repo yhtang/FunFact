@@ -10,7 +10,8 @@ from funfact.lang.interpreter import (
     ElementwiseEvaluator,
     SlicingPropagator,
     ShapeAnalyzer,
-    Vectorizer
+    Vectorizer,
+    Devectorizer
 )
 from jax.tree_util import register_pytree_node_class
 
@@ -44,14 +45,29 @@ class Factorization:
             tsrex = tsrex | self._leaf_initializer
         tsrex = tsrex | self._shape_analyzer | self._einspec_generator
         self._tsrex = tsrex
+        self._nvec = nvec
 
     @property
     def tsrex(self):
         return self._tsrex
 
     @property
+    def nvec(self):
+        return self._nvec
+
+    @property
     def shape(self):
         return self._tsrex.root.shape
+
+    @classmethod
+    def devectorize(cls, factorization, slice: int):
+        '''Devectorize a factorizaition and keep a single slice.'''
+        if slice >= factorization.nvec:
+            raise IndexError(
+                f'Slice {slice} out of range (nvec: {factorization.nvec})'
+            )
+        tsrex = factorization.tsrex | Devectorizer(slice)
+        return cls(tsrex, initialize=False)
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''

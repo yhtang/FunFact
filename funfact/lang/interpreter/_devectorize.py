@@ -41,14 +41,12 @@ class Devectorizer(TranscribeInterpreter):
         keep_indices, **kwargs
     ):
         # update indices.items w/o altering original
-        items = copy.copy(indices.items)
-        items.pop()
+        items = copy.copy(indices.items[:-1])
         indices.items = items
         # update tensor.abstract w/o altering original
         abstract = copy.copy(tensor.abstract)
         data = copy.copy(tensor.data)
-        shape = [abstract.shape]
-        shape.pop()
+        shape = [abstract.shape[:-1]]
         abstract._shape = as_tuple(flatten(shape))
         if abstract.initializer is not None and \
            not callable(abstract.initializer):
@@ -56,7 +54,6 @@ class Devectorizer(TranscribeInterpreter):
             abstract.initializer = np.squeeze(initializer)
             data = np.squeeze(data)
         else:
-            data = copy.copy(abstract.data)
             data = np.squeeze(data[..., self.slice])
         tensor.abstract = abstract
         tensor.data = data
