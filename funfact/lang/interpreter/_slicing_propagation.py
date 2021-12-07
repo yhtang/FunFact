@@ -63,6 +63,8 @@ class SlicingPropagator():
                 rhs_slices.append(slice(None))
         lhs.slices = lhs_slices
         rhs.slices = rhs_slices
+        if outidx is not None:
+            outidx.slices = None
 
     def tran(self, src: Numeric, indices: P.indices, slices, **kwargs):
         src.slices = [
