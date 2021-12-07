@@ -16,8 +16,8 @@ class Devectorizer(TranscribeInterpreter):
 
     as_payload = TranscribeInterpreter.as_payload('outidx')
 
-    def __init__(self, slice: int):
-        self.slice = slice
+    def __init__(self, instance: int):
+        self.instance = instance
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
@@ -54,7 +54,7 @@ class Devectorizer(TranscribeInterpreter):
             abstract.initializer = np.squeeze(initializer)
             data = np.squeeze(data)
         else:
-            data = np.squeeze(data[..., self.slice])
+            data = np.squeeze(data[..., self.instance])
         tensor.abstract = abstract
         tensor.data = data
         return []

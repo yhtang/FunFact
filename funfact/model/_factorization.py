@@ -60,13 +60,13 @@ class Factorization:
         return self._tsrex.root.shape
 
     @classmethod
-    def devectorize(cls, factorization, slice: int):
+    def devectorize(cls, factorization, instance: int):
         '''Devectorize a factorizaition and keep a single slice.'''
-        if slice >= factorization.nvec:
+        if instance >= factorization.nvec:
             raise IndexError(
-                f'Slice {slice} out of range (nvec: {factorization.nvec})'
+                f'Index {instance} out of range (nvec: {factorization.nvec})'
             )
-        tsrex = factorization.tsrex | Devectorizer(slice)
+        tsrex = factorization.tsrex | Devectorizer(instance)
         return cls(tsrex, initialize=False)
 
     def __call__(self):
