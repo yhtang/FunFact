@@ -59,15 +59,14 @@ class Factorization:
     def shape(self):
         return self._tsrex.root.shape
 
-    @classmethod
-    def devectorize(cls, factorization, instance: int):
-        '''Devectorize a factorizaition and keep a single slice.'''
-        if instance >= factorization.nvec:
+    def devectorize(self, instance: int):
+        '''Devectorize a factorizaition and keep a single instance.'''
+        if instance >= self.nvec:
             raise IndexError(
-                f'Index {instance} out of range (nvec: {factorization.nvec})'
+                f'Index {instance} out of range (nvec: {self.nvec})'
             )
-        tsrex = factorization.tsrex | Devectorizer(instance)
-        return cls(tsrex, initialize=False)
+        tsrex = self.tsrex | Devectorizer(instance)
+        return type(self)(tsrex, initialize=False)
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''
