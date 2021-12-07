@@ -64,7 +64,7 @@ class SlicingPropagator():
         lhs.slices = lhs_slices
         rhs.slices = rhs_slices
         if outidx is not None:
-            outidx.slices = slices
+            outidx.slices = None
 
     def tran(self, src: Numeric, indices: P.indices, slices, **kwargs):
         src.slices = [
