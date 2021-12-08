@@ -57,7 +57,11 @@ class Factorization:
 
     @property
     def shape(self):
-        return self._tsrex.root.shape
+        return self._tsrex.shape
+
+    @property
+    def ndim(self):
+        return self._tsrex.ndim
 
     def devectorize(self, instance: int):
         '''Devectorize a factorizaition and keep a single instance.'''
@@ -76,15 +80,50 @@ class Factorization:
         '''Evaluate the tensor expression the result.'''
         return self.tsrex | self._evaluator
 
-    def _get_elements(self, idx):
+    def _get_elements(self, key):
         '''Get elements at index of tensor expression.'''
-        new_idx = []
-        for i in idx:
+
+        # Generate full index list
+        full_idx = []
+        ellipsis_i = None
+        for i in key:
             if isinstance(i, int):
-                new_idx.append(slice(i, i+1))
+                if i != -1:
+                    full_idx.append(slice(i, i+1))
+                else:
+                    full_idx.append(slice(i, None))
+            elif isinstance(i, slice):
+                full_idx.append(i)
+            elif i is Ellipsis:
+                ellipsis_i = key.index(...)
             else:
-                new_idx.append(i)
-        _index_slicer = SlicingPropagator(new_idx)
+                raise IndexError(
+                    f'Unrecognized index {i} of type {type(i)}'
+                )
+        if ellipsis_i is not None:
+            for i in range(self.ndim - len(full_idx)):
+                full_idx.insert(ellipsis_i, slice(None))
+
+        # Validate full index list
+        if len(full_idx) != self.ndim:
+            raise IndexError(
+                f'Wrong number of indices {len(full_idx)},'
+                f'expected {self.ndim}'
+            )
+        for i, idx in enumerate(full_idx):
+            if idx.start >= self.shape[i] or idx.start < -self.shape[i]:
+                raise IndexError(
+                    f'index.start {idx.start} is out of bounds for axis {i} '
+                    f'with size {self.shape[i]}'
+                )
+            if idx.stop > self.shape[i] or idx.stop <= -self.shape[i]:
+                raise IndexError(
+                    f'index.stop {idx.stop} is out of bounds for axis {i} '
+                    f'with size {self.shape[i]}'
+                )
+
+        # Evaluate model
+        _index_slicer = SlicingPropagator(full_idx)
         return self.tsrex | _index_slicer | self._elementwise_evaluator
 
     def __getitem__(self, idx):
