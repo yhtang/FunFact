@@ -111,16 +111,18 @@ class Factorization:
                 f'expected {self.ndim}'
             )
         for i, idx in enumerate(full_idx):
-            if idx.start >= self.shape[i] or idx.start < -self.shape[i]:
-                raise IndexError(
-                    f'index.start {idx.start} is out of bounds for axis {i} '
-                    f'with size {self.shape[i]}'
-                )
-            if idx.stop > self.shape[i] or idx.stop <= -self.shape[i]:
-                raise IndexError(
-                    f'index.stop {idx.stop} is out of bounds for axis {i} '
-                    f'with size {self.shape[i]}'
-                )
+            if idx.start is not None:
+                if idx.start >= self.shape[i] or idx.start < -self.shape[i]:
+                    raise IndexError(
+                        f'index.start {idx.start} is out of bounds for '
+                        f'axis {i} with size {self.shape[i]}'
+                    )
+            if idx.stop is not None:
+                if idx.stop > self.shape[i] or idx.stop <= -self.shape[i]:
+                    raise IndexError(
+                        f'index.stop {idx.stop} is out of bounds for '
+                        f'axis {i} with size {self.shape[i]}'
+                    )
 
         # Evaluate model
         _index_slicer = SlicingPropagator(full_idx)
