@@ -205,8 +205,10 @@ class IndexRenamingMixin:
 class TranspositionMixin:
     '''transpose the axes by permuting the live indices into target indices.'''
     def __rshift__(self, indices):
-        return TsrEx(P.tran(self.root,
-                     P.indices(tuple([i.root for i in as_tuple(indices)]))))
+        return TsrEx(P.tran(
+            self.root,
+            P.indices(tuple([i.root for i in as_tuple(indices)]))
+        ))
 
 
 class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin, TranspositionMixin):
