@@ -69,4 +69,4 @@ class LatexRenderer(ROOFInterpreter):
         return body + suffix
 
     def tran(self, src, indices, **kwargs):
-        return fr'{{{src}}}^{{\mathsf{{T}}: {indices}}}'
+        return fr'{{{src}}}\rightarrow_{{{indices}}}'
