@@ -7,7 +7,7 @@ from funfact import tensor, indices
 
 
 def test_elementwise():
-    tol = 2 * np.finfo(np.float32).eps
+    tol = 20 * np.finfo(np.float32).eps
 
     # matrix product
     A = tensor('A', 2, 2)
