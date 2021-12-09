@@ -99,13 +99,13 @@ def test_elementwise():
     assert pytest.approx(elementwise, tol) == full
     # slices
     idx = (1, slice(0, 2), 0)
-    full = fac()[idx]
-    elementwise = np.squeeze(fac[idx])
+    full = np.array(fac())[idx]
+    elementwise = np.array(fac[idx])
     for f, e in zip(full, elementwise):
         assert pytest.approx(e, tol) == f
     idx = (slice(0, 3), slice(None), 2)
-    full = np.squeeze(fac()[idx])
-    elementwise = np.squeeze(fac[idx])
+    full = np.squeeze(np.array(fac())[idx])
+    elementwise = np.squeeze(np.array(fac[idx]))
     for f, e in zip(full, elementwise):
         assert pytest.approx(e, tol) == f
 
