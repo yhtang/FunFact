@@ -1,0 +1,15 @@
+site_name: "FunFact: Functional Factorization of Algebraic Tensors"
+theme:
+  name: material
+  logo: assets/funfact.svg
+  palette:
+    scheme: default
+    primary: amber
+plugins:
+  - search
+  - mkdocstrings
+nav:
+    - Home: index.md
+    # - Installation: installation.md
+    - Code Reference:
+        - API: api.md
