@@ -204,16 +204,11 @@ class IndexRenamingMixin:
 
 class TranspositionMixin:
     '''transpose the axes by permuting the live indices into target indices.'''
-    @property
-    def T(self):
-        return self._T(self.root)
-
-    class _T(_BaseEx):
-        def __getitem__(self, indices):
-            return TsrEx(
-                P.tran(self.root,
-                       P.indices(tuple([i.root for i in as_tuple(indices)])))
-            )
+    def __rshift__(self, indices):
+        return TsrEx(P.tran(
+            self.root,
+            P.indices(tuple([i.root for i in as_tuple(indices)]))
+        ))
 
 
 class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin, TranspositionMixin):
@@ -244,6 +239,7 @@ class TensorEx(_BaseEx):
 
 
 class EinopEx(TsrEx):
+    # override the `>>` behavior from TranspositionMixin
     def __rshift__(self, output_indices):
         self.root.outidx = P.indices(
             tuple([i.root for i in as_tuple(output_indices)])
