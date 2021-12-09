@@ -104,7 +104,7 @@ def test_elementwise():
     for f, e in zip(full, elementwise):
         assert pytest.approx(e, tol) == f
     idx = (slice(0, 3), slice(None), 2)
-    full = fac()[idx]
+    full = np.squeeze(fac()[idx])
     elementwise = np.squeeze(fac[idx])
     for f, e in zip(full, elementwise):
         assert pytest.approx(e, tol) == f
