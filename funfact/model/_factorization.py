@@ -109,15 +109,36 @@ class Factorization:
             return setattr(n, 'data', data)
         raise AttributeError(f'No factor tensor named {name}.')
 
+    class _NodeView:
+        def __init__(self, attribute: str, nodes):
+            self.attribute = attribute
+            self.nodes = nodes
+
+        def __repr__(self):
+            return '<{attr} field{pl} of tensor{pl} {tensors}>'.format(
+                attr=repr(self.attribute),
+                tensors=', '.join([str(n.abstract) for n in self.nodes]),
+                pl='s' if len(self.nodes) > 1 else ''
+            )
+
+        def __getitem__(self, i):
+            return getattr(self.nodes[i], self.attribute)
+
+        def __setitem__(self, i, value):
+            setattr(self.nodes[i], self.attribute, value)
+
+        def __iter__(self):
+            for n in self.nodes:
+                yield getattr(n, self.attribute)
+
     @property
     def factors(self):
         '''A flattened list of optimizable parameters of the primitive and all
         its children. For use with a gradient optimizer.'''
-        return [
-            n.data for n in dfs_filter(
-                lambda n: n.name == 'tensor', self.tsrex.root
-            )
-        ]
+        return self._NodeView(
+            'data',
+            list(dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root))
+        )
 
     @factors.setter
     def factors(self, tensors):
@@ -129,7 +150,7 @@ class Factorization:
             n.data = tensors[i]
 
     def tree_flatten(self):
-        return self.factors, self.tsrex
+        return list(self.factors), self.tsrex
 
     @classmethod
     def tree_unflatten(cls, tsrex, tensors):
