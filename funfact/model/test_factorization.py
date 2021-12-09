@@ -52,7 +52,7 @@ def test_elementwise():
 
     # bound index in matrix product
     A = tensor('A', 2, 3)
-    B = tensor('A', 3, 4)
+    B = tensor('B', 3, 4)
     tsrex = A[i, j] * B[~j, k]
     fac = Factorization(tsrex)
     # one element
@@ -62,7 +62,7 @@ def test_elementwise():
     assert pytest.approx(elementwise, tol) == full
     # slices
     idx = (slice(0, 2), slice(2, 3), 0)
-    full = fac()[idx]
+    full = np.squeeze(fac()[idx])
     elementwise = np.squeeze(fac[idx])
     for f, e in zip(full, elementwise):
         assert pytest.approx(e, tol) == f
