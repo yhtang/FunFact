@@ -10,8 +10,7 @@ from funfact.lang.interpreter import (
     ElementwiseEvaluator,
     SlicingPropagator,
     ShapeAnalyzer,
-    Vectorizer,
-    Devectorizer
+    Vectorizer
 )
 from jax.tree_util import register_pytree_node_class
 
@@ -37,6 +36,7 @@ class Factorization:
     _elementwise_evaluator = ElementwiseEvaluator()
 
     def __init__(self, tsrex, initialize=True, nvec=1):
+        self._otsrex = tsrex
         tsrex = tsrex | self._index_propagator
         if nvec > 1:
             tsrex = tsrex | Vectorizer(nvec)
@@ -63,14 +63,15 @@ class Factorization:
     def ndim(self):
         return self._tsrex.ndim
 
-    def devectorize(self, instance: int):
-        '''Devectorize a factorizaition and keep a single instance.'''
+    def view(self, instance: int):
+        '''Create a view on a certain instance of the factorization.'''
         if instance >= self.nvec:
             raise IndexError(
                 f'Index {instance} out of range (nvec: {self.nvec})'
             )
-        tsrex = self.tsrex | Devectorizer(instance)
-        return type(self)(tsrex, initialize=False)
+        fac = type(self)(self._otsrex, initialize=False)
+        fac.factors = [f[..., instance] for f in self.factors]
+        return fac
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''

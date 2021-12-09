@@ -11,7 +11,6 @@ from ._elementwise import ElementwiseEvaluator
 from ._slicing_propagation import SlicingPropagator
 from ._shape import ShapeAnalyzer
 from ._vectorize import Vectorizer
-from ._devectorize import Devectorizer
 
 
 __all__ = [
@@ -27,6 +26,5 @@ __all__ = [
     'ElementwiseEvaluator',
     'SlicingPropagator',
     'ShapeAnalyzer',
-    'Vectorizer',
-    'Devectorizer'
+    'Vectorizer'
 ]
