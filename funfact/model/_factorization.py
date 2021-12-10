@@ -70,7 +70,13 @@ class Factorization:
                 f'Index {instance} out of range (nvec: {self.nvec})'
             )
         fac = type(self)(self._otsrex, initialize=False)
-        fac.factors = [f[..., instance] for f in self.factors]
+        instance_factors = []
+        for f in self.factors:
+            if f.shape[-1] == 1:
+                instance_factors.append(f[..., 0])
+            else:
+                instance_factors.append(f[..., instance])
+        fac.factors = instance_factors
         return fac
 
     def __call__(self):

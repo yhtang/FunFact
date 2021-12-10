@@ -94,7 +94,10 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
                 if c in lhs_spec and c in rhs_spec:
                     dim_lhs.append(slice(None))
                     dim_rhs.append(slice(None))
-                    kron_res.append(shape_lhs[j_l])
+                    if shape_lhs[j_l] > shape_rhs[j_r]:
+                        kron_res.append(shape_lhs[j_l])
+                    else:
+                        kron_res.append(shape_rhs[j_r])
                     j_l += 1
                     j_r += 1
                 elif c in lhs_spec:
