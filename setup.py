@@ -41,9 +41,9 @@ setup(
     ],
     extras_require={
         'docs': [
-            'sphinx',
-            'sphinx-rtd-theme',
-            'm2r2',
+            'mkdocs==1.2.3',
+            'mkdocs-material==8.0.5',
+            'mkdocstrings==0.16.2',
         ],
         'devel': [
             'expectexception>=0.1.1',
