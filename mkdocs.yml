@@ -1,4 +1,4 @@
-site_name: "FunFact: Functional Factorization of Algebraic Tensors"
+site_name: "FunFact: Tensor Algebra and Deep Learning via Einstein Notations"
 theme:
   name: material
   logo: assets/funfact.svg
@@ -11,7 +11,8 @@ plugins:
 nav:
     - Home: index.md
     - Installation: installation.md
-    - Examples: examples.md
+    - Examples:
+      - Nonlinear matrix approximation: "examples/nma.md"
     - How to contribute: contribute.md
     - Code Reference:
         - API: api.md

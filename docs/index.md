@@ -6,43 +6,27 @@
 [![Documentation Status](https://readthedocs.org/projects/funfact/badge/?version=latest)](https://funfact.readthedocs.io/en/latest/?badge=latest)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-## Features
+## Overview
 
-The overall goal of FunFact is to provide a tool to compute the *functional factorization* of algebraic tensors, a.k.a. multidimensional arrays. A functional factorization, in our context, is a generalization of the (linear) factorization of tensors. By generalization, we meant to replace the standard inner/outer product between the factor tensors with some nonlinear operations.
-
-For example, a rank-1 matrix can be factored into the outer product between a column vector and a row vector:
-
-$$
-M \approx \mathbf{u} \mathbf{v}^\mathsf{T},
-$$
-
-where $M$ is an $n \times m$ matrix, $\mathbf{u}$ is a $n$-dimensional column vector, and $\mathbf{v}$ is a $m$-dimensional row vector. This can be equivalently represented in indexed notation as
-
-$$
-M_{ij} \approx \mathbf{u}_i \mathbf{v}_j.
-$$
-
-Moreover, if we relace the standard multiplication operation between $\mathbf{u}_i$ and $\mathbf{v}_j$ by an RBF function $\kappa(x, y) = \exp\left[-(x - y)^2\right]$, we then obtain an *RBF approximation* of $M$ such that:
-
-$$
-M_{ij} \approx \kappa(\mathbf{u}_i, \mathbf{v}_j).
-$$
-
-Given the rich expressivity of nonlinear operators and functional forms, we expect that a proper functional factorization of a tensor can yield representations that are more compact than what is possible withtin the existing linear framework. However, there is (obviously) no free lunch. the challenges to obtain the functional factorization of a tensor is two fold and involves
-- Finding the most appropriate **functional form** given a specific piece of data,
-- Finding the **component tensors** given the functional form for a specific data.
-
+[FunFact](https://github.com/yhtang/FunFact.git) is a Python package that enables flexible and concise expressions of tensor algebra through an Einstein notation-based syntax. A particular emphasis is on automating the design of matrix and tensor factorization models.  It’s areas of applications include quantum circuit synthesis, tensor decomposition, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra backends such as JAX/TensorFlow and PyTorch.
+<!-- To this end, it leverages randomized combinatorial optimization and stochastic gradient-based methods. -->
 
 ## How to cite
 
 If you use this package for a publication (either in-paper or electronically), please cite it using the following DOI: https://doi.org/10.11578/dc.20210922.1
 
 
-## Indices and tables
+## Quick start guide
+
+```
+import funfact as ff
+```
+
+<!-- ## Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
+* :ref:`search` -->
 
 
 ## Contributors
