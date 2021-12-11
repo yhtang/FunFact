@@ -232,7 +232,7 @@ class TensorEx(_BaseEx):
             P.index_notation(
                 self.root,
                 P.indices(
-                    tuple([i.root for i in as_tuple(indices)])
+                    tuple([i.root for i in as_tuple(indices or [])])
                 )
             )
         )
@@ -293,7 +293,7 @@ def tensor(*spec, initializer=None):
         symbol = None
         initializer = spec[0]
         size = initializer.shape
-    elif isinstance(spec[0], str):
+    elif len(spec) >= 1 and isinstance(spec[0], str):
         # name + size
         symbol, *size = spec
     else:
