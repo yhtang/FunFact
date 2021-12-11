@@ -13,9 +13,9 @@ nav:
     - Installation: installation.md
     - Examples:
       - Nonlinear matrix approximation: "examples/nma.md"
+    - User Guide: ug.md
+    - API Reference: api.md
     - How to contribute: contribute.md
-    - Code Reference:
-        - API: api.md
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
