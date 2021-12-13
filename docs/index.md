@@ -8,19 +8,54 @@
 
 ## Overview
 
-[FunFact](https://github.com/yhtang/FunFact.git) is a Python package that enables flexible and concise expressions of tensor algebra through an Einstein notation-based syntax. A particular emphasis is on automating the design of matrix and tensor factorization models.  It’s areas of applications include quantum circuit synthesis, tensor decomposition, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra backends such as JAX/TensorFlow and PyTorch.
-<!-- To this end, it leverages randomized combinatorial optimization and stochastic gradient-based methods. -->
-
-## How to cite
-
-If you use this package for a publication (either in-paper or electronically), please cite it using the following DOI: https://doi.org/10.11578/dc.20210922.1
-
+[FunFact](https://github.com/yhtang/FunFact.git) is a Python package that
+enables flexible and concise expressions of tensor algebra through an Einstein
+notation-based syntax. A particular emphasis is on automating the design of
+matrix and tensor factorization models.  It’s areas of applications include
+quantum circuit synthesis, tensor decomposition, and neural network
+compression. It is GPU- and parallelization-ready thanks to modern numerical
+linear algebra backends such as JAX/TensorFlow and PyTorch.
+<!-- To this end, it leverages randomized combinatorial optimization
+and stochastic gradient-based methods. -->
 
 ## Quick start guide
 
+Install from pip:
+
 ```
+pip install funfact
+```
+
+First, we will define some tensors and indices:
+
+``` py
 import funfact as ff
+import numpy as np
+a = ff.tensor('a', 5, 2, 4)                      # a random 3-way tensor
+b = ff.tensor('b', np.arange(10).reshape(2, 5))  # a 2-way tensor (matrix)
+u = ff.tensor('u', 4)                            # a random vectorvector
+v = ff.tensor(5)                                 # an anonymous random vector
+c = ff.tensor('c')                               # a scalar, i.e. 0-tensor
+i, j, k = ff.indices('i, j, k')                  # define indices
 ```
+
+Next, we create some tensor expressions. This only specifies the computation but does **not** carry out the evaluation
+immediately.
+
+``` py
+a[i, j, k] * b[j, i]  # (1) contraction
+u[i] * v[j]           # (2) outer product
+u[i] - v[j]           # (3) pairwise substraction
+```
+
+1. Equivalent to `numpy.einsum('ijk,ji', a, b)`
+2. Equivalent to `numpy.outer(u, v)`
+3. Equivalent to `np.subtract.outer(u, v)`
+
+
+<!-- 
+b[i, ~j] * v[~j]      # multiply v with each row of b (3)
+3. Equivalent to `numpy.einsum('ij,j->ij', b, v)` or `b * v[None, :]` -->
 
 <!-- ## Indices and tables
 
@@ -28,6 +63,10 @@ import funfact as ff
 * :ref:`modindex`
 * :ref:`search` -->
 
+
+## How to cite
+
+If you use this package for a publication (either in-paper or electronically), please cite it using the following DOI: https://doi.org/10.11578/dc.20210922.1
 
 ## Contributors
 
