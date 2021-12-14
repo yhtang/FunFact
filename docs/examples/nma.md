@@ -1,3 +1,7 @@
+!!! warning
+
+    Page under construction
+    
 # RBF Approximation
 
 FunFact makes it easy to compute the *functional factorization* of algebraic tensors, a.k.a. multidimensional arrays. A functional factorization, in this context, is a generalization of the (linear) factorization of tensors. By generalization, we meant to replace the standard inner/outer product between the factor tensors with some nonlinear operations.

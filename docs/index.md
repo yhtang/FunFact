@@ -1,3 +1,7 @@
+!!! warning
+
+    Page under construction
+    
 # Welcome to the documentation of FunFact!
 
 [![CI](https://github.com/yhtang/FunFact/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/yhtang/FunFact/actions/workflows/ci.yml)
