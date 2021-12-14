@@ -26,36 +26,29 @@ Install from pip:
 pip install funfact
 ```
 
-First, we will define some tensors and indices:
+Define tensors and indices:
 
 ``` py
 import funfact as ff
 import numpy as np
-a = ff.tensor('a', 5, 2, 4)                      # a random 3-way tensor
-b = ff.tensor('b', np.arange(10).reshape(2, 5))  # a 2-way tensor (matrix)
-u = ff.tensor('u', 4)                            # a random vectorvector
-v = ff.tensor(5)                                 # an anonymous random vector
-c = ff.tensor('c')                               # a scalar, i.e. 0-tensor
-i, j, k = ff.indices('i, j, k')                  # define indices
+a = ff.tensor('a', 10, 2)
+b = ff.tensor('b', 2, 20)
+i, j, k = ff.indices('i, j, k')
 ```
 
-Next, we create some tensor expressions. This only specifies the computation but does **not** carry out the evaluation
-immediately.
+Create a tensor expression (note that this only specifies the algebra but
+does **not** carry out the computation immediately):
 
 ``` py
-a[i, j, k] * b[j, i]  # (1) contraction
-u[i] * v[j]           # (2) outer product
-u[i] - v[j]           # (3) pairwise substraction
+tsrex = a[i, k] * b[k, j]
 ```
 
-1. Equivalent to `numpy.einsum('ijk,ji', a, b)`
-2. Equivalent to `numpy.outer(u, v)`
-3. Equivalent to `np.subtract.outer(u, v)`
+Find a rank-2 approximation of a matrix according to the expression:
 
-
-<!-- 
-b[i, ~j] * v[~j]      # multiply v with each row of b (3)
-3. Equivalent to `numpy.einsum('ij,j->ij', b, v)` or `b * v[None, :]` -->
+```
+target = np.random.randn(10, 20)
+ff.factorize(target, tsrex)
+```
 
 <!-- ## Indices and tables
 

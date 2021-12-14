@@ -9,14 +9,23 @@ theme:
     content.code.annotate
 plugins:
   - search
+  - autorefs
   - mkdocstrings
+  # - gen-files:
+  #     scripts:
+  #     - docs/gen_ref_nav.py
+      # - docs/gen_credits.py
 nav:
     - Home: index.md
     - Installation: installation.md
     - Examples:
       - Nonlinear matrix approximation: "examples/nma.md"
-    - User Guide: ug.md
-    - API Reference: api.md
+    - User Guide: user_guide.md
+    - API Reference:
+        "funfact.tensor": api/tensor.md
+        "funfact.index": api/index.md
+        "funfact.indices": api/indices.md
+    # - API Reference: reference/
     - How to contribute: contribute.md
 markdown_extensions:
   - pymdownx.arithmatex:
@@ -27,6 +36,8 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - pymdownx.snippets
+  - admonition
+  - pymdownx.details
 extra_javascript:
   - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6

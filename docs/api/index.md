@@ -1,0 +1,3 @@
+<!-- # funfact.tensor -->
+
+::: funfact.index
