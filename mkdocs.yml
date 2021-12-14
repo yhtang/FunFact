@@ -2,6 +2,7 @@ site_name: "FunFact: Tensor Algebra and Deep Learning via Einstein Notations"
 theme:
   name: material
   logo: assets/funfact.svg
+  favicon: assets/favicon.png
   palette:
     scheme: default
     primary: amber
