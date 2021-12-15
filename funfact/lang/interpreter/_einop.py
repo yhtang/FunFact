@@ -1,29 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import jax.numpy as np
-import numpy
+# import jax.numpy as np
+# import numpy
 import re
-
-
-def log_add_exp(lhs, rhs):
-    return np.log(np.add(np.exp(lhs), np.exp(rhs)))
-
-
-def log_sum_exp(data, axis=None):
-    return np.log(np.sum(np.exp(data), axis=axis))
-
-
-class DummyBackend:
-
-    add = np.add
-    sub = np.subtract
-    mul = np.multiply
-    div = np.divide
-    log_add_exp = log_add_exp
-    min = np.min
-    max = np.max
-    sum = np.sum
-    log_sum_exp = log_sum_exp
+from funfact.backend import active_backend as ab
 
 
 def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
@@ -56,10 +36,10 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     kron_spec = list(kron_spec)
 
     # reorder lhs and rhs in alphabetical order
-    lhs_order = numpy.argsort(lhs_spec)
-    lhs = np.transpose(lhs, lhs_order)
-    rhs_order = numpy.argsort(rhs_spec)
-    rhs = np.transpose(rhs, rhs_order)
+    lhs_order = ab.argsort(lhs_spec)
+    lhs = ab.transpose(lhs, lhs_order)
+    rhs_order = ab.argsort(rhs_spec)
+    rhs = ab.transpose(rhs, rhs_order)
 
     # determine all indices in alphabetical order
     indices_all = set(lhs_spec).union(rhs_spec)
@@ -121,14 +101,14 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
             i += 1
 
     # compute the contraction in alphabetical order
-    op_redu = getattr(DummyBackend, reduction)
-    op_pair = getattr(DummyBackend, pairwise)
+    op_redu = getattr(ab, reduction)
+    op_pair = getattr(ab, pairwise)
 
-    result = np.reshape(op_redu(op_pair(lhs[tuple(dim_lhs)],
+    result = ab.reshape(op_redu(op_pair(lhs[tuple(dim_lhs)],
                         rhs[tuple(dim_rhs)]), axis=tuple(con_ax)),
                         tuple(kron_res),  order="F")
 
     # reorder contraction according to out_spec
-    dictionary = dict(zip(indices_rem, numpy.arange(len(indices_rem))))
+    dictionary = dict(zip(indices_rem, ab.arange(len(indices_rem))))
     res_order = [dictionary[key] for key in out_spec]
-    return np.transpose(result, res_order)
+    return ab.transpose(result, res_order)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import copy
-import jax.numpy as np
 import jax
+from funfact.backend import active_backend as ab
 from ._base import TranscribeInterpreter
 
 
@@ -11,7 +11,7 @@ class JaxRng:
     def __init__(self, key=0):
         self.key = jax.random.PRNGKey(key)
 
-    def normal(self, size, scale=1, dtype=np.float32):
+    def normal(self, size, scale=1, dtype=ab.float32):
         self.key, subkey = jax.random.split(self.key)
         return scale * jax.random.normal(subkey, size, dtype)
 
