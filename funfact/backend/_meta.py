@@ -19,6 +19,9 @@ class BackendMeta(ABCMeta):
         'subtract',
         'multiply',
         'divide',
+        # rng
+        'seed',
+        'normal'
         # functions
         'abs',
         'conj',

@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import importlib
 
-__all__ = ['active_backend', 'backend_library', 'use']
+__all__ = ['active_backend', 'available_backends', 'use']
 
 _active_backend = None
 _default_backend = 'jax'
-backend_library = {
+available_backends = {
     'numpy': 'NumpyBackend',
     'jax': 'JAXBackend',
     'torch': 'PyTorchBackend',
@@ -16,7 +16,7 @@ backend_library = {
 def use(backend: str):
     global _active_backend
     try:
-        clsname = backend_library[backend]
+        clsname = available_backends[backend]
         _active_backend = getattr(
             importlib.import_module(f'funfact.backend._{backend}'), clsname
         )

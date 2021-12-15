@@ -1,11 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Fun-Fact"""
+from .backend import use, active_backend, available_backends
 from .lang import index, indices, tensor, template, _0, _1, delta
 from .lang._math import *  # noqa: F401, F403
 
 
-__all__ = ['index', 'indices', 'tensor', 'template', '_0', '_1', 'delta']
+__all__ = [
+    'use',
+    'active_backend',
+    'available_backends',
+    'index',
+    'indices',
+    'tensor',
+    'template',
+    '_0',
+    '_1',
+    'delta'
+]
 
 
 __version__ = '0.7.0'
