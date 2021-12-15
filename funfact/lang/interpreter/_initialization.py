@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import copy
 from funfact.backend import active_backend as ab
 from ._base import TranscribeInterpreter
 
