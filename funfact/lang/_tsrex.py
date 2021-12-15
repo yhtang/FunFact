@@ -5,8 +5,8 @@ import re
 import sys
 import asciitree
 import functools
+from funfact.backend import active_backend as ab
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
-from funfact.util.typing import _is_tensor
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
     dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator, ShapeAnalyzer,
@@ -128,32 +128,32 @@ class ArithmeticMixin:
 
     def __sub__(self, rhs):
         return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 6, 'sum', 'sub', None
+            self.root, _BaseEx(rhs).root, 6, 'sum', 'subtract', None
         ))
 
     def __rsub__(self, lhs):
         return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 6, 'sum', 'sub', None
+            _BaseEx(lhs).root, self.root, 6, 'sum', 'subtract', None
         ))
 
     def __mul__(self, rhs):
         return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 5, 'sum', 'mul', None
+            self.root, _BaseEx(rhs).root, 5, 'sum', 'multiply', None
         ))
 
     def __rmul__(self, lhs):
         return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 5, 'sum', 'mul', None
+            _BaseEx(lhs).root, self.root, 5, 'sum', 'multiply', None
         ))
 
     def __div__(self, rhs):
         return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 5, 'sum', 'div', None
+            self.root, _BaseEx(rhs).root, 5, 'sum', 'divide', None
         ))
 
     def __rdiv__(self, lhs):
         return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 5, 'sum', 'div', None
+            _BaseEx(lhs).root, self.root, 5, 'sum', 'divide', None
         ))
 
     def __neg__(self):
@@ -283,12 +283,12 @@ def tensor(*spec, initializer=None):
     tsrex: _BaseEx
         A tensor expression representing a single tensor object.
     '''
-    if len(spec) == 2 and isinstance(spec[0], str) and _is_tensor(spec[1]):
+    if len(spec) == 2 and isinstance(spec[0], str) and ab.is_tensor(spec[1]):
         # name + concrete tensor
         symbol = spec[0]
         initializer = spec[1]
         size = initializer.shape
-    elif len(spec) == 1 and _is_tensor(spec[0]):
+    elif len(spec) == 1 and ab.is_tensor(spec[0]):
         # concrete tensor only
         symbol = None
         initializer = spec[0]
