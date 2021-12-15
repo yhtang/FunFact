@@ -6,7 +6,8 @@ from abc import ABCMeta
 class BackendMeta(ABCMeta):
 
     _required_properties = [
-        'tensor_t',  # the type of a tensor
+        'native_t',  # tensor type native to the backend
+        'tensor_t',  # tensor type interoperable with the backend
         'float32',   # single-precision floats
         'float64',   # double-precision floats
     ]
@@ -53,8 +54,12 @@ class BackendMeta(ABCMeta):
         '''By default, dispatch all requests to the underlying NLA package.'''
         return getattr(self._nla, attr)
 
+    def is_native(self, array):
+        '''Determine if the argument is of type native_t.'''
+        return isinstance(array, self.native_t)
+
     def is_tensor(self, array):
-        '''Determine if the argument is of type tensor_t.'''
+        '''Determine if the argument is one of tensor_t.'''
         return isinstance(array, self.tensor_t)
 
     def log_add_exp(self, lhs, rhs):

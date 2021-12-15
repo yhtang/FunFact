@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import numpy as np
 import torch
 from ._meta import BackendMeta
 
@@ -9,7 +10,8 @@ class PyTorchBackend(metaclass=BackendMeta):
     _nla = torch
     _gen = torch.Generator()
 
-    tensor_t = torch.Tensor
+    native_t = torch.Tensor
+    tensor_t = (torch.Tensor, np.ndarray)
 
     @classmethod
     def as_tensor(cls, array, **kwargs):

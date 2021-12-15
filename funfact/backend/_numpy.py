@@ -9,7 +9,8 @@ class NumpyBackend(metaclass=BackendMeta):
     _nla = np
     _rng = np.random.default_rng()
 
-    tensor_t = np.ndarray
+    native_t = np.ndarray
+    tensor_t = (np.ndarray,)
 
     @classmethod
     def as_tensor(cls, array, **kwargs):

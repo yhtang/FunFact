@@ -103,18 +103,21 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     op_redu = getattr(ab, reduction)
     op_pair = getattr(ab, pairwise)
 
-    result = ab.reshape(
-        op_redu(
-            op_pair(
-                lhs[tuple(dim_lhs)],
-                rhs[tuple(dim_rhs)]
-            ),
-            axis=tuple(con_ax)
-        ),
-        tuple(kron_res)
-    )
-
     # reorder contraction according to out_spec
     dictionary = dict(zip(indices_rem, ab.arange(len(indices_rem))))
     res_order = [dictionary[key] for key in out_spec]
-    return ab.transpose(result, res_order)
+
+    return ab.transpose(
+        ab.reshape(
+            op_redu(
+                op_pair(
+                    lhs[tuple(dim_lhs)],
+                    rhs[tuple(dim_rhs)]
+                ),
+                axis=tuple(con_ax)
+            ),
+            tuple(kron_res),
+            order='F'
+        ),
+        res_order
+    )
