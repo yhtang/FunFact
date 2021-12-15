@@ -128,32 +128,32 @@ class ArithmeticMixin:
 
     def __sub__(self, rhs):
         return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 6, 'sum', 'sub', None
+            self.root, _BaseEx(rhs).root, 6, 'sum', 'subtract', None
         ))
 
     def __rsub__(self, lhs):
         return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 6, 'sum', 'sub', None
+            _BaseEx(lhs).root, self.root, 6, 'sum', 'subtract', None
         ))
 
     def __mul__(self, rhs):
         return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 5, 'sum', 'mul', None
+            self.root, _BaseEx(rhs).root, 5, 'sum', 'multiply', None
         ))
 
     def __rmul__(self, lhs):
         return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 5, 'sum', 'mul', None
+            _BaseEx(lhs).root, self.root, 5, 'sum', 'multiply', None
         ))
 
     def __div__(self, rhs):
         return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 5, 'sum', 'div', None
+            self.root, _BaseEx(rhs).root, 5, 'sum', 'divide', None
         ))
 
     def __rdiv__(self, lhs):
         return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 5, 'sum', 'div', None
+            _BaseEx(lhs).root, self.root, 5, 'sum', 'divide', None
         ))
 
     def __neg__(self):

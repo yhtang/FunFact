@@ -5,9 +5,9 @@ from ._base import ROOFInterpreter
 
 _omap = dict(
     add='+',
-    sub='-',
-    mul=r'\times',
-    div='/',
+    subtract='-',
+    multiply=r'\times',
+    divide='/',
     min=r'\min',
     max=r'\max',
     log_sum_exp='LSE',

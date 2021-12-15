@@ -3,6 +3,7 @@
 # import jax.numpy as np
 # import numpy
 import re
+import numpy as np
 from funfact.backend import active_backend as ab
 
 
@@ -36,10 +37,8 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     kron_spec = list(kron_spec)
 
     # reorder lhs and rhs in alphabetical order
-    lhs_order = ab.argsort(lhs_spec)
-    lhs = ab.transpose(lhs, lhs_order)
-    rhs_order = ab.argsort(rhs_spec)
-    rhs = ab.transpose(rhs, rhs_order)
+    lhs = ab.transpose(lhs, np.argsort(lhs_spec))
+    rhs = ab.transpose(rhs, np.argsort(rhs_spec))
 
     # determine all indices in alphabetical order
     indices_all = set(lhs_spec).union(rhs_spec)
