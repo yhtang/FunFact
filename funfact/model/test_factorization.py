@@ -138,7 +138,7 @@ def test_Kronecker():
         assert o == e
         assert o == f
     ref = np.kron(dataA, dataB)
-    assert np.allclose(out, ref, 1e-7)
+    assert np.allclose(out, ref, tol)
 
     # Kronecker product along first axis (Khatri-Rao)
     tsrex = A[[*i, ~j]] * B[i, j]
@@ -150,7 +150,7 @@ def test_Kronecker():
         assert o == f
     ref = np.vstack([np.kron(dataA[:, k], dataB[:, k]) for k in
                     range(dataB.shape[1])]).T
-    assert np.allclose(out, ref, 1e-7)
+    assert np.allclose(out, ref, tol)
 
     # Kronecker product along first axis, reduction second
     tsrex = A[[*i,  j]] * B[i, j]
@@ -170,7 +170,7 @@ def test_Kronecker():
         assert o == e
         assert o == f
     ref = dataA @ dataB
-    assert np.allclose(out, ref, 1e-7)
+    assert np.allclose(out, ref, tol)
 
     # No reduction
     tsrex = A[[i,  ~j]] * B[j, k]
