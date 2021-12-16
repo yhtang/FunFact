@@ -104,7 +104,7 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     op_pair = getattr(ab, pairwise)
 
     # reorder contraction according to out_spec
-    dictionary = dict(zip(indices_rem, ab.arange(len(indices_rem))))
+    dictionary = dict(zip(indices_rem, np.arange(len(indices_rem))))
     res_order = [dictionary[key] for key in out_spec]
 
     return ab.transpose(
