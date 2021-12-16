@@ -1,23 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import jax.numpy as np
+from abc import ABC, abstractmethod
+from funfact.backend import active_backend as ab
 
 
-class Loss:
+class Loss(ABC):
+    '''Base class for loss functions.'''
 
-    def __init__(self, type='mse'):
-        if type == 'mse':
-            def _loss(model, target):
-                return np.square(np.subtract(model, target))
-        elif type == 'l1':
-            def _loss(model, target):
-                return np.abs(np.subtract(model, target))
-        elif type == 'kl_divergence':
-            def _loss(model, target):
-                return np.multiply(target, np.log(np.divide(target, model)))
-        else:
-            raise ValueError(f'Unsupported loss function type {type}')
-        self._loss = _loss
+    @abstractmethod
+    def _loss(self, model, target):
+        pass
 
     def __call__(self, model, target, reduction='mean', sum_vec=True):
         if target.ndim == model.ndim - 1:
@@ -37,13 +29,36 @@ class Loss:
         if reduction == 'mean':
             _loss = (self._loss(model, target)).mean(axis=data_axis)
         elif reduction == 'sum':
-            _loss = np.sum(self._loss(model, target), axis=data_axis)
+            _loss = ab.sum(self._loss(model, target), axis=data_axis)
         else:
             raise SyntaxError(
                 'The reduction operation should be either mean or sum, got '
                 f'{reduction} instead.'
             )
         if sum_vec:
-            return np.sum(_loss, axis=None)
+            return ab.sum(_loss, axis=None)
         else:
             return _loss
+
+
+class MSE(Loss):
+
+    def _loss(self, model, target):
+        return ab.square(ab.subtract(model, target))
+
+
+class L1(Loss):
+
+    def _loss(self, model, target):
+        return ab.abs(ab.subtract(model, target))
+
+
+class KLDivergence(Loss):
+
+    def _loss(self, model, target):
+        return ab.multiply(target, ab.log(ab.divide(target, model)))
+
+
+mse_loss = MSE()
+l1_loss = L1()
+kldiv_loss = KLDivergence()
