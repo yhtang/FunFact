@@ -147,3 +147,8 @@ dmypy.json
 
 # virtualenv
 venv-*
+
+# temporary
+sandbox-*.ipynb
+Untitled*.ipynb
+*.ipynb

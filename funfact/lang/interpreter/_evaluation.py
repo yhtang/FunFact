@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import jax.numpy as np
+from funfact.backend import active_backend as ab
 from ._base import ROOFInterpreter
 from ._einop import _einop
 
@@ -31,10 +31,10 @@ class Evaluator(ROOFInterpreter):
         return tensor
 
     def call(self, f, x, **kwargs):
-        return getattr(np, f)(x)
+        return getattr(ab, f)(x)
 
     def pow(self, base, exponent, **kwargs):
-        return np.power(base, exponent)
+        return ab.power(base, exponent)
 
     def neg(self, x, **kwargs):
         return -x
@@ -45,4 +45,4 @@ class Evaluator(ROOFInterpreter):
 
     def tran(self, src, indices, einspec, **kwargs):
         in_spec, out_spec = einspec.split('->')
-        return np.transpose(src, [in_spec.index(i) for i in out_spec])
+        return ab.transpose(src, [in_spec.index(i) for i in out_spec])

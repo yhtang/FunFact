@@ -1,26 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import copy
-import jax.numpy as np
-import jax
+from funfact.backend import active_backend as ab
 from ._base import TranscribeInterpreter
-
-
-class JaxRng:
-
-    def __init__(self, key=0):
-        self.key = jax.random.PRNGKey(key)
-
-    def normal(self, size, scale=1, dtype=np.float32):
-        self.key, subkey = jax.random.split(self.key)
-        return scale * jax.random.normal(subkey, size, dtype)
 
 
 class LeafInitializer(TranscribeInterpreter):
     '''Creates numeric tensors for the leaf nodes in an AST.'''
 
-    def __init__(self, seed=0):
-        self.rng = JaxRng(seed)
+    def __init__(self, dtype=ab.float32):
+        super().__init__()
+        self.dtype = dtype
 
     as_payload = TranscribeInterpreter.as_payload('data')
 
@@ -32,11 +21,11 @@ class LeafInitializer(TranscribeInterpreter):
     def tensor(self, abstract, **kwargs):
         if abstract.initializer is not None:
             if not callable(abstract.initializer):
-                init_val = copy.deepcopy(abstract.initializer)
+                init_val = ab.as_tensor(abstract.initializer)
             else:
                 init_val = abstract.initializer(abstract.shape)
         else:
-            init_val = self.rng.normal(abstract.shape)
+            init_val = ab.normal(0.0, 1.0, *abstract.shape)
         return init_val
 
     @as_payload
