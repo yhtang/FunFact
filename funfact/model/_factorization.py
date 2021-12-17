@@ -12,7 +12,6 @@ from funfact.lang.interpreter import (
     ShapeAnalyzer,
     Vectorizer
 )
-from funfact.backend import active_backend as ab
 
 
 class Factorization:
@@ -195,8 +194,3 @@ class Factorization:
             dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root)
         ):
             n.data = tensors[i]
-
-
-@ab.autograd_decorator
-class AutoGradFactorization(Factorization, ab.AutoGradMixin):
-    pass
