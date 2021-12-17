@@ -11,7 +11,8 @@ class Loss(ABC):
     def _loss(self, model, target):
         pass
 
-    def __call__(self, model, target, reduction='mean', sum_vec=True):
+    def __call__(self, model, target, reduction='mean', sum_vec=True,
+                 **kwargs):
         if target.ndim == model.ndim - 1:
             if model.shape[:-1] != target.shape:
                 raise ValueError(f'Target shape {target.shape} and '
