@@ -1,8 +1,8 @@
-from jax import grad, jit
 import funfact.optim
 import funfact.loss
-from funfact import Factorization
+from funfact.model._factorization import AutoGradFactorization
 import tqdm
+from funfact.backend import active_backend as ab
 
 
 def factorize(tsrex, target, lr=0.1, tol=1e-4, max_steps=10000,
@@ -50,7 +50,8 @@ def factorize(tsrex, target, lr=0.1, tol=1e-4, max_steps=10000,
                 f'The optimizer \'{optimizer}\' does not exist in'
                 'funfact.optim.'
             )
-    fac = Factorization(tsrex, nvec=nvec)
+
+    fac = AutoGradFactorization(tsrex, nvec=nvec)
 
     try:
         opt = optimizer(fac.factors, lr=lr, **kwargs)
@@ -59,10 +60,10 @@ def factorize(tsrex, target, lr=0.1, tol=1e-4, max_steps=10000,
             'Invalid optimization algorithm:\n{e}'
         )
 
-    @jit
+    @ab.jit
     def _loss(fac, target):
         return loss(fac(), target)
-    gradient = jit(grad(_loss))
+    gradient = ab.jit(ab.grad(_loss))
 
     def progressbar(n):
         return tqdm.trange(
