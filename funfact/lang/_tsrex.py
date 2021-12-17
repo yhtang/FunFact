@@ -248,10 +248,54 @@ class EinopEx(TsrEx):
 
 
 def index(symbol=None):
+    '''Create an index variable.
+
+    Args:
+        symbol (str):
+            A human-readable symbol.
+            The symbol will be used for screen printing and LaTeX rendering.
+            Must conform to the format described by the tsrex formal grammar.
+
+    !!! note
+        The symbol is only meant for human comprehension and is not used in
+        equality/identity tests of the indices.
+
+    Returns:
+        TsrEx: A single-index tensor expression.
+    '''
     return IndexEx(P.index(AbstractIndex(symbol), bound=False, kron=False))
 
 
 def indices(spec):
+    '''Create multiple index varaibles at once.
+
+    Args:
+        spec (int or str):
+
+            - If `int`, indicate the number of 'anonymous' index variables to create.
+            These anonymous variables will be numbered sequentially starting from
+            0, and are guaranteed to be unique within runtime.
+            - If `str`, must be a
+            comma-separate list of symbols in the format as described in
+            [funfact.index][].
+
+    Returns:
+        tuple: Multiple single-index tensor expressions.
+
+    Example:
+
+        >>> i, j = indices(2); i
+
+        $$i$$
+
+        >>> i, j, k = indices('i, j, k'); k
+
+        $$k$$
+
+        >>> I = indices(9); I[0]
+
+        $$\\#_0$$
+    '''
     if isinstance(spec, int):
         return [index() for i in range(spec)]
     elif isinstance(spec, str):
@@ -263,25 +307,22 @@ def indices(spec):
 def tensor(*spec, initializer=None):
     '''Construct an abstract tensor using `spec`.
 
-    Parameters
-    ----------
-    spec:
-        Formats supported:
+    Args:
+        spec (multiple):
+            Formats supported:
 
-        * symbol, size...: a alphanumeric symbol followed by the size for each
-                           dimension.
-        * size...: size of each dimension.
-        * symbol, tensor: a alphanumeric symbol followed by a concrete tensor
-                          such as ``np.eye(3)`` or ``rand(10, 7)``.
-        * tensor: a concrete tensor.
+            * symbol, size...: a alphanumeric symbol followed by the size for each
+                            dimension.
+            * size...: size of each dimension.
+            * symbol, tensor: a alphanumeric symbol followed by a concrete tensor
+                            such as ``np.eye(3)`` or ``rand(10, 7)``.
+            * tensor: a concrete tensor.
 
-    initializer:
-        Initialization distribution
+        initializer (callable):
+            Initialization distribution
 
-    Returns
-    -------
-    tsrex: _BaseEx
-        A tensor expression representing a single tensor object.
+    Returns:
+        TsrEx: A tensor expression representing a single tensor object.
     '''
     if len(spec) == 2 and isinstance(spec[0], str) and ab.is_tensor(spec[1]):
         # name + concrete tensor

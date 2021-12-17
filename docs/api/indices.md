@@ -1,3 +1,1 @@
-<!-- # funfact.tensor -->
-
 ::: funfact.indices
