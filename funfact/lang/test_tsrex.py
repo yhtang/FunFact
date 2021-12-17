@@ -31,7 +31,23 @@ def test_transposition():
     A = tensor('A', 2, 3, 4, 5)
     i, j, k, r = indices('i, j, k, l')
     for perm in it.permutations([i, j, k, r]):
-        AT = A[i, j, k, r].T[[*perm]]
+        AT = A[i, j, k, r] >> [*perm]
         assert AT.root.name == 'tran'
         # TODO: More tests once
         # [#32](https://github.com/yhtang/FunFact/issues/32) is taken care of.
+
+
+def test_shape():
+    A = tensor('A', 2, 3)
+    B = tensor('B', 3, 4)
+    i, j = indices('i, j')
+    tsrex = A[[i, j]] * B[[i, j]]
+    with pytest.raises(SyntaxError):
+        tsrex.shape
+    tsrex = A[[*i, j]] * B[[*i, j]]
+    with pytest.raises(SyntaxError):
+        tsrex.shape
+    tsrex = A[[*i, *j]] * B[[*i, *j]]
+    expected_shape = (6, 12)
+    for t, e in zip(tsrex.shape, expected_shape):
+        assert t == e

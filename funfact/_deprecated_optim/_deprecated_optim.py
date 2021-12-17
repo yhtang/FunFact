@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import jax.numpy as np
 import tqdm
-from funfact.optim._adam_np import Adam
+from funfact._deprecated_optim._adam_np import Adam
 from funfact.model._factorization import Factorization
 from jax import grad, jit
 

@@ -52,4 +52,4 @@ class ASCIIRenderer(TranscribeInterpreter):
 
     @as_payload
     def tran(self, src, indices, **kwargs):
-        return f'^T[{indices.ascii}]'
+        return f'-> [{indices.ascii}]'

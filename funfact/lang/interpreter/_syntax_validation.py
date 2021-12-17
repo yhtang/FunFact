@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from funfact.backend import active_backend as ab
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
 from ._base import _deep_apply
-from funfact.util.typing import _is_tensor
 
 
 class SyntaxValidator:
@@ -18,7 +18,7 @@ class SyntaxValidator:
     def tensor(self, node: _ASNode, parent: _ASNode):
         abst = node.abstract
         ini = node.abstract.initializer
-        if _is_tensor(ini):
+        if ab.is_tensor(ini):
             if ini.shape != abst.shape:
                 raise SyntaxError(
                     f'The shape {abst.shape} of tensor {abst} does not match '

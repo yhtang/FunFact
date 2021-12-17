@@ -1,4 +1,4 @@
-.PHONY: lint test test-coverage docs
+.PHONY: lint test test-coverage docs cleandocs
 
 VENV ?= venv
 
@@ -18,5 +18,8 @@ test-coverage:
 	tox -e coverage
 
 docs:
-	# m2r2 CHANGELOG.md
-	cd docs && make html
+	mkdocs build
+
+cleandocs:
+	rm -rf site/
+

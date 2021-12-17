@@ -54,18 +54,22 @@ class ShapeAnalyzer(TranscribeInterpreter):
             kron_indices, **kwargs):
         dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
         dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
+
+        for i in lhs.live_indices:
+            if i in rhs.live_indices and i not in kron_indices:
+                if dict_lhs[i] != dict_rhs[i]:
+                    raise SyntaxError(
+                        f'Dimension of elementwise index {i} on left-hand side'
+                        f' ({dict_lhs[i]}) does not match dimension of '
+                        f'right-hand side ({dict_rhs[i]}).'
+                    )
+
         shape = []
         for i in live_indices:
             if i in lhs.live_indices and i in rhs.live_indices:
                 if i in kron_indices:
                     shape.append(dict_lhs[i]*dict_rhs[i])
                 else:
-                    if dict_lhs[i] != dict_rhs[i]:
-                        raise SyntaxError(
-                            f'Dimension of contracting index on left-hand side'
-                            f' ({dict_lhs[i]}) does not match dimension of '
-                            f'right-hand side ({dict_lhs[i]}).'
-                        )
                     shape.append(dict_lhs[i])
             elif i in lhs.live_indices:
                 shape.append(dict_lhs[i])
