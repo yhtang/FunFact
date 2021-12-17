@@ -272,9 +272,9 @@ def indices(spec):
     Args:
         spec (int or str):
 
-            - If `int`, indicate the number of 'anonymous' index variables to create.
-            These anonymous variables will be numbered sequentially starting from
-            0, and are guaranteed to be unique within runtime.
+            - If `int`, indicate the number of 'anonymous' index variables to
+            create. These anonymous variables will be numbered sequentially
+            starting from 0, and are guaranteed to be unique within runtime.
             - If `str`, must be a
             comma-separate list of symbols in the format as described in
             [funfact.index][].
@@ -311,18 +311,18 @@ def tensor(*spec, initializer=None):
         spec (multiple):
             Formats supported:
 
-            * symbol, size...: a alphanumeric symbol followed by the size for each
-                            dimension.
-            * size...: size of each dimension.
-            * symbol, tensor: a alphanumeric symbol followed by a concrete tensor
-                            such as ``np.eye(3)`` or ``rand(10, 7)``.
-            * tensor: a concrete tensor.
+            * `symbol, size...`: a alphanumeric symbol followed by the size for
+            each dimension.
+            * `size...`: size of each dimension.
+            * `symbol, tensor`: a alphanumeric symbol followed by a concrete
+            tensor such as ``np.eye(3)`` or ``rand(10, 7)``.
+            * `tensor`: a concrete tensor.
 
         initializer (callable):
             Initialization distribution
 
     Returns:
-        TsrEx: A tensor expression representing a single tensor object.
+        TsrEx: A tensor expression representing an abstract tensor object.
     '''
     if len(spec) == 2 and isinstance(spec[0], str) and ab.is_tensor(spec[1]):
         # name + concrete tensor
