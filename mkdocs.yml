@@ -11,7 +11,9 @@ theme:
 plugins:
   - search
   - autorefs
-  - mkdocstrings
+  - mkdocstrings:
+      watch:
+        - funfact
   # - gen-files:
   #     scripts:
   #     - docs/gen_ref_nav.py
@@ -21,7 +23,9 @@ nav:
     - Installation: installation.md
     - Examples:
       - Nonlinear matrix approximation: "examples/nma.md"
-    - User Guide: user_guide.md
+    - User Guide:
+        Overview: user_guide.md
+        Grammar reference: tsrex.md
     - API Reference:
         "funfact.tensor": api/tensor.md
         "funfact.index": api/index.md

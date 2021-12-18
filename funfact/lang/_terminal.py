@@ -35,9 +35,14 @@ class Symbol:
             self.letter, self.number = self._make_symbol(identifier)
         else:
             raise RuntimeError(f'Cannot create symbol from {identifier}.')
+        if self.number is not None:
+            self.number = str(self.number)
 
     def __repr__(self):
-        return f'{type(self).__qualname__}({self.letter}, {self.number})'
+        return '{typename}({identifier})'.format(
+            typename=type(self).__qualname__,
+            identifier=repr((self.letter, self.number))
+        )
 
     def __str__(self):
         letter = self.letter or ''
@@ -89,7 +94,11 @@ class LiteralValue(Identifiable, LaTexReprMixin):
         return str(self.raw)
 
     def __repr__(self):
-        return f'{type(self).__qualname__}({str(self.raw)}, {self.latex})'
+        return '{typename}({raw}, {latex})'.format(
+            typename=type(self).__qualname__,
+            raw=repr(self.raw),
+            latex=repr(self.latex),
+        )
 
     def _repr_tex_(self):
         return self.latex or str(self)
