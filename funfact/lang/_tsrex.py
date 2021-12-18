@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from copy import copy
 import dataclasses
 import re
 import sys
@@ -93,25 +94,26 @@ class _BaseEx(_AST):
 
     @property
     @functools.lru_cache()
+    def _static_analyzed(self):
+        return self._einspec_generator(
+            self._shape_analyzer(self._index_propagator(self.root))
+        )
+
+    @property
     def shape(self):
-        return self._shape_analyzer(self._index_propagator(
-               self.root)).shape
+        return self._static_analyzed.shape
 
     @property
-    @functools.lru_cache()
     def live_indices(self):
-        return self._index_propagator(self.root).live_indices
+        return self._static_analyzed.live_indices
 
     @property
-    @functools.lru_cache()
     def ndim(self):
-        return len(self.live_indices)
+        return len(self._static_analyzed.shape)
 
     @property
-    @functools.lru_cache()
     def einspec(self):
-        return self._einspec_generator(self._index_propagator(
-               self.root)).einspec
+        return self._static_analyzed.einspec
 
 
 class ArithmeticMixin:
@@ -146,12 +148,12 @@ class ArithmeticMixin:
             _BaseEx(lhs).root, self.root, 5, 'sum', 'multiply', None
         ))
 
-    def __div__(self, rhs):
+    def __truediv__(self, rhs):
         return EinopEx(P.ein(
             self.root, _BaseEx(rhs).root, 5, 'sum', 'divide', None
         ))
 
-    def __rdiv__(self, lhs):
+    def __rtruediv__(self, lhs):
         return EinopEx(P.ein(
             _BaseEx(lhs).root, self.root, 5, 'sum', 'divide', None
         ))
@@ -173,6 +175,7 @@ class IndexRenamingMixin:
 
         tsrex = self | IndexPropagator()
 
+        indices = as_tuple(indices)
         live_old = tsrex.root.live_indices
         if len(indices) != len(live_old):
             raise SyntaxError(
@@ -241,10 +244,11 @@ class TensorEx(_BaseEx):
 class EinopEx(TsrEx):
     # override the `>>` behavior from TranspositionMixin
     def __rshift__(self, output_indices):
-        self.root.outidx = P.indices(
+        tsrex = EinopEx(copy(self.root))
+        tsrex.root.outidx = P.indices(
             tuple([i.root for i in as_tuple(output_indices)])
         )
-        return self
+        return tsrex
 
 
 def index(symbol=None):
@@ -276,7 +280,7 @@ def indices(spec):
             create. These anonymous variables will be numbered sequentially
             starting from 0, and are guaranteed to be unique within runtime.
             - If `str`, must be a
-            comma-separate list of symbols in the format as described in
+            comma/space-delimited list of symbols in the format as described in
             [funfact.index][].
 
     Returns:
@@ -296,7 +300,7 @@ def indices(spec):
 
         $$\\#_0$$
     '''
-    if isinstance(spec, int):
+    if isinstance(spec, int) and spec >= 0:
         return [index() for i in range(spec)]
     elif isinstance(spec, str):
         return [index(s) for s in re.split(r'[,\s]+', spec)]
@@ -341,6 +345,12 @@ def tensor(*spec, initializer=None):
         # size only
         symbol = None
         size = spec
+
+    for d in size:
+        if not (isinstance(d, int) and d > 0):
+            raise RuntimeError(
+                f'Tensor size must be positive integer, got {d} instead.'
+            )
 
     return TensorEx(P.tensor(
         AbstractTensor(*size, symbol=symbol, initializer=initializer))
