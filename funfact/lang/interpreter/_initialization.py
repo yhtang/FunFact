@@ -21,7 +21,7 @@ class LeafInitializer(TranscribeInterpreter):
     def tensor(self, abstract, **kwargs):
         if abstract.initializer is not None:
             if not callable(abstract.initializer):
-                init_val = ab.as_tensor(abstract.initializer)
+                init_val = ab.tensor(abstract.initializer)
             else:
                 init_val = abstract.initializer(abstract.shape)
         else:

@@ -14,8 +14,8 @@ class PyTorchBackend(metaclass=BackendMeta):
     tensor_t = (torch.Tensor, np.ndarray)
 
     @classmethod
-    def as_tensor(cls, array, **kwargs):
-        return torch.as_tensor(array, **kwargs)
+    def tensor(cls, array, **kwargs):
+        return torch.tensor(array, **kwargs)
 
     @classmethod
     def seed(cls, key):
