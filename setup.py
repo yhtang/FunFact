@@ -39,9 +39,14 @@ setup(
         'matplotlib>=3.4',
         'scipy>=1.7.1',
         'asciitree>=0.3.3',
-        'jax[cpu]>=0.2.24',
     ],
     extras_require={
+        'jax': [
+            'jax>=0.2.24',
+        ],
+        'torch': [
+            'torch>=1.9',
+        ],
         'docs': [
             'mkdocs==1.2.3',
             'mkdocs-gen-files==0.3.3',
