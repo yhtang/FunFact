@@ -18,7 +18,7 @@ class JAXBackend(metaclass=BackendMeta):
     tensor_t = (jnp.ndarray, np.ndarray)
 
     @classmethod
-    def as_tensor(cls, array, **kwargs):
+    def tensor(cls, array, **kwargs):
         return jnp.asarray(array, **kwargs)
 
     @classmethod

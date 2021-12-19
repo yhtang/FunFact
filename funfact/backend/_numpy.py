@@ -4,7 +4,7 @@ import numpy as np
 from ._meta import BackendMeta
 
 
-class NumpyBackend(metaclass=BackendMeta):
+class NumPyBackend(metaclass=BackendMeta):
 
     _nla = np
     _rng = np.random.default_rng()
@@ -13,7 +13,7 @@ class NumpyBackend(metaclass=BackendMeta):
     tensor_t = (np.ndarray,)
 
     @classmethod
-    def as_tensor(cls, array, **kwargs):
+    def tensor(cls, array, **kwargs):
         return np.asarray(array, **kwargs)
 
     @classmethod
