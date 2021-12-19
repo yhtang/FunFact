@@ -27,6 +27,9 @@ nav:
         Overview: user_guide.md
         Grammar reference: tsrex.md
     - API Reference:
+        "funfact.active_backend": api/active_backend.md
+        "funfact.available_backends": api/available_backends.md
+        "funfact.use": api/use.md
         "funfact.tensor": api/tensor.md
         "funfact.index": api/index.md
         "funfact.indices": api/indices.md
