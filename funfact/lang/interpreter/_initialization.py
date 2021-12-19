@@ -7,9 +7,8 @@ from ._base import TranscribeInterpreter
 class LeafInitializer(TranscribeInterpreter):
     '''Creates numeric tensors for the leaf nodes in an AST.'''
 
-    def __init__(self, dtype=ab.float32):
+    def __init__(self):
         super().__init__()
-        self.dtype = dtype
 
     as_payload = TranscribeInterpreter.as_payload('data')
 
