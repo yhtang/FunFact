@@ -43,57 +43,51 @@ class ROOFInterpreter(ABC):
     may still accept a 'payload' argument, which could be potentially produced
     by another transcribe interpreter.'''
 
-    def _wildcard(self, **kwargs):
+    @abstractmethod
+    def noop(self, **kwargs):
+        '''Wildcard method for no-operations.'''
         pass
 
     def literal(self, value: LiteralValue, **payload: Any):
-        pass
+        return self.noop()
 
     def tensor(self, abstract: AbstractTensor, **payload: Any):
-        pass
+        return self.noop()
 
     def index(self, item: AbstractIndex, bound: bool, kron: bool,
               **payload: Any):
-        pass
+        return self.noop()
 
     def indices(self, items: AbstractIndex, **payload: Any):
-        pass
+        return self.noop()
 
     def index_notation(
         self, tensor: Any, indices: Iterable[Any], **payload: Any
     ):
-        pass
+        return self.noop()
 
     def call(self, f: str, x: Any, **payload: Any):
-        pass
+        return self.noop()
 
     def pow(self, base: Any, exponent: Any, **payload: Any):
-        pass
+        return self.noop()
 
     def neg(self, x: Any, **payload: Any):
-        pass
+        return self.noop()
 
     def ein(self, lhs: Any, rhs: Any, precedence: int, reduction: str,
             pairwise: str, outidx: Any, **payload: Any):
-        pass
+        return self.noop()
 
     def tran(self, src: Any, indices: Iterable[Any]):
-        pass
+        return self.noop()
 
-    def __call__(self, node: _ASNode, parent: _ASNode = None, strict=False):
+    def __call__(self, node: _ASNode, parent: _ASNode = None):
         fields_fixed = {
             name: _deep_apply(self, value, node)
             for name, value in node.fields_fixed.items()
         }
-
-        try:
-            rule = getattr(self, node.name)
-        except AttributeError as e:
-            if strict:
-                raise e
-            else:
-                rule = getattr(self, '_wildcard')
-
+        rule = getattr(self, node.name)
         return rule(**fields_fixed, **node.fields_payload)
 
     def __ror__(self, tsrex: _AST):
@@ -122,56 +116,50 @@ class TranscribeInterpreter(ABC):
                 return wrapped_f
             return wrapper
 
-    def _wildcard(self, **kwargs):
+    @abstractmethod
+    def noop(self):
+        '''Wildcard method for no-operations.'''
         pass
 
     def literal(self, value: LiteralValue, **payload: Any):
-        pass
+        return self.noop()
 
     def tensor(self, abstract: AbstractTensor, **payload: Any):
-        pass
+        return self.noop()
 
     def index(self, item: AbstractIndex, bound: bool, kron: bool,
               **payload: Any):
-        pass
+        return self.noop()
 
     def indices(self, items: Tuple[AbstractIndex], **payload: Any):
-        pass
+        return self.noop()
 
     def index_notation(
         self, tensor: P.tensor, indices: P.indices, **payload: Any
     ):
-        pass
+        return self.noop()
 
     def call(self, f: str, x: Tensorial, **payload: Any):
-        pass
+        return self.noop()
 
     def pow(self, base: Numeric, exponent: Numeric, **payload: Any):
-        pass
+        return self.noop()
 
     def neg(self, x: Numeric, **payload: Any):
-        pass
+        return self.noop()
 
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], **payload: Any):
-        pass
+        return self.noop()
 
     def tran(self, src: Numeric, indices: P.indices):
-        pass
+        return self.noop()
 
-    def __call__(self, node: _ASNode, parent: _ASNode = None, strict=False):
+    def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)
         for name, value in node.fields_fixed.items():
             setattr(node, name, _deep_apply(self, value, node))
-
-        try:
-            rule = getattr(self, node.name)
-        except AttributeError as e:
-            if strict:
-                raise e
-            else:
-                rule = getattr(self, '_wildcard')
-
+        rule = getattr(self, node.name)
         payload = rule(**node.fields)
         if isinstance(payload, dict):
             node.__dict__.update(**payload)

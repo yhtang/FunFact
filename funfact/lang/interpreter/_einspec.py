@@ -33,7 +33,7 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload('einspec')
 
     @as_payload
-    def _wildcard(self, **kwargs):
+    def noop(self, **kwargs):
         return None
 
     @as_payload

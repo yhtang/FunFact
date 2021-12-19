@@ -20,7 +20,7 @@ class IndexPropagator(TranscribeInterpreter):
     )
 
     @as_payload
-    def _wildcard(self, **kwargs):
+    def noop(self, **kwargs):
         return [], [], []
 
     @as_payload

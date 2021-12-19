@@ -19,7 +19,7 @@ from ._tsrex import (
 )
 
 
-def test_baseex():
+def test_base_ex():
 
     expr = tensor('testtensor', 2, 3, 4)
 

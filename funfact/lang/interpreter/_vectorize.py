@@ -20,7 +20,7 @@ class Vectorizer(TranscribeInterpreter):
         self.vec_index = P.index(AbstractIndex(), bound=False, kron=False)
 
     @as_payload
-    def _wildcard(self, **kwargs):
+    def noop(self, **kwargs):
         return []
 
     @as_payload

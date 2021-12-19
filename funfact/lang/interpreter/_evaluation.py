@@ -13,8 +13,8 @@ class Evaluator(ROOFInterpreter):
     def _binary_operator(reduction, pairwise, lhs, rhs, spec):
         return _einop(spec, lhs, rhs, reduction, pairwise)
 
-    def _wildcard(self, **kwargs):
-        pass
+    def noop(self, **kwargs):
+        raise RuntimeError('Implicit no-ops not permitted during evaluation.')
 
     def literal(self, value, **kwargs):
         # TODO: need to specialize for each literal type
