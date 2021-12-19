@@ -29,3 +29,24 @@ class PyTorchBackend(metaclass=BackendMeta):
     def transpose(cls, a, axes):
         '''torch equivalent is torch.permute'''
         return torch.permute(a, (*axes,))
+
+    @classmethod
+    def reshape(cls, a, newshape, order='C'):
+        if order == 'C':
+            return torch.reshape(a, (*newshape,))
+        elif order == 'F':
+            if len(a.shape) > 0:
+                a = a.permute(*reversed(range(len(a.shape))))
+            return a.reshape(*reversed(newshape)).permute(
+                      *reversed(range(len(newshape))))
+        else:
+            raise ValueError(
+                f'Unsupported option for reshape order: {order}.'
+            )
+
+    @classmethod
+    def sum(cls, a, axis):
+        if not axis:
+            return a
+        else:
+            return torch.sum(a, axis)
