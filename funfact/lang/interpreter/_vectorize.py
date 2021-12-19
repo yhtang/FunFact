@@ -4,7 +4,7 @@ import copy
 from typing import Optional
 from funfact.util.iterable import as_tuple, flatten
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import AbstractIndex, LiteralValue
 from ._base import TranscribeInterpreter
 
 
@@ -20,19 +20,12 @@ class Vectorizer(TranscribeInterpreter):
         self.vec_index = P.index(AbstractIndex(), bound=False, kron=False)
 
     @as_payload
+    def _wildcard(self, **kwargs):
+        return []
+
+    @as_payload
     def literal(self, value: LiteralValue, **kwargs):
-        return []
-
-    @as_payload
-    def tensor(self, abstract: AbstractTensor, **kwargs):
-        return []
-
-    @as_payload
-    def index(self, item: AbstractIndex, bound: bool, **kwargs):
-        return []
-
-    @as_payload
-    def indices(self, items: AbstractIndex, **kwargs):
+        # TODO: vectorize indexed literals
         return []
 
     @as_payload
@@ -57,21 +50,6 @@ class Vectorizer(TranscribeInterpreter):
         return []
 
     @as_payload
-    def call(self, f: str, x: Tensorial, live_indices,
-             keep_indices, **kwargs):
-        return []
-
-    @as_payload
-    def pow(self, base: Numeric, exponent: Numeric, live_indices,
-            keep_indices, **kwargs):
-        return []
-
-    @as_payload
-    def neg(self, x: Numeric, live_indices,
-            keep_indices, **kwargs):
-        return []
-
-    @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
             **kwargs):
@@ -81,4 +59,5 @@ class Vectorizer(TranscribeInterpreter):
     @as_payload
     def tran(self, src: Numeric, indices: P.indices, live_indices,
              keep_indices, **kwargs):
+        # TODO: this looks suspicious
         return []

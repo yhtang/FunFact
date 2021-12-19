@@ -4,7 +4,7 @@ import itertools as it
 from typing import Optional
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import AbstractIndex
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
@@ -20,11 +20,7 @@ class IndexPropagator(TranscribeInterpreter):
     )
 
     @as_payload
-    def literal(self, value: LiteralValue, **kwargs):
-        return [], [], []
-
-    @as_payload
-    def tensor(self, abstract: AbstractTensor, **kwargs):
+    def _wildcard(self, **kwargs):
         return [], [], []
 
     @as_payload

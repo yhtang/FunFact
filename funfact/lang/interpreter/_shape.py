@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Optional, Tuple
+from typing import Optional
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import AbstractTensor
 
 
 class ShapeAnalyzer(TranscribeInterpreter):
@@ -14,20 +14,12 @@ class ShapeAnalyzer(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload('shape')
 
     @as_payload
-    def literal(self, value: LiteralValue, **kwargs):
+    def _wildcard(self, **kwargs):
         return None
 
     @as_payload
     def tensor(self, abstract: AbstractTensor, **kwargs):
         return abstract.shape
-
-    @as_payload
-    def index(self, item: AbstractIndex, bound: bool, **kwargs):
-        return None
-
-    @as_payload
-    def indices(self, items: Tuple[P.index], **kwargs):
-        return None
 
     @as_payload
     def index_notation(self, tensor: P.tensor, indices: P.indices,  **kwargs):

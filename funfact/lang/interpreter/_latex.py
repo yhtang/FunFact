@@ -21,11 +21,14 @@ class LatexRenderer(ROOFInterpreter):
         '''Decorate the base evaluation result with an optional pair of
         parentheses conditional on the relative precedence between the parent
         and child nodes.'''
-        value = super().__call__(node, parent)
+        value = super().__call__(node, parent, strict=True)
         if parent is not None and node.precedence > parent.precedence:
             return fr'\left({value}\right)'
         else:
             return value
+
+    def _wildcard(self, **kwargs):
+        pass
 
     def literal(self, value, **kwargs):
         return value._repr_tex_()

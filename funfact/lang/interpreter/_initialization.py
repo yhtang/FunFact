@@ -13,7 +13,12 @@ class LeafInitializer(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload('data')
 
     @as_payload
+    def _wildcard(self, **kwargs):
+        return None
+
+    @as_payload
     def literal(self, value, **kwargs):
+        # TODO: create tensor from literal
         return None
 
     @as_payload
@@ -26,35 +31,3 @@ class LeafInitializer(TranscribeInterpreter):
         else:
             init_val = ab.normal(0.0, 1.0, *abstract.shape)
         return init_val
-
-    @as_payload
-    def index(self, item, bound, kron, **kwargs):
-        return None
-
-    @as_payload
-    def indices(self, items, **kwargs):
-        return None
-
-    @as_payload
-    def index_notation(self, tensor, indices, **kwargs):
-        return None
-
-    @as_payload
-    def call(self, f, x, **kwargs):
-        return None
-
-    @as_payload
-    def pow(self, base, exponent, **kwargs):
-        return None
-
-    @as_payload
-    def neg(self, x, **kwargs):
-        return None
-
-    @as_payload
-    def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
-        return None
-
-    @as_payload
-    def tran(self, src, indices, **kwargs):
-        return None

@@ -9,6 +9,10 @@ class ASCIIRenderer(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload('ascii')
 
     @as_payload
+    def _wildcard(self, **kwargs):
+        pass
+
+    @as_payload
     def literal(self, value, **kwargs):
         return str(value)
 

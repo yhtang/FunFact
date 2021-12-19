@@ -13,6 +13,9 @@ class Evaluator(ROOFInterpreter):
     def _binary_operator(reduction, pairwise, lhs, rhs, spec):
         return _einop(spec, lhs, rhs, reduction, pairwise)
 
+    def _wildcard(self, **kwargs):
+        pass
+
     def literal(self, value, **kwargs):
         # TODO: need to specialize for each literal type
         # e.g. scalar, 1, 0, delta

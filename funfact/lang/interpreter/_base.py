@@ -43,56 +43,57 @@ class ROOFInterpreter(ABC):
     may still accept a 'payload' argument, which could be potentially produced
     by another transcribe interpreter.'''
 
-    @abstractmethod
+    def _wildcard(self, **kwargs):
+        pass
+
     def literal(self, value: LiteralValue, **payload: Any):
         pass
 
-    @abstractmethod
     def tensor(self, abstract: AbstractTensor, **payload: Any):
         pass
 
-    @abstractmethod
     def index(self, item: AbstractIndex, bound: bool, kron: bool,
               **payload: Any):
         pass
 
-    @abstractmethod
     def indices(self, items: AbstractIndex, **payload: Any):
         pass
 
-    @abstractmethod
     def index_notation(
         self, tensor: Any, indices: Iterable[Any], **payload: Any
     ):
         pass
 
-    @abstractmethod
     def call(self, f: str, x: Any, **payload: Any):
         pass
 
-    @abstractmethod
     def pow(self, base: Any, exponent: Any, **payload: Any):
         pass
 
-    @abstractmethod
     def neg(self, x: Any, **payload: Any):
         pass
 
-    @abstractmethod
     def ein(self, lhs: Any, rhs: Any, precedence: int, reduction: str,
             pairwise: str, outidx: Any, **payload: Any):
         pass
 
-    @abstractmethod
     def tran(self, src: Any, indices: Iterable[Any]):
         pass
 
-    def __call__(self, node: _ASNode, parent: _ASNode = None):
+    def __call__(self, node: _ASNode, parent: _ASNode = None, strict=False):
         fields_fixed = {
             name: _deep_apply(self, value, node)
             for name, value in node.fields_fixed.items()
         }
-        rule = getattr(self, node.name)
+
+        try:
+            rule = getattr(self, node.name)
+        except AttributeError as e:
+            if strict:
+                raise e
+            else:
+                rule = getattr(self, '_wildcard')
+
         return rule(**fields_fixed, **node.fields_payload)
 
     def __ror__(self, tsrex: _AST):
@@ -121,55 +122,56 @@ class TranscribeInterpreter(ABC):
                 return wrapped_f
             return wrapper
 
-    @abstractmethod
+    def _wildcard(self, **kwargs):
+        pass
+
     def literal(self, value: LiteralValue, **payload: Any):
         pass
 
-    @abstractmethod
     def tensor(self, abstract: AbstractTensor, **payload: Any):
         pass
 
-    @abstractmethod
     def index(self, item: AbstractIndex, bound: bool, kron: bool,
               **payload: Any):
         pass
 
-    @abstractmethod
     def indices(self, items: Tuple[AbstractIndex], **payload: Any):
         pass
 
-    @abstractmethod
     def index_notation(
         self, tensor: P.tensor, indices: P.indices, **payload: Any
     ):
         pass
 
-    @abstractmethod
     def call(self, f: str, x: Tensorial, **payload: Any):
         pass
 
-    @abstractmethod
     def pow(self, base: Numeric, exponent: Numeric, **payload: Any):
         pass
 
-    @abstractmethod
     def neg(self, x: Numeric, **payload: Any):
         pass
 
-    @abstractmethod
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], **payload: Any):
         pass
 
-    @abstractmethod
     def tran(self, src: Numeric, indices: P.indices):
         pass
 
-    def __call__(self, node: _ASNode, parent: _ASNode = None):
+    def __call__(self, node: _ASNode, parent: _ASNode = None, strict=False):
         node = copy.copy(node)
         for name, value in node.fields_fixed.items():
             setattr(node, name, _deep_apply(self, value, node))
-        rule = getattr(self, node.name)
+
+        try:
+            rule = getattr(self, node.name)
+        except AttributeError as e:
+            if strict:
+                raise e
+            else:
+                rule = getattr(self, '_wildcard')
+
         payload = rule(**node.fields)
         if isinstance(payload, dict):
             node.__dict__.update(**payload)
