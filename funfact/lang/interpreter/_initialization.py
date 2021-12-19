@@ -13,7 +13,7 @@ class LeafInitializer(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload('data')
 
     @as_payload
-    def noop(self, **kwargs):
+    def noop(self):
         return None
 
     @as_payload

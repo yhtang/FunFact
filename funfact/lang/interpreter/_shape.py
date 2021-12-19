@@ -14,7 +14,7 @@ class ShapeAnalyzer(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload('shape')
 
     @as_payload
-    def noop(self, **kwargs):
+    def noop(self):
         return None
 
     @as_payload

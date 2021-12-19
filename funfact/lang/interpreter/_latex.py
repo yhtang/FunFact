@@ -27,7 +27,7 @@ class LatexRenderer(ROOFInterpreter):
         else:
             return value
 
-    def noop(self, **kwargs):
+    def noop(self):
         return r'{\color{red}\boxtimes}'
 
     def literal(self, value, **kwargs):

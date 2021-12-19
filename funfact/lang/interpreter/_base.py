@@ -44,9 +44,8 @@ class ROOFInterpreter(ABC):
     by another transcribe interpreter.'''
 
     @abstractmethod
-    def noop(self, **kwargs):
-        '''Wildcard method for no-operations.'''
-        pass
+    def noop(self):
+        '''wildcard method for no-operations.'''
 
     def literal(self, value: LiteralValue, **payload: Any):
         return self.noop()
@@ -118,8 +117,7 @@ class TranscribeInterpreter(ABC):
 
     @abstractmethod
     def noop(self):
-        '''Wildcard method for no-operations.'''
-        pass
+        '''wildcard method for no-operations.'''
 
     def literal(self, value: LiteralValue, **payload: Any):
         return self.noop()

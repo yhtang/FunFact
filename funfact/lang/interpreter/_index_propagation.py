@@ -20,7 +20,7 @@ class IndexPropagator(TranscribeInterpreter):
     )
 
     @as_payload
-    def noop(self, **kwargs):
+    def noop(self):
         return [], [], []
 
     @as_payload

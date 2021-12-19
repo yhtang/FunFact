@@ -9,8 +9,8 @@ class ASCIIRenderer(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload('ascii')
 
     @as_payload
-    def noop(self, **kwargs):
-        return f'<unknown primitive {kwargs}>'
+    def noop(self):
+        raise RuntimeError(f'No-ops not allowed in {self.__class__}')
 
     @as_payload
     def literal(self, value, **kwargs):
