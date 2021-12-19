@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pytest
-import importlib
+import os
 from . import (
     _active_backend,
     _use_default_backend,
@@ -17,8 +17,11 @@ def test_import():
 
 def test_available_backends():
     for backend, clsname in available_backends.items():
-        assert hasattr(
-            importlib.import_module(f'funfact.backend._{backend}'), clsname
+        assert os.path.exists(
+            os.path.join(
+                os.path.dirname(__file__),
+                f'_{backend}.py'
+            )
         )
 
 
