@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import sys
 import importlib
-import warnings
 
 
 __all__ = ['active_backend', 'available_backends', 'use']
@@ -11,7 +11,7 @@ _active_backend = None
 available_backends = {
     'jax': 'JAXBackend',
     'torch': 'PyTorchBackend',
-    'numpy': 'NumpyBackend',
+    'numpy': 'NumPyBackend',
 }
 '''A dictionary whose keys are the names of the available backends.
 
@@ -63,33 +63,39 @@ def use(backend: str):
         raise RuntimeError(f'Unknown backend {backend}.')
 
 
-class Backend:
-
-    def __init__(self, backend=None):
-        if backend is None:
-            for backend in available_backends.keys():
-                try:
-                    use(backend)
-                    warnings.warn(f'Default backend: {self}')
-                    return
-                except Exception:
-                    continue
-            raise RuntimeError(
-                'None of the built-in backends {abs} appears usable.'.format(
-                    abs=tuple(available_backends.keys())
-                )
-            )
-        else:
+def _use_default_backend(custom_backends=None):
+    candidates = custom_backends or available_backends
+    for backend in candidates.keys():
+        try:
             use(backend)
+            sys.stderr.write(f'Using backend "{backend}".')
+            sys.stderr.flush()
+            return
+        except Exception:
+            continue
+    raise RuntimeError(
+        'None of the backends {abs} appears usable.'.format(
+            abs=tuple(candidates.keys())
+        )
+    )
+
+
+class ActiveBackendProxy:
+
+    @staticmethod
+    def _get_active_backend():
+        if _active_backend is None:
+            _use_default_backend()
+        return _active_backend
 
     def __repr__(self):
-        return f"<backend '{_active_backend.__name__}'>"
+        return f"<backend '{self._get_active_backend().__name__}'>"
 
     def __getattr__(self, attr):
-        return getattr(_active_backend, attr)
+        return getattr(self._get_active_backend(), attr)
 
 
-active_backend = Backend()
+active_backend = ActiveBackendProxy()
 '''
 This is a proxy object that always points to the actual numerical tensor
 backend that is currently active.

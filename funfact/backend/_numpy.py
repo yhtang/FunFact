@@ -4,7 +4,7 @@ import numpy as np
 from ._meta import BackendMeta
 
 
-class NumpyBackend(metaclass=BackendMeta):
+class NumPyBackend(metaclass=BackendMeta):
 
     _nla = np
     _rng = np.random.default_rng()
