@@ -194,7 +194,3 @@ class Factorization:
             dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root)
         ):
             n.data = tensors[i]
-
-    def __iter__(self):
-        for f in self.factors:
-            yield f
