@@ -183,7 +183,8 @@ class Factorization:
         its children. For use with a gradient optimizer.'''
         return self._NodeView(
             'data',
-            list(dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root))
+            list(dfs_filter(lambda n: n.name == 'tensor' and
+                            n.abstract.optimizable, self.tsrex.root))
         )
 
     @factors.setter
@@ -191,6 +192,7 @@ class Factorization:
         '''A flattened list of optimizable parameters of the primitive and all
         its children. For use with a gradient optimizer.'''
         for i, n in enumerate(
-            dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root)
+            dfs_filter(lambda n: n.name == 'tensor' and
+                       n.abstract.optimizable, self.tsrex.root)
         ):
             n.data = tensors[i]
