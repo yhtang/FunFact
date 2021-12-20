@@ -29,3 +29,8 @@ class PyTorchBackend(metaclass=BackendMeta):
     def transpose(cls, a, axes):
         '''torch equivalent is torch.permute'''
         return torch.permute(a, (*axes,))
+
+    class AutoGradMixin():
+        def __iter__(self):
+            for f in self.factors:
+                yield f
