@@ -6,6 +6,8 @@ from .lang import index, indices, tensor, template, _0, _1, delta
 from .lang._math import *  # noqa: F401, F403
 from .model import Factorization
 from .algorithm import factorize
+from.optimizable import optimizable
+
 
 __all__ = [
     'use',
@@ -19,7 +21,8 @@ __all__ = [
     '_1',
     'delta',
     'Factorization',
-    'factorize'
+    'factorize',
+    'optimizable',
 ]
 
 
