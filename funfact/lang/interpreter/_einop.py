@@ -30,15 +30,17 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
         Name of the pairwise operator
     '''
     # parse input spec string
-    out = re.split(r'\W+', spec)
-    lhs_spec = list(out[0])
-    rhs_spec = list(out[1])
-    out_spec = list(out[2] if len(out) > 2 else '')
-    kron_spec = list(out[3] if len(out) > 3 else '')
+    out = re.fullmatch(r'(\w*),(\w*)->(\w*)\|(\w*)', spec)
+    lhs_spec = list(out.group(1))
+    rhs_spec = list(out.group(2))
+    out_spec = list(out.group(3))
+    kron_spec = list(out.group(4))
 
     # reorder lhs and rhs in alphabetical order
-    lhs = ab.transpose(lhs, np.argsort(lhs_spec))
-    rhs = ab.transpose(rhs, np.argsort(rhs_spec))
+    if lhs_spec:
+        lhs = ab.transpose(lhs, np.argsort(lhs_spec))
+    if rhs_spec:
+        rhs = ab.transpose(rhs, np.argsort(rhs_spec))
 
     # determine all indices in alphabetical order
     indices_all = set(lhs_spec).union(rhs_spec)
