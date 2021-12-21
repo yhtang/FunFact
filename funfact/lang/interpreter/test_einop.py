@@ -43,5 +43,3 @@ def test_einop():
     res = _einop(spec, lhs, rhs, 'sum', 'multiply')
     assert(res.shape == lhs.shape)
     assert pytest.approx(np.ravel(res), tol) == np.ravel(lhs * rhs)
-
-
