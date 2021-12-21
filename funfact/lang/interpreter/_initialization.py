@@ -20,11 +20,13 @@ class LeafInitializer(TranscribeInterpreter):
     def tensor(self, abstract, **kwargs):
         if abstract.initializer is not None:
             if not callable(abstract.initializer):
-                init_val = ab.tensor(abstract.initializer)
+                init_val = ab.tensor(abstract.initializer,
+                                     optimizable=abstract.optimizable)
             else:
                 init_val = abstract.initializer(abstract.shape)
         else:
-            init_val = ab.normal(0.0, 1.0, *abstract.shape)
+            init_val = ab.normal(0.0, 1.0, *abstract.shape,
+                                 optimizable=abstract.optimizable)
         return init_val
 
     @as_payload

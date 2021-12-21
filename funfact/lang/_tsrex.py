@@ -308,7 +308,7 @@ def indices(spec):
         raise RuntimeError(f'Cannot create indices from {spec}.')
 
 
-def tensor(*spec, initializer=None):
+def tensor(*spec, initializer=None, optimizable=None):
     '''Construct an abstract tensor using `spec`.
 
     Args:
@@ -325,6 +325,10 @@ def tensor(*spec, initializer=None):
         initializer (callable):
             Initialization distribution
 
+        optimizable (boolean):
+            True/False flag indicating if tensor leaf should be optimized,
+            default value is True
+
     Returns:
         TsrEx: A tensor expression representing an abstract tensor object.
     '''
@@ -333,18 +337,26 @@ def tensor(*spec, initializer=None):
         symbol = spec[0]
         initializer = spec[1]
         size = initializer.shape
+        if optimizable is None:
+            optimizable = False
     elif len(spec) == 1 and ab.is_tensor(spec[0]):
         # concrete tensor only
         symbol = None
         initializer = spec[0]
         size = initializer.shape
+        if optimizable is None:
+            optimizable = False
     elif len(spec) >= 1 and isinstance(spec[0], str):
         # name + size
         symbol, *size = spec
+        if optimizable is None:
+            optimizable = True
     else:
         # size only
         symbol = None
         size = spec
+        if optimizable is None:
+            optimizable = True
 
     for d in size:
         if not (isinstance(d, int) and d > 0):
@@ -353,5 +365,6 @@ def tensor(*spec, initializer=None):
             )
 
     return TensorEx(P.tensor(
-        AbstractTensor(*size, symbol=symbol, initializer=initializer))
-    )
+        AbstractTensor(*size, symbol=symbol, initializer=initializer,
+                       optimizable=optimizable))
+                    )
