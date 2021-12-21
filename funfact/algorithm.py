@@ -133,11 +133,11 @@ def factorize(
             best_fac.factors = new_best
 
             if stop_by == 'first':
-                if np.sum(converged) > 1:
+                if np.any(converged):
                     pbar.update(max_steps - step)
                     break
             elif isinstance(stop_by, int):
-                if np.sum(converged) > stop_by:
+                if np.count_nonzero(converged) >= stop_by:
                     pbar.update(max_steps - step)
                     break
             else:
