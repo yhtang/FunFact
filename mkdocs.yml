@@ -30,6 +30,8 @@ nav:
         "funfact.active_backend": api/active_backend.md
         "funfact.available_backends": api/available_backends.md
         "funfact.use": api/use.md
+        "funfact.factorize": api/factorize.md
+        "funfact.Factorization": api/factorization.md
         "funfact.tensor": api/tensor.md
         "funfact.index": api/index.md
         "funfact.indices": api/indices.md

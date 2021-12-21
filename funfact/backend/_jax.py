@@ -43,10 +43,10 @@ class JAXBackend(metaclass=BackendMeta):
 
     class AutoGradMixin():
         def tree_flatten(self):
-            return list(self.factors), self.tsrex
+            return list(self.factors), (self.tsrex, self.nvec)
 
         @classmethod
-        def tree_unflatten(cls, tsrex, tensors):
-            unflatten = cls(tsrex, initialize=False)
-            unflatten.factors = tensors
+        def tree_unflatten(cls, metadata, children):
+            unflatten = cls(*metadata, initialize=False)
+            unflatten.factors = children
             return unflatten
