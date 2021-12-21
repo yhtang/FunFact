@@ -79,15 +79,45 @@ class Factorization:
         '''
         return self._NodeView(
             'data',
-            list(dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root))
+            list(dfs_filter(lambda n: n.name == 'tensor' and
+                            n.abstract.optimizable, self.tsrex.root))
         )
 
     @factors.setter
     def factors(self, tensors):
         for i, n in enumerate(
-            dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root)
+            dfs_filter(lambda n: n.name == 'tensor' and
+                       n.abstract.optimizable, self.tsrex.root)
         ):
             n.data = tensors[i]
+
+    @property
+    def all_factors(self):
+        '''A flattened list of all factors in the model.
+
+        Examples:
+            >>> import funfact as ff
+            >>> a = ff.tensor('a', 2, 3, optimizable=False)
+            >>> b = ff.tensor('b', 3, 4)
+            >>> i, j, k = ff.indices(3)
+            >>> fac = ff.Factorization.from_tsrex(
+            ...     a[i, j] * b[j, k],
+            ...     initialize=True
+            ... )
+            >>> fac.all_factors
+            <'data' fields of tensors a, b>
+            >>> fac.all_factors[0]
+            DeviceArray([[[ 0.2509914 ],
+                          [-0.5063717 ],
+                          [-1.0069973 ]],
+                         [[ 1.1088423 ],
+                          [ 0.31595513],
+                          [-0.11492359]]], dtype=float32)
+        '''
+        return self._NodeView(
+            'data',
+            list(dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root))
+        )
 
     @property
     def tsrex(self):
@@ -157,7 +187,8 @@ class Factorization:
                     )
 
         # Evaluate model
-        return self.tsrex | SlicingPropagator(full_idx) | ElementwiseEvaluator()
+        return self.tsrex | SlicingPropagator(full_idx) \
+                          | ElementwiseEvaluator()
 
     def __getitem__(self, idx):
         '''Implements attribute-based access of factor tensors or output

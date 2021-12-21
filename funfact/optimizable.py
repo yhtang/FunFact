@@ -31,5 +31,5 @@ def is_optimizable():
     return _all_optimizable
 
 
-def optimizable(mode: bool):
+def set_optimizable(mode: bool):
     return Optimizable(mode)

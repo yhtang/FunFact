@@ -163,7 +163,7 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         self._shape = tuple(map(int, size))
         self.symbol = self.TensorSymbol(symbol or self.uuid)
         self.initializer = initializer
-        self._optimizable = optimizable
+        self.optimizable = optimizable
 
     @property
     def shape(self):
