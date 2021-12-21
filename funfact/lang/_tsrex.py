@@ -326,8 +326,15 @@ def tensor(*spec, initializer=None, optimizable=None):
             Initialization distribution
 
         optimizable (boolean):
-            True/False flag indicating if tensor leaf should be optimized,
-            default value is True
+            True/False flag indicating if a tensor leaf should be optimized.
+            The default behavior is dependent on the input for `spec`:
+
+            * if a size for each dimension is provided in `spec`, optimizable
+            is True by default
+            * if a concrete tensor is provided in `spec`, optimizable is False
+            by default
+
+            The default behavior can be overriden by user input.
 
     Returns:
         TsrEx: A tensor expression representing an abstract tensor object.

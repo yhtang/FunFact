@@ -152,7 +152,7 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         _anon_registry = {}
         _anon_registry_lock = multiprocessing.Lock()
 
-    def __init__(self, *size, symbol=None, initializer=None, optimizable=None):
+    def __init__(self, *size, symbol=None, initializer=None, optimizable=True):
         super().__init__()
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):

@@ -6,7 +6,7 @@ from .lang import index, indices, tensor, template, _0, _1, delta
 from .lang._math import *  # noqa: F401, F403
 from .model import Factorization
 from .algorithm import factorize
-from.optimizable import set_optimizable
+from .context import set_optimizable
 
 
 __all__ = [
