@@ -6,31 +6,52 @@ import tqdm
 import numpy as np
 
 
-def factorize(tsrex, target, lr=0.1, tol=1e-6, max_steps=10000,
-              optimizer='Adam', loss='mse_loss', nvec=1, stop_by='best',
-              **kwargs):
-    '''Gradient descent optimizer for functional factorizations.
+def factorize(
+    tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
+    loss='mse_loss', nvec=1, stop_by='best', **kwargs
+):
+    '''Factorize a target tensor using the given tensor expression. The
+    solution is found by minimizing the loss function between the original and
+    approximate tensors using stochastic gradient descent.
 
-    Parameters
-    ----------
-    tsrex: TsrEx
-        A FunFact tensor expression.
-    target
-        Target data tensor
-    lr
-        Learning rate (default: 0.1)
-    tol
-        Convergence tolerance
-    max_steps
-        Maximum number of steps
-    optimizer
-        Name of optimizer
-    loss
-        Name of loss
-    nvec
-        Number of vectorizations
-    stop_by
-        'best', 'steps', int
+    Args:
+        tsrex (TsrEx): A tensor expression.
+        target (tensor): The original tensor to approximate.
+        lr (float): SGD learning rate.
+        tol (float):  convergence tolerance.
+        max_steps (int): maximum number of SGD steps to run.
+        optimizer (str or callable):
+
+            - If `str`, must be one of the optimizers defined in
+            [funfact.optim]().
+            - If `callable`, can be any object that implements the interface of
+            [funfact.optim.Optimizer]().
+
+        loss (str or callable):
+
+            - If `str`, must be one of the loss functions defined in
+            [funfact.loss]().
+            - If `callable`, can be any object that implements the interface of
+            [funfact.loss.Loss]().
+
+        nvec (int): Number of parallel instances to compute.
+        stop_by ('best', 'steps', or int):
+
+            - If 'best', the function will return the first solution whose loss
+            is less than `tol` when running multiple parallel instances.
+            - If it is an integer `n`, the function will return after finding
+            `n` solutions with losses less than `tol`.
+            - If `steps`, only returns after completing `max_steps` steps.
+
+    Returns:
+        *:
+            - If `stop_by == 'best'`, return a factorization object of type
+            [funfact.Factorization]() representing the best solution found.
+            - If `stop_by` is an integer `n`, return a list of factorization
+            objects representing the top `n` solutions found.
+            - If `stop_by == 'steps'`, return a vectorized factorization object
+            that represents all the solutions.
+
     '''
 
     @ab.autograd_decorator
@@ -61,8 +82,8 @@ def factorize(tsrex, target, lr=0.1, tol=1e-6, max_steps=10000,
                 'funfact.optim.'
             )
 
-    opt_fac = _Factorization(tsrex, nvec=nvec)
-    best_fac = Factorization(tsrex, nvec=nvec)
+    opt_fac = _Factorization.from_tsrex(tsrex, nvec=nvec)
+    best_fac = Factorization.from_tsrex(tsrex, nvec=nvec)
 
     try:
         opt = optimizer(opt_fac.factors, lr=lr, **kwargs)
