@@ -5,12 +5,10 @@ from funfact.lang.interpreter import (
     EinsteinSpecGenerator,
     Evaluator,
     LeafInitializer,
-    NoOp,
     IndexPropagator,
     ElementwiseEvaluator,
     SlicingPropagator,
-    ShapeAnalyzer,
-    Vectorizer
+    ShapeAnalyzer
 )
 
 
@@ -25,7 +23,6 @@ class Factorization:
 
     Args:
         tsrex (TsrEx): A tensor expression.
-        nvec (int): The number of parallel instances contained in the model.
         extra_attributes (kwargs): extra attributes to be stored in verbatim.
 
     Examples:
@@ -37,33 +34,25 @@ class Factorization:
         <funfact.model._factorization.Factorization object at 0x7f5838105ee0>
     '''
 
-    def __init__(self, tsrex, nvec, **extra_attributes):
+    def __init__(self, tsrex, **extra_attributes):
         self._tsrex = (tsrex
                        | IndexPropagator()
                        | EinsteinSpecGenerator()
                        | ShapeAnalyzer())
-        self._nvec = nvec
         self.__dict__.update(**extra_attributes)
 
     @classmethod
-    def from_tsrex(cls, tsrex, initialize=True, nvec=1):
+    def from_tsrex(cls, tsrex, initialize=True):
         '''Construct a factorization model from a tensor expresson.
 
         Args:
             tsrex (TsrEx): The tensor expression.
             initialize (bool):
                 Whether or not to fill abstract tensors with actual data.
-            nvec (int > 0):
-                Number of parallel random instances to create.
         '''
-        return cls(
-            tsrex=(tsrex
-                   | IndexPropagator()
-                   | Vectorizer(nvec)
-                   | (LeafInitializer() if initialize else NoOp())),
-            nvec=nvec,
-            _tsrex_original=tsrex,
-        )
+        if initialize:
+            tsrex = tsrex | LeafInitializer()
+        return cls(tsrex)
 
     @property
     def factors(self):
@@ -106,10 +95,6 @@ class Factorization:
         return self._tsrex
 
     @property
-    def nvec(self):
-        return self._nvec
-
-    @property
     def shape(self):
         '''The shape of the result tensor.'''
         return self.tsrex.shape
@@ -118,22 +103,6 @@ class Factorization:
     def ndim(self):
         '''The dimensionality of the result tensor.'''
         return self.tsrex.ndim
-
-    def view(self, instance: int):
-        '''Obtain a zero-copy 'view' of a instance of the factorization.'''
-        if instance >= self.nvec:
-            raise IndexError(
-                f'Index {instance} out of range (nvec: {self.nvec})'
-            )
-        fac = type(self)(self._tsrex_original, nvec=1)
-        instance_factors = []
-        for f in self.factors:
-            if f.shape[-1] == 1:
-                instance_factors.append(f[..., 0])
-            else:
-                instance_factors.append(f[..., instance])
-        fac.factors = instance_factors
-        return fac
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''
