@@ -15,7 +15,16 @@ class PyTorchBackend(metaclass=BackendMeta):
 
     @classmethod
     def tensor(cls, array, optimizable=False, **kwargs):
+        if type(array) is cls.native_t:
+            return array.clone().detach().requires_grad_(optimizable)
         return torch.tensor(array, requires_grad=optimizable, **kwargs)
+
+    @classmethod
+    def to_numpy(cls, tensor):
+        if tensor.requires_grad:
+            return tensor.detach().numpy()
+        else:
+            return tensor.numpy()
 
     @classmethod
     def seed(cls, key):
@@ -47,6 +56,17 @@ class PyTorchBackend(metaclass=BackendMeta):
             raise ValueError(
                 f'Unsupported option for reshape order: {order}.'
             )
+
+    @staticmethod
+    def loss_and_grad(loss_fn, example_model, example_target):
+        def wrapper(model, target):
+            loss = loss_fn(model(), target)
+            gradients = torch.autograd.grad(loss, model)
+            # gradients = [data.grad for data in model.factors]
+            return loss, gradients
+        return wrapper
+        return torch.jit.trace(wrapper, (example_model, example_target))
+        # TODO jit trace with Factorization class
 
     def autograd_decorator(ob):
         return ob
