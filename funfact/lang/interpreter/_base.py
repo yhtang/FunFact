@@ -204,6 +204,15 @@ class PayloadMerger:
         return type(tsrex_list[0])(self(*[tsrex.root for tsrex in tsrex_list]))
 
 
+class NoOp:
+    '''An interpreter that does nothing.'''
+    def __call__(self, node, **kwargs):
+        return node
+
+    def __ror__(self, tsrex):
+        return tsrex
+
+
 def dfs(node: _ASNode):
     '''Returns an iterator that loop over all nodes in an AST in a depth-first
     manner.'''

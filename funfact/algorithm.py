@@ -1,36 +1,65 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import numpy as np
+import tqdm
 import funfact.optim
 import funfact.loss
 from funfact import Factorization
 from funfact.backend import active_backend as ab
-import tqdm
-import numpy as np
+from funfact.vectorization import vectorize, view
 
 
-def factorize(tsrex, target, lr=0.1, tol=1e-6, max_steps=10000,
-              optimizer='Adam', loss='mse_loss', nvec=1, stop_by='best',
-              **kwargs):
-    '''Gradient descent optimizer for functional factorizations.
+def factorize(
+    tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
+    loss='mse_loss', nvec=1, stop_by='first', returns='best', **kwargs
+):
+    '''Factorize a target tensor using the given tensor expression. The
+    solution is found by minimizing the loss function between the original and
+    approximate tensors using stochastic gradient descent.
 
-    Parameters
-    ----------
-    tsrex: TsrEx
-        A FunFact tensor expression.
-    target
-        Target data tensor
-    lr
-        Learning rate (default: 0.1)
-    tol
-        Convergence tolerance
-    max_steps
-        Maximum number of steps
-    optimizer
-        Name of optimizer
-    loss
-        Name of loss
-    nvec
-        Number of vectorizations
-    stop_by
-        'best', 'steps', int
+    Args:
+        tsrex (TsrEx): A tensor expression.
+        target (tensor): The original tensor to approximate.
+        lr (float): SGD learning rate.
+        tol (float):  convergence tolerance.
+        max_steps (int): maximum number of SGD steps to run.
+        optimizer (str or callable):
+
+            - If `str`, must be one of the optimizers defined in
+            [funfact.optim]().
+            - If `callable`, can be any object that implements the interface of
+            [funfact.optim.Optimizer]().
+
+        loss (str or callable):
+
+            - If `str`, must be one of the loss functions defined in
+            [funfact.loss]().
+            - If `callable`, can be any object that implements the interface of
+            [funfact.loss.Loss]().
+
+        nvec (int): Number of parallel instances to compute.
+        stop_by ('first', int >= 1, or None):
+
+            - If 'first', stop optimization as soon as one solution is
+            found whose loss is less than `tol` when running multiple parallel
+            instances.
+            - If int `n`, stop optimization after n instances
+            have found solutions with losses less than `tol`.
+            - If None, always optimize for `max_steps` steps.
+
+        returns ('best', int >= 1, or 'all'):
+
+            - If 'best', return the solution with the smallest loss.
+            - If int `n`, return the top `n` instances.
+            - If 'all', return all instances.
+    Returns:
+        *:
+            - If `returns == 'best'`, return a factorization object of type
+            [funfact.Factorization]() representing the best solution found.
+            - If `returns == n`, return a list of factorization
+            objects representing the best `n` solutions found.
+            - If `returns == 'all'`, return a vectorized factorization object
+            that represents all the solutions.
     '''
 
     @ab.autograd_decorator
@@ -61,8 +90,9 @@ def factorize(tsrex, target, lr=0.1, tol=1e-6, max_steps=10000,
                 'funfact.optim.'
             )
 
-    opt_fac = _Factorization(tsrex, nvec=nvec)
-    best_fac = Factorization(tsrex, nvec=nvec)
+    tsrex_vec = vectorize(tsrex, nvec)
+    opt_fac = _Factorization.from_tsrex(tsrex_vec)
+    best_fac = Factorization.from_tsrex(tsrex_vec)
 
     try:
         opt = optimizer(opt_fac.factors, lr=lr, **kwargs)
@@ -102,22 +132,28 @@ def factorize(tsrex, target, lr=0.1, tol=1e-6, max_steps=10000,
                 new_best.append(b)
             best_fac.factors = new_best
 
-            if stop_by == 'best':
-                if np.sum(converged) > 1:
+            if stop_by == 'first':
+                if np.any(converged):
                     pbar.update(max_steps - step)
                     break
             elif isinstance(stop_by, int):
-                if np.sum(converged) > stop_by:
+                if np.count_nonzero(converged) >= stop_by:
                     pbar.update(max_steps - step)
                     break
+            else:
+                if stop_by is not None:
+                    raise RuntimeError(
+                        f'Invalid argument value for stop_by: {stop_by}'
+                    )
     pbar.close()
 
-    if stop_by == 'best':
-        return best_fac.view(np.argmin(best_loss))
-    elif stop_by == 'steps':
+    if returns == 'best':
+        return view(best_fac, tsrex, np.argmin(best_loss))
+    elif isinstance(returns, int):
+        return [
+            view(best_fac, tsrex, i) for i in np.argsort(best_loss)[:returns]
+        ]
+    elif returns == 'all':
         return best_fac
-    elif isinstance(stop_by, int):
-        sort_idx = np.argsort(best_loss)
-        return [best_fac.view(sort_idx[i]) for i in range(stop_by)]
     else:
-        raise ValueError(f'Unsupported value for stop_by: {stop_by}')
+        raise RuntimeError(f'Invalid argument value for returns: {returns}')

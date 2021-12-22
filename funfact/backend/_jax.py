@@ -18,7 +18,7 @@ class JAXBackend(metaclass=BackendMeta):
     tensor_t = (jnp.ndarray, np.ndarray)
 
     @classmethod
-    def tensor(cls, array, **kwargs):
+    def tensor(cls, array, optimizable=False, **kwargs):
         return jnp.asarray(array, **kwargs)
 
     @classmethod
@@ -26,7 +26,7 @@ class JAXBackend(metaclass=BackendMeta):
         cls._key = jrn.PRNGKey(key)
 
     @classmethod
-    def normal(cls, mean, std, *shape, dtype=jnp.float32):
+    def normal(cls, mean, std, *shape, optimizable=True, dtype=jnp.float32):
         cls._key, subkey = jrn.split(cls._key)
         return mean + std * jrn.normal(subkey, shape, dtype)
 
@@ -43,10 +43,10 @@ class JAXBackend(metaclass=BackendMeta):
 
     class AutoGradMixin():
         def tree_flatten(self):
-            return list(self.factors), self.tsrex
+            return list(self.factors), (self.tsrex,)
 
         @classmethod
-        def tree_unflatten(cls, tsrex, tensors):
-            unflatten = cls(tsrex, initialize=False)
-            unflatten.factors = tensors
+        def tree_unflatten(cls, metadata, children):
+            unflatten = cls(*metadata, initialize=False)
+            unflatten.factors = children
             return unflatten

@@ -5,77 +5,132 @@ from funfact.lang.interpreter import (
     EinsteinSpecGenerator,
     Evaluator,
     LeafInitializer,
-    PayloadMerger,
     IndexPropagator,
     ElementwiseEvaluator,
     SlicingPropagator,
-    ShapeAnalyzer,
-    Vectorizer
+    ShapeAnalyzer
 )
 
 
 class Factorization:
-    '''A factorization model is a concrete realization of a tensor expression.
-    The factor tensors of the model can be optimized to obtain a better
-    approximation of a target tensor.
+    '''A factorization model realizes a tensor expression to approximate a
+    target tensor.
 
-    Parameters
-    ----------
-    tsrex: TsrEx
-        A FunFact tensor expression.
+    !!! note
+        Please use one of the `from_*` class methods to construct a
+        factorization model. The `__init__` method is **NOT** recommended for
+        direct usage.
+
+    Args:
+        tsrex (TsrEx): A tensor expression.
+        extra_attributes (kwargs): extra attributes to be stored in verbatim.
+
+    Examples:
+        >>> import funfact as ff
+        >>> a = ff.tensor('a', 2, 3)
+        >>> b = ff.tensor('b', 3, 4)
+        >>> i, j, k = ff.indices(3)
+        >>> ff.Factorization.from_tsrex(a[i, j] * b[j, k])
+        <funfact.model._factorization.Factorization object at 0x7f5838105ee0>
     '''
 
-    _leaf_initializer = LeafInitializer()
-    _payload_merger = PayloadMerger()
-    _index_propagator = IndexPropagator()
-    _einspec_generator = EinsteinSpecGenerator()
-    _shape_analyzer = ShapeAnalyzer()
-    _evaluator = Evaluator()
-    _elementwise_evaluator = ElementwiseEvaluator()
+    def __init__(self, tsrex, **extra_attributes):
+        self._tsrex = (tsrex
+                       | IndexPropagator()
+                       | EinsteinSpecGenerator()
+                       | ShapeAnalyzer())
+        self.__dict__.update(**extra_attributes)
 
-    def __init__(self, tsrex, initialize=True, nvec=1):
-        self._otsrex = tsrex
-        tsrex = tsrex | self._index_propagator
-        if nvec > 1:
-            tsrex = tsrex | Vectorizer(nvec)
-            tsrex = tsrex | self._index_propagator
-        if initialize is True:
-            tsrex = tsrex | self._leaf_initializer
-        tsrex = tsrex | self._shape_analyzer | self._einspec_generator
-        self._tsrex = tsrex
-        self._nvec = nvec
+    @classmethod
+    def from_tsrex(cls, tsrex, initialize=True):
+        '''Construct a factorization model from a tensor expresson.
+
+        Args:
+            tsrex (TsrEx): The tensor expression.
+            initialize (bool):
+                Whether or not to fill abstract tensors with actual data.
+        '''
+        if initialize:
+            tsrex = tsrex | LeafInitializer()
+        return cls(tsrex)
+
+    @property
+    def factors(self):
+        '''A flattened list of optimizable factors in the model.
+
+        Examples:
+            >>> import funfact as ff
+            >>> a = ff.tensor('a', 2, 3, optimizable=False)
+            >>> b = ff.tensor('b', 3, 4)
+            >>> i, j, k = ff.indices(3)
+            >>> fac = ff.Factorization.from_tsrex(
+            ...     a[i, j] * b[j, k],
+            ...     initialize=True
+            ... )
+            >>> fac.factors
+            <'data' field of tensor b>
+            >>> fac.factors[0]
+            DeviceArray([[ 0.5920733 ,  0.17746426, -1.8907379 , -0.10324025],
+                         [ 0.05991533,  2.5538554 ,  0.05718338,  0.8887682 ],
+                         [ 0.54816544,  2.3392196 ,  1.1973379 ,  0.04005199]],
+                          dtype=float32)
+        '''
+        return self._NodeView(
+            'data',
+            list(dfs_filter(lambda n: n.name == 'tensor' and
+                            n.abstract.optimizable, self.tsrex.root))
+        )
+
+    @factors.setter
+    def factors(self, tensors):
+        for i, n in enumerate(
+            dfs_filter(lambda n: n.name == 'tensor' and
+                       n.abstract.optimizable, self.tsrex.root)
+        ):
+            n.data = tensors[i]
+
+    @property
+    def all_factors(self):
+        '''A flattened list of all factors in the model.
+
+        Examples:
+            >>> import funfact as ff
+            >>> a = ff.tensor('a', 2, 3, optimizable=False)
+            >>> b = ff.tensor('b', 3, 4)
+            >>> i, j, k = ff.indices(3)
+            >>> fac = ff.Factorization.from_tsrex(
+            ...     a[i, j] * b[j, k],
+            ...     initialize=True
+            ... )
+            >>> fac.all_factors
+            <'data' fields of tensors a, b>
+            >>> fac.all_factors[0]
+            DeviceArray([[[ 0.2509914 ],
+                          [-0.5063717 ],
+                          [-1.0069973 ]],
+                         [[ 1.1088423 ],
+                          [ 0.31595513],
+                          [-0.11492359]]], dtype=float32)
+        '''
+        return self._NodeView(
+            'data',
+            list(dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root))
+        )
 
     @property
     def tsrex(self):
+        '''The underlying tensor expression.'''
         return self._tsrex
 
     @property
-    def nvec(self):
-        return self._nvec
-
-    @property
     def shape(self):
-        return self._tsrex.shape
+        '''The shape of the result tensor.'''
+        return self.tsrex.shape
 
     @property
     def ndim(self):
-        return self._tsrex.ndim
-
-    def view(self, instance: int):
-        '''Create a view on a certain instance of the factorization.'''
-        if instance >= self.nvec:
-            raise IndexError(
-                f'Index {instance} out of range (nvec: {self.nvec})'
-            )
-        fac = type(self)(self._otsrex, initialize=False)
-        instance_factors = []
-        for f in self.factors:
-            if f.shape[-1] == 1:
-                instance_factors.append(f[..., 0])
-            else:
-                instance_factors.append(f[..., instance])
-        fac.factors = instance_factors
-        return fac
+        '''The dimensionality of the result tensor.'''
+        return self.tsrex.ndim
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''
@@ -83,7 +138,7 @@ class Factorization:
 
     def forward(self):
         '''Evaluate the tensor expression the result.'''
-        return self.tsrex | self._evaluator
+        return self.tsrex | Evaluator()
 
     def _get_elements(self, key):
         '''Get elements at index of tensor expression.'''
@@ -130,8 +185,8 @@ class Factorization:
                     )
 
         # Evaluate model
-        _index_slicer = SlicingPropagator(full_idx)
-        return self.tsrex | _index_slicer | self._elementwise_evaluator
+        return self.tsrex | SlicingPropagator(full_idx) \
+                          | ElementwiseEvaluator()
 
     def __getitem__(self, idx):
         '''Implements attribute-based access of factor tensors or output
@@ -176,21 +231,3 @@ class Factorization:
         def __iter__(self):
             for n in self.nodes:
                 yield getattr(n, self.attribute)
-
-    @property
-    def factors(self):
-        '''A flattened list of optimizable parameters of the primitive and all
-        its children. For use with a gradient optimizer.'''
-        return self._NodeView(
-            'data',
-            list(dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root))
-        )
-
-    @factors.setter
-    def factors(self, tensors):
-        '''A flattened list of optimizable parameters of the primitive and all
-        its children. For use with a gradient optimizer.'''
-        for i, n in enumerate(
-            dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root)
-        ):
-            n.data = tensors[i]
