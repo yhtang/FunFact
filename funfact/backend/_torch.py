@@ -48,12 +48,8 @@ class PyTorchBackend(metaclass=BackendMeta):
                 f'Unsupported option for reshape order: {order}.'
             )
 
-    @classmethod
-    def sum(cls, a, axis):
-        if not axis:
-            return a
-        else:
-            return torch.sum(a, axis)
+    def autograd_decorator(ob):
+        return ob
 
     class AutoGradMixin():
         def __iter__(self):

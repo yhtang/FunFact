@@ -109,17 +109,30 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     dictionary = dict(zip(indices_rem, np.arange(len(indices_rem))))
     res_order = [dictionary[key] for key in out_spec]
 
-    return ab.transpose(
-        ab.reshape(
-            op_redu(
+    if not con_ax:
+        return ab.transpose(
+            ab.reshape(
                 op_pair(
                     lhs[tuple(dim_lhs)],
                     rhs[tuple(dim_rhs)]
                 ),
-                axis=tuple(con_ax)
+                tuple(kron_res),
+                order='F'
             ),
-            tuple(kron_res),
-            order='F'
-        ),
-        res_order
-    )
+            res_order
+        )
+    else:
+        return ab.transpose(
+            ab.reshape(
+                op_redu(
+                    op_pair(
+                        lhs[tuple(dim_lhs)],
+                        rhs[tuple(dim_rhs)]
+                    ),
+                    tuple(con_ax)
+                ),
+                tuple(kron_res),
+                order='F'
+            ),
+            res_order
+        )

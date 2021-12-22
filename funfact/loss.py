@@ -37,7 +37,7 @@ class Loss(ABC):
                 f'{reduction} instead.'
             )
         if sum_vec:
-            return ab.sum(_loss, axis=None)
+            return ab.sum(_loss)
         else:
             return _loss
 
