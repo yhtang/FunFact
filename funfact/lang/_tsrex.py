@@ -20,6 +20,11 @@ class ASCIITreeFactory:
 
     @staticmethod
     def _make_printer(*extra_fields):
+        def _getattr_safe(obj, attr):
+            try:
+                return getattr(obj, attr)
+            except AttributeError:
+                return None
         return asciitree.LeftAligned(
             traverse=as_namedtuple(
                 'TsrExTraversal',
@@ -34,7 +39,7 @@ class ASCIITreeFactory:
                     )
                 ),
                 get_text=lambda node: node.ascii + ' ' + ' '.join([
-                    f'({v}: {getattr(node, v)})' for v in extra_fields
+                    f'({v}: {_getattr_safe(node, v)})' for v in extra_fields
                 ])
             ),
             draw=asciitree.drawing.BoxStyle(

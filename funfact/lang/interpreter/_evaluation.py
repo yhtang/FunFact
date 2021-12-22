@@ -14,9 +14,7 @@ class Evaluator(ROOFInterpreter):
         return _einop(spec, lhs, rhs, reduction, pairwise)
 
     def literal(self, value, **kwargs):
-        # TODO: need to specialize for each literal type
-        # e.g. scalar, 1, 0, delta
-        return value
+        return ab.tensor(value.raw)
 
     def tensor(self, abstract, data, **kwargs):
         return data
