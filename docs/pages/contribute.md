@@ -26,7 +26,7 @@ import sys; print('Python', sys.version)
 import funfact; print('FunFact', funfact.__version__)
 ```
 
-# Contributing Code
+## Contributing Code
 
 The most recommended way to contribute is to fork the [main
 repository](https://github.com/yhtang/FunFact), then submit a \"pull
@@ -46,8 +46,7 @@ request\" following the procedure below:
 7.  Push the completed feature to your own fork, then [create a pull
     request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
-Development Guide
------------------
+## Development Guide
 
 ### Setting up the development environment
 

@@ -23,9 +23,14 @@ nav:
     - Installation: pages/installation.md
     - Examples:
       - Nonlinear matrix approximation: pages/examples/nma.md
+    - Cheatsheet: pages/cheatsheet.md
     - User Guide:
-        Overview: pages/user_guide.md
-        Grammar reference: pages/tsrex.md
+        Tensors and Indices: pages/user-guide/tensor-and-indices.md
+        Einstein Operations: pages/user-guide/einop.md
+        Evaluation: pages/user-guide/eval.md
+        Tensor Factorization: pages/user-guide/factorize.md
+        Backends and Acceleration: pages/user-guide/backends.md
+        Grammar Reference: pages/user-guide/cfg.md
     - API Reference:
         "funfact.active_backend": api/active_backend.md
         "funfact.available_backends": api/available_backends.md
@@ -38,6 +43,8 @@ nav:
     # - API Reference: reference/
     - How to contribute: pages/contribute.md
 markdown_extensions:
+  - admonition
+  - tables
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.highlight:
@@ -46,7 +53,6 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - pymdownx.snippets
-  - admonition
   - pymdownx.details
 extra_javascript:
   - javascripts/mathjax.js
