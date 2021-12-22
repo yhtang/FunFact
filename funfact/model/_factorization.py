@@ -60,7 +60,7 @@ class Factorization:
 
         Examples:
             >>> import funfact as ff
-            >>> a = ff.tensor('a', 2, 3)
+            >>> a = ff.tensor('a', 2, 3, optimizable=False)
             >>> b = ff.tensor('b', 3, 4)
             >>> i, j, k = ff.indices(3)
             >>> fac = ff.Factorization.from_tsrex(
@@ -68,8 +68,43 @@ class Factorization:
             ...     initialize=True
             ... )
             >>> fac.factors
-            <'data' fields of tensors a, b>
+            <'data' field of tensor b>
             >>> fac.factors[0]
+            DeviceArray([[ 0.5920733 ,  0.17746426, -1.8907379 , -0.10324025],
+                         [ 0.05991533,  2.5538554 ,  0.05718338,  0.8887682 ],
+                         [ 0.54816544,  2.3392196 ,  1.1973379 ,  0.04005199]],
+                          dtype=float32)
+        '''
+        return self._NodeView(
+            'data',
+            list(dfs_filter(lambda n: n.name == 'tensor' and
+                            n.abstract.optimizable, self.tsrex.root))
+        )
+
+    @factors.setter
+    def factors(self, tensors):
+        for i, n in enumerate(
+            dfs_filter(lambda n: n.name == 'tensor' and
+                       n.abstract.optimizable, self.tsrex.root)
+        ):
+            n.data = tensors[i]
+
+    @property
+    def all_factors(self):
+        '''A flattened list of all factors in the model.
+
+        Examples:
+            >>> import funfact as ff
+            >>> a = ff.tensor('a', 2, 3, optimizable=False)
+            >>> b = ff.tensor('b', 3, 4)
+            >>> i, j, k = ff.indices(3)
+            >>> fac = ff.Factorization.from_tsrex(
+            ...     a[i, j] * b[j, k],
+            ...     initialize=True
+            ... )
+            >>> fac.all_factors
+            <'data' fields of tensors a, b>
+            >>> fac.all_factors[0]
             DeviceArray([[[ 0.2509914 ],
                           [-0.5063717 ],
                           [-1.0069973 ]],
@@ -81,13 +116,6 @@ class Factorization:
             'data',
             list(dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root))
         )
-
-    @factors.setter
-    def factors(self, tensors):
-        for i, n in enumerate(
-            dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root)
-        ):
-            n.data = tensors[i]
 
     @property
     def tsrex(self):
@@ -157,7 +185,8 @@ class Factorization:
                     )
 
         # Evaluate model
-        return self.tsrex | SlicingPropagator(full_idx) | ElementwiseEvaluator()
+        return self.tsrex | SlicingPropagator(full_idx) \
+                          | ElementwiseEvaluator()
 
     def __getitem__(self, idx):
         '''Implements attribute-based access of factor tensors or output

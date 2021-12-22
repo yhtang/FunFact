@@ -252,11 +252,19 @@ def test_tensor():
         assert isinstance(u, TensorEx)
         assert u.ndim == 1
         assert u.shape == (n,)
+        assert u.root.abstract.optimizable is False
 
         v = tensor(np.eye(n))
         assert isinstance(v, TensorEx)
         assert v.ndim == 2
         assert v.shape == (n, n)
+        assert v.root.abstract.optimizable is False
+
+        w = tensor(n)
+        assert isinstance(w, TensorEx)
+        assert w.ndim == 1
+        assert w.shape == (n,)
+        assert w.root.abstract.optimizable is True
 
 
 @pytest.mark.parametrize(
@@ -269,10 +277,11 @@ def test_tensor():
 )
 def test_tensor_creation(spec):
 
-    t = tensor(*spec)
+    t = tensor(*spec, optimizable=True)
     assert isinstance(t, TensorEx)
     assert t.shape == (4, 3, 2)
     assert t.ndim == 3
+    assert t.root.abstract.optimizable is True
 
 
 def test_tensor_0d():
