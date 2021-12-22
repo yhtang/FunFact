@@ -13,7 +13,7 @@ class NumPyBackend(metaclass=BackendMeta):
     tensor_t = (np.ndarray,)
 
     @classmethod
-    def tensor(cls, array, optimizable, **kwargs):
+    def tensor(cls, array, optimizable=False, **kwargs):
         return np.asarray(array, **kwargs)
 
     @classmethod
@@ -21,5 +21,5 @@ class NumPyBackend(metaclass=BackendMeta):
         cls._rng = np.random.default_rng(seed=key)
 
     @classmethod
-    def normal(cls, mean, std, *shape, optimizable, dtype=np.float32):
+    def normal(cls, mean, std, *shape, optimizable=False, dtype=np.float32):
         return cls._rng.normal(mean, std, shape)

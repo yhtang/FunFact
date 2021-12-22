@@ -14,7 +14,7 @@ def test_elementwise():
     B = tensor('B', 2, 2)
     i, j, k, m = indices('i, j, k, m')
     tsrex = A[i, j] * B[j, k]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
 
     # one element
     idx = (1, 0)
@@ -40,7 +40,7 @@ def test_elementwise():
     A = tensor('A', 10)
     B = tensor('B', 5)
     tsrex = A[i] * B[j]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
 
     # one element
     idx = (1, 0)
@@ -59,7 +59,7 @@ def test_elementwise():
     A = tensor('A', 2, 3)
     B = tensor('B', 3, 4)
     tsrex = A[i, j] * B[~j, k]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
 
     # one element
     idx = (1, 0, 1)
@@ -78,7 +78,7 @@ def test_elementwise():
     A = tensor('A', 2, 3, 4)
     B = tensor('B', 4, 3, 2)
     tsrex = A[i, j, k] * B[k, ~j, m]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
 
     # one element
     idx = (0, 2, 1)
@@ -100,7 +100,7 @@ def test_elementwise():
     u3 = tensor('u_3', 6, 3)
     i1, i2, i3, k1, k2, k3 = indices('i_1, i_2, i_3, k_1, k_2, k_3')
     tsrex = T[k1, k2, k3] * u1[i1, k1] * u2[i2, k2] * u3[i3, k3]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
 
     # one element
     idx = (0, 2, 1)
@@ -131,7 +131,7 @@ def test_Kronecker():
 
     # regular Kronecker product
     tsrex = A[[*i, *j]] * B[i, j]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
     out = fac()
     expected_shape = (6, 9)
     for o, f, e in zip(out.shape, fac.shape, expected_shape):
@@ -142,7 +142,7 @@ def test_Kronecker():
 
     # Kronecker product along first axis (Khatri-Rao)
     tsrex = A[[*i, ~j]] * B[i, j]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
     out = fac()
     expected_shape = (6, 3)
     for o, f, e in zip(out.shape, fac.shape, expected_shape):
@@ -154,7 +154,7 @@ def test_Kronecker():
 
     # Kronecker product along first axis, reduction second
     tsrex = A[[*i,  j]] * B[i, j]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
     out = fac()
     expected_shape = (6,)
     for o, f, e in zip(out.shape, fac.shape, expected_shape):
@@ -163,7 +163,7 @@ def test_Kronecker():
 
     # Matrix product
     tsrex = A[[i,   j]] * B[j, k]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
     out = fac()
     expected_shape = (2, 3)
     for o, f, e in zip(out.shape, fac.shape, expected_shape):
@@ -174,7 +174,7 @@ def test_Kronecker():
 
     # No reduction
     tsrex = A[[i,  ~j]] * B[j, k]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
     out = fac()
     expected_shape = (2, 3, 3)
     for o, f, e in zip(out.shape, fac.shape, expected_shape):
@@ -183,7 +183,7 @@ def test_Kronecker():
 
     # Kronecker product inner axis
     tsrex = A[[i,  *j]] * B[j, k]
-    fac = Factorization(tsrex)
+    fac = Factorization.from_tsrex(tsrex)
     out = fac()
     expected_shape = (2, 9, 3)
     for o, f, e in zip(out.shape, fac.shape, expected_shape):

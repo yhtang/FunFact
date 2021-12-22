@@ -14,7 +14,7 @@ class PyTorchBackend(metaclass=BackendMeta):
     tensor_t = (torch.Tensor, np.ndarray)
 
     @classmethod
-    def tensor(cls, array, optimizable, **kwargs):
+    def tensor(cls, array, optimizable=False, **kwargs):
         return torch.tensor(array, requires_grad=optimizable, **kwargs)
 
     @classmethod
@@ -22,7 +22,7 @@ class PyTorchBackend(metaclass=BackendMeta):
         cls._gen.manual_seed(key)
 
     @classmethod
-    def normal(cls, mean, std, *shape, optimizable, dtype=torch.float32):
+    def normal(cls, mean, std, *shape, optimizable=True, dtype=torch.float32):
         data = torch.normal(mean, std, shape, dtype=dtype, generator=cls._gen)
         if optimizable:
             return data.clone().detach().requires_grad_(True)
