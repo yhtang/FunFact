@@ -1,11 +1,8 @@
+# Grammar Reference
+
 ## Embedded Domain-Specific Language (eDSL) for Tensor Expressions
 
-Related file:
-
-- `funfact/lang/_primitive.py`
-- `funfact/lang/_tsrex.py`
-
-A **t**en**s**o**r** **ex**pression (**tsrex**) is an index notation system with a few extensions to the Einstein summation convention.
+FunFact's **t**en**s**o**r** **ex**pression (**tsrex**) is an index notation system that extends the Einstein summation convention.
 
 Below is the grammar of tsrex in BNF:
 

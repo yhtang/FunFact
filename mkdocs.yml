@@ -19,13 +19,18 @@ plugins:
   #     - docs/gen_ref_nav.py
       # - docs/gen_credits.py
 nav:
-    - Home: index.md
-    - Installation: installation.md
+    - index.md
+    - pages/installation.md
     - Examples:
-      - Nonlinear matrix approximation: "examples/nma.md"
+      - Nonlinear matrix approximation: pages/examples/nma.md
+    - pages/cheatsheet.md
     - User Guide:
-        Overview: user_guide.md
-        Grammar reference: tsrex.md
+        - pages/user-guide/tensor-and-indices.md
+        - pages/user-guide/einop.md
+        - pages/user-guide/eval.md
+        - pages/user-guide/factorize.md
+        - pages/user-guide/backends.md
+        - pages/user-guide/cfg.md
     - API Reference:
         "funfact.active_backend": api/active_backend.md
         "funfact.available_backends": api/available_backends.md
@@ -36,8 +41,10 @@ nav:
         "funfact.index": api/index.md
         "funfact.indices": api/indices.md
     # - API Reference: reference/
-    - How to contribute: contribute.md
+    - pages/contribute.md  # contribution guide
 markdown_extensions:
+  - admonition
+  - tables
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.highlight:
@@ -46,7 +53,6 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.superfences
   - pymdownx.snippets
-  - admonition
   - pymdownx.details
 extra_javascript:
   - javascripts/mathjax.js
