@@ -11,7 +11,8 @@ from funfact.vectorization import vectorize, view
 
 def factorize(
     tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
-    loss='mse_loss', nvec=1, stop_by='first', returns='best', **kwargs
+    loss='mse_loss', nvec=1, stop_by='first', returns='best',
+    checkpoint_freq=50, **kwargs
 ):
     '''Factorize a target tensor using the given tensor expression. The
     solution is found by minimizing the loss function between the original and
@@ -52,6 +53,8 @@ def factorize(
             - If 'best', return the solution with the smallest loss.
             - If int `n`, return the top `n` instances.
             - If 'all', return all instances.
+
+        checkpoint_freq (int >= 1): The frequency of convergence checking.
     Returns:
         *:
             - If `returns == 'best'`, return a factorization object of type
@@ -116,21 +119,19 @@ def factorize(
         with ab.no_grad():
             opt.step(grad)
 
-            if step % round(max_steps/20) == 0:
+            if step % checkpoint_freq == 0:
                 # update best factorization
                 curr_loss = loss(opt_fac(), target, sum_vec=False)
-                new_best = []
-                for b, o in zip(best_factors, opt_fac.factors):
-                    for i, l in enumerate(zip(curr_loss, best_loss)):
-                        if l[0] < l[1]:
-                            if b.shape[-1] == 1:
-                                b[..., 0] = o[..., 0]
-                            else:
+
+                for i, l in enumerate(zip(curr_loss, best_loss)):
+                    if l[0] < l[1]:
+                        for b, o in zip(best_factors, opt_fac.factors):
+                            try:
                                 b[..., i] = o[..., i]
-                            if l[0] < tol:
-                                converged[i] = 1
-                    new_best.append(b)
-                best_factors = new_best
+                            except IndexError:
+                                b[..., 0] = o[..., 0]
+                        if l[0] < tol:
+                            converged[i] = 1
 
                 if stop_by == 'first':
                     if np.any(converged):
