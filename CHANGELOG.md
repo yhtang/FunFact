@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.7.1 (2021-12-22)
+
+- Tons of new features.
+
 ## 0.7.0 (2021-12-01)
 
 - Vectorizer.
