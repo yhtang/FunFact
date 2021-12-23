@@ -19,18 +19,18 @@ plugins:
   #     - docs/gen_ref_nav.py
       # - docs/gen_credits.py
 nav:
-    - Home: index.md
-    - Installation: pages/installation.md
+    - index.md
+    - pages/installation.md
     - Examples:
       - Nonlinear matrix approximation: pages/examples/nma.md
-    - Cheatsheet: pages/cheatsheet.md
+    - pages/cheatsheet.md
     - User Guide:
-        Tensors and Indices: pages/user-guide/tensor-and-indices.md
-        Einstein Operations: pages/user-guide/einop.md
-        Evaluation: pages/user-guide/eval.md
-        Tensor Factorization: pages/user-guide/factorize.md
-        Backends and Acceleration: pages/user-guide/backends.md
-        Grammar Reference: pages/user-guide/cfg.md
+        - pages/user-guide/tensor-and-indices.md
+        - pages/user-guide/einop.md
+        - pages/user-guide/eval.md
+        - pages/user-guide/factorize.md
+        - pages/user-guide/backends.md
+        - pages/user-guide/cfg.md
     - API Reference:
         "funfact.active_backend": api/active_backend.md
         "funfact.available_backends": api/available_backends.md
@@ -41,7 +41,7 @@ nav:
         "funfact.index": api/index.md
         "funfact.indices": api/indices.md
     # - API Reference: reference/
-    - How to contribute: pages/contribute.md
+    - pages/contribute.md  # contribution guide
 markdown_extensions:
   - admonition
   - tables
