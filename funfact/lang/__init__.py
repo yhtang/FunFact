@@ -22,4 +22,6 @@ except Exception:
     warnings.warn('Cannot set up MathJAX, LaTeX rendering may not work.')
 
 
-__all__ = ['index', 'indices', 'tensor', 'template', '_0', '_1', 'delta']
+__all__ = [
+    'index', 'indices', 'tensor', 'template', '_0', '_1', 'delta', 'TsrEx'
+]
