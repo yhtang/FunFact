@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import contextlib
 import numpy as np
 import jax.numpy as jnp
 import jax.random as jrn
@@ -22,6 +23,10 @@ class JAXBackend(metaclass=BackendMeta):
         return jnp.asarray(array, **kwargs)
 
     @classmethod
+    def to_numpy(cls, tensor):
+        return np.asarray(tensor)
+
+    @classmethod
     def seed(cls, key):
         cls._key = jrn.PRNGKey(key)
 
@@ -31,12 +36,17 @@ class JAXBackend(metaclass=BackendMeta):
         return mean + std * jrn.normal(subkey, shape, dtype)
 
     @staticmethod
-    def grad(*args, **kwargs):
-        return jax.grad(*args, **kwargs)
+    def loss_and_grad(loss_fn, example_model, example_target):
+        loss_and_grad_fn = jax.jit(
+            jax.value_and_grad(
+                lambda model, target: loss_fn(model(), target)
+            )
+        )
 
-    @staticmethod
-    def jit(*args, **kwargs):
-        return jax.jit(*args, **kwargs)
+        def wrapper(model, target):
+            loss, dmodel = loss_and_grad_fn(model, target)
+            return loss, dmodel.factors
+        return wrapper
 
     def autograd_decorator(*args, **kwargs):
         return register_pytree_node_class(*args, **kwargs)
@@ -50,3 +60,6 @@ class JAXBackend(metaclass=BackendMeta):
             unflatten = cls(*metadata, initialize=False)
             unflatten.factors = children
             return unflatten
+
+    def no_grad():
+        return contextlib.nullcontext()
