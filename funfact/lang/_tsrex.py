@@ -91,10 +91,51 @@ class _BaseEx(_AST):
 
     @functools.lru_cache()
     def _repr_html_(self):
+        '''LaTeX rendering of the tensor expression for Jupyter notebook.'''
         return f'''$${self._latex_intr(self.root)}$$'''
 
     @property
     def asciitree(self):
+        '''A ASCII-based tree visualization of the tensor expression.
+        This property can also be treated as a callable that accepts a list of
+        string-valued attribute names to be displayed for each node.
+
+        Examples:
+            >>> import funfact as ff
+            >>> a = ff.tensor('a', 2, 3)
+            >>> b = ff.tensor('b', 3, 5)
+            >>> i, j, k = ff.indices('i, j, k')
+            >>> tsrex = a[i, j] * b[j, k]
+            >>> tsrex.asciitree
+            sum:multiply
+            ├── a[i,j]
+            │   ├──
+            │   ╰── i,j
+            │       ├── i
+            │       ╰── j
+            ╰── b[j,k]
+                ├── b
+                ╰── j,k
+                    ├── j
+                    ╰── k
+
+            >>> fac = ff.Factorization.from_tsrex(tsrex)
+            >>> fac.tsrex.asciitree('data')
+            sum:multiply (data: None)
+            ├── a[i,j] (data: None)
+            │   ├── a (data: [[ 0.573 -0.406  0.164]
+            │   │             [-0.492  0.128  1.428]])
+            │   ╰── i,j (data: None)
+            │       ├── i (data: None)
+            │       ╰── j (data: None)
+            ╰── b[j,k] (data: None)
+                ├── b (data: [[-0.527  0.933  0.218 -1.49  -0.976]
+                │             [ 0.028  0.285 -0.701 -1.753 -2.313]
+                │             [-0.371 -0.406  0.374  1.17   1.372]])
+                ╰── j,k (data: None)
+                    ├── j (data: None)
+                    ╰── k (data: None)
+        '''
         return self._asciitree_factory(self.root)
 
     @property
@@ -106,18 +147,23 @@ class _BaseEx(_AST):
 
     @property
     def shape(self):
+        '''Shape of the evaluation result'''
         return self._static_analyzed.shape
 
     @property
-    def live_indices(self):
-        return self._static_analyzed.live_indices
-
-    @property
     def ndim(self):
+        '''Dimensionality of the evaluation result'''
         return len(self._static_analyzed.shape)
 
     @property
+    def live_indices(self):
+        '''Surviving indices that are not eliminated during tensor
+        contractions.'''
+        return self._static_analyzed.live_indices
+
+    @property
     def einspec(self):
+        '''NumPy-style einsum specification of the top level operation.'''
         return self._static_analyzed.einspec
 
 
@@ -220,7 +266,21 @@ class TranspositionMixin:
 
 
 class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin, TranspositionMixin):
-    '''A general tensor expression'''
+    '''A expression of potentially nested and composite tensor computations.
+
+    Supported operations between tensor expressions include:
+
+    - Elementwise: addition, subtraction, multiplication, division,
+    exponentiation
+    - Einstein summation and generalized semiring operations
+    - Kronecker product
+    - Transposition
+    - Function evaluation
+
+    For more details, see the corresponding
+    [user guide page](../../pages/user-guide/tsrex).
+
+    '''
     pass
 
 

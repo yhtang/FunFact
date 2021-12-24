@@ -107,6 +107,7 @@ class _AST:
 
     @property
     def root(self):
+        '''Root node of the tensor expression'''
         return self._root
 
     @root.setter

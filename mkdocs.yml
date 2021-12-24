@@ -14,6 +14,11 @@ plugins:
   - mkdocstrings:
       watch:
         - funfact
+      handlers:
+        python:
+          rendering:
+            # show_root_full_path: False
+            show_root_toc_entry: False
   # - gen-files:
   #     scripts:
   #     - docs/gen_ref_nav.py
@@ -26,7 +31,7 @@ nav:
     - pages/cheatsheet.md
     - User Guide:
         - pages/user-guide/tensor-and-indices.md
-        - pages/user-guide/einop.md
+        - pages/user-guide/tsrex.md
         - pages/user-guide/eval.md
         - pages/user-guide/factorize.md
         - pages/user-guide/backends.md
@@ -35,6 +40,7 @@ nav:
         "funfact.tensor": api/tensor.md
         "funfact.index": api/index.md
         "funfact.indices": api/indices.md
+        "funfact.TsrEx": api/tsrex.md
         "funfact.Factorization": api/factorization.md
         "funfact.factorize": api/factorize.md
         "funfact.vectorize": api/vectorize.md
@@ -47,6 +53,8 @@ nav:
 markdown_extensions:
   - admonition
   - tables
+  - toc:
+      permalink: "#"
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.highlight:

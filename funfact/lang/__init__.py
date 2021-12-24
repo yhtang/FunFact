@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import warnings
-from ._tsrex import index, indices, tensor
+from ._tsrex import index, indices, tensor, TsrEx
 from ._tplex import template
 from ._predefined_literal import _0, _1, delta
 
