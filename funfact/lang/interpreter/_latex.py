@@ -57,6 +57,9 @@ class LatexRenderer(ROOFInterpreter):
     def neg(self, x, **kwargs):
         return fr'-{x}'
 
+    def elem(self, lhs, rhs, precedence, oper, **kwargs):
+        return fr'{lhs} {_omap[oper]} {rhs}'
+
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         if reduction == 'sum':
             op = _omap[pairwise]

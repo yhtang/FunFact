@@ -44,43 +44,46 @@ class ROOFInterpreter(ABC):
     by another transcribe interpreter.'''
 
     @abstractmethod
-    def literal(self, value: LiteralValue, **payload: Any):
+    def literal(self, value: LiteralValue, **payload):
         pass
 
     @abstractmethod
-    def tensor(self, abstract: AbstractTensor, **payload: Any):
+    def tensor(self, abstract: AbstractTensor, **payload):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, bound: bool, kron: bool,
-              **payload: Any):
+    def index(self, item: AbstractIndex, bound: bool, kron: bool, **payload):
         pass
 
     @abstractmethod
-    def indices(self, items: AbstractIndex, **payload: Any):
+    def indices(self, items: AbstractIndex, **payload):
         pass
 
     @abstractmethod
-    def index_notation(
-        self, tensor: Any, indices: Iterable[Any], **payload: Any
+    def index_notation(self, tensor: Any, indices: Iterable[Any], **payload):
+        pass
+
+    @abstractmethod
+    def call(self, f: str, x: Any, **payload):
+        pass
+
+    @abstractmethod
+    def pow(self, base: Any, exponent: Any, **payload):
+        pass
+
+    @abstractmethod
+    def neg(self, x: Any, **payload):
+        pass
+
+    @abstractmethod
+    def elem(
+        self, lhs: Any, rhs: Any, precedence: int, pairwise: str, **payload
     ):
         pass
 
     @abstractmethod
-    def call(self, f: str, x: Any, **payload: Any):
-        pass
-
-    @abstractmethod
-    def pow(self, base: Any, exponent: Any, **payload: Any):
-        pass
-
-    @abstractmethod
-    def neg(self, x: Any, **payload: Any):
-        pass
-
-    @abstractmethod
     def ein(self, lhs: Any, rhs: Any, precedence: int, reduction: str,
-            pairwise: str, outidx: Any, **payload: Any):
+            pairwise: str, outidx: Any, **payload):
         pass
 
     @abstractmethod
@@ -122,43 +125,47 @@ class TranscribeInterpreter(ABC):
             return wrapper
 
     @abstractmethod
-    def literal(self, value: LiteralValue, **payload: Any):
+    def literal(self, value: LiteralValue, **payload):
         pass
 
     @abstractmethod
-    def tensor(self, abstract: AbstractTensor, **payload: Any):
+    def tensor(self, abstract: AbstractTensor, **payload):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, bound: bool, kron: bool,
-              **payload: Any):
+    def index(self, item: AbstractIndex, bound: bool, kron: bool, **payload):
         pass
 
     @abstractmethod
-    def indices(self, items: Tuple[AbstractIndex], **payload: Any):
+    def indices(self, items: Tuple[AbstractIndex], **payload):
         pass
 
     @abstractmethod
     def index_notation(
-        self, tensor: P.tensor, indices: P.indices, **payload: Any
+        self, tensor: P.tensor, indices: P.indices, **payload
     ):
         pass
 
     @abstractmethod
-    def call(self, f: str, x: Tensorial, **payload: Any):
+    def call(self, f: str, x: Tensorial, **payload):
         pass
 
     @abstractmethod
-    def pow(self, base: Numeric, exponent: Numeric, **payload: Any):
+    def pow(self, base: Numeric, exponent: Numeric, **payload):
         pass
 
     @abstractmethod
-    def neg(self, x: Numeric, **payload: Any):
+    def neg(self, x: Numeric, **payload):
+        pass
+
+    @abstractmethod
+    def elem(self, lhs: Numeric, rhs: Numeric, precedence: int, pairwise: str,
+             **payload):
         pass
 
     @abstractmethod
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], **payload: Any):
+            pairwise: str, outidx: Optional[P.indices], **payload):
         pass
 
     @abstractmethod
@@ -184,6 +191,19 @@ class TranscribeInterpreter(ABC):
 
     def __ror__(self, tsrex: _AST):
         return type(tsrex)(self(tsrex.root))
+
+
+class PreOrderRewriter(TranscribeInterpreter):
+
+    def __call__(self, node: _ASNode, parent: _ASNode = None):
+        node = copy.copy(node)
+        rule = getattr(self, node.name)
+        if parent is None:
+            node.slices = self.slices
+        rule(**node.fields)
+        for name, value in node.fields_fixed.items():
+            setattr(node, name, _deep_apply(self, value, node))
+        return node
 
 
 class PayloadMerger:

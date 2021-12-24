@@ -68,6 +68,14 @@ class Primitives:
     def neg(x: _ASNode):
         '''elementwise negation'''
 
+    @primitive(precedence=5)
+    def kron(lhs: _ASNode, rhs: _ASNode):
+        '''indexless Kronecker product'''
+
+    @primitive(precedence=None)
+    def elem(lhs: _ASNode, rhs: _ASNode, precedence: int, oper: str):
+        '''indexless elementwise operations'''
+
     @primitive(precedence=None)
     def ein(
         lhs: _ASNode, rhs: _ASNode, precedence: int,

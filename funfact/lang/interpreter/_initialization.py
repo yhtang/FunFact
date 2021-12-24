@@ -59,6 +59,10 @@ class LeafInitializer(TranscribeInterpreter):
         return None
 
     @as_payload
+    def elem(self, lhs, rhs, oper, **kwargs):
+        return None
+
+    @as_payload
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         return None
 

@@ -62,6 +62,12 @@ class IndexPropagator(TranscribeInterpreter):
         return x.live_indices, x.keep_indices, x.kron_indices
 
     @as_payload
+    def elem(
+        self, lhs: Numeric, rhs: Numeric, precedence: int, oper: str, **kwargs
+    ):
+        return [], [], []
+
+    @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], **kwargs):
         '''

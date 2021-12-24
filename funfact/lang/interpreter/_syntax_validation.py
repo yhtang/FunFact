@@ -6,11 +6,6 @@ from ._base import _deep_apply
 
 
 class SyntaxValidator:
-    '''A ROOF (Read-Only On-the-Fly) interpreter traverses an AST for one pass
-    and produces the final outcome without altering the AST. Intermediates are
-    passed as return values between the traversing levels. Its primitive rules
-    may still accept a 'payload' argument, which could be potentially produced
-    by another transcribe interpreter.'''
 
     def literal(self, node: _ASNode, parent: _ASNode):
         pass
@@ -59,19 +54,8 @@ class SyntaxValidator:
     def neg(self, node: _ASNode, parent: _ASNode):
         pass
 
-    def mul(self, node: _ASNode, parent: _ASNode):
-        pass
-
-    def div(self, node: _ASNode, parent: _ASNode):
-        pass
-
-    def add(self, node: _ASNode, parent: _ASNode):
-        pass
-
-    def sub(self, node: _ASNode, parent: _ASNode):
-        pass
-
-    def let(self, node: _ASNode, parent: _ASNode):
+    def elem():
+        # TODO
         pass
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):

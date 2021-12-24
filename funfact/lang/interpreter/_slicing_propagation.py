@@ -45,6 +45,10 @@ class SlicingPropagator():
     def neg(self, x: Numeric, slices, **kwargs):
         x.slices = slices
 
+    def elem(self, lhs: Numeric, rhs: Numeric, oper: str, slices, **kwargs):
+        lhs.slices = slices
+        rhs.slices = slices
+
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], slices, live_indices,
             **kwargs):

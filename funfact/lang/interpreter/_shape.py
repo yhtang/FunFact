@@ -49,6 +49,13 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return x.shape
 
     @as_payload
+    def elem(
+        self, lhs: Numeric, rhs: Numeric, precedence: int, oper: str, **kwargs
+    ):
+        assert lhs.shape == rhs.shape
+        return lhs.shape
+
+    @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
             kron_indices, **kwargs):

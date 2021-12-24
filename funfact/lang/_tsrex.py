@@ -39,7 +39,10 @@ class ASCIITreeFactory:
                     )
                 ),
                 get_text=lambda node: node.ascii + ' ' + ' '.join([
-                    f'({v}: {_getattr_safe(node, v)})' for v in extra_fields
+                    '({f}: {s})'.format(
+                        f=f,
+                        s=re.sub('\n', '', str(_getattr_safe(node, f)))
+                    ) for f in extra_fields
                 ])
             ),
             draw=asciitree.drawing.BoxStyle(
@@ -167,7 +170,7 @@ class _BaseEx(_AST):
         return self._static_analyzed.einspec
 
 
-class ArithmeticMixin:
+class IndexedArithmeticMixin:
 
     def __add__(self, rhs):
         return EinopEx(P.ein(
@@ -265,7 +268,12 @@ class TranspositionMixin:
         ))
 
 
-class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin, TranspositionMixin):
+class TsrEx(
+    _BaseEx,
+    IndexedArithmeticMixin,
+    IndexRenamingMixin,
+    TranspositionMixin
+):
     '''A expression of potentially nested and composite tensor computations.
 
     Supported operations between tensor expressions include:
@@ -279,9 +287,43 @@ class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin, TranspositionMixin):
 
     For more details, see the corresponding
     [user guide page](../../pages/user-guide/tsrex).
-
     '''
-    pass
+
+
+class IndexlessArithmeticMixin:
+
+    def __add__(self, rhs):
+        return TensorEx(P.elem(self.root, _BaseEx(rhs).root, 6, 'add'))
+
+    def __radd__(self, lhs):
+        return TensorEx(P.elem(_BaseEx(lhs).root, self.root, 6, 'add'))
+
+    def __sub__(self, rhs):
+        return TensorEx(P.elem(self.root, _BaseEx(rhs).root, 6, 'subtract'))
+
+    def __rsub__(self, lhs):
+        return TensorEx(P.elem(_BaseEx(lhs).root, self.root, 6, 'subtract'))
+
+    def __mul__(self, rhs):
+        return TensorEx(P.elem(self.root, _BaseEx(rhs).root, 5, 'multiply'))
+
+    def __rmul__(self, lhs):
+        return TensorEx(P.elem(_BaseEx(lhs).root, self.root, 5, 'multiply'))
+
+    def __truediv__(self, rhs):
+        return TensorEx(P.elem(self.root, _BaseEx(rhs).root, 5, 'divide'))
+
+    def __rtruediv__(self, lhs):
+        return TensorEx(P.elem(_BaseEx(lhs).root, self.root, 5, 'divide'))
+
+    def __neg__(self):
+        return TensorEx(P.neg(self.root))
+
+    # def __pow__(self, exponent):
+    #     return TsrEx(P.pow(self.root, _BaseEx(exponent).root))
+
+    # def __rpow__(self, base):
+    #     return TsrEx(P.pow(_BaseEx(base).root, self.root))
 
 
 class IndexEx(_BaseEx):
@@ -294,7 +336,7 @@ class IndexEx(_BaseEx):
         yield IndexEx(dataclasses.replace(self.root, bound=False, kron=True))
 
 
-class TensorEx(_BaseEx):
+class TensorEx(_BaseEx, IndexlessArithmeticMixin):
     def __getitem__(self, indices):
         return TsrEx(
             P.index_notation(

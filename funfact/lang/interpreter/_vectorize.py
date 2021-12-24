@@ -58,6 +58,10 @@ class Vectorizer(TranscribeInterpreter):
         return []
 
     @as_payload
+    def elem(self, lhs: Numeric, rhs: Numeric, oper: str, **kwargs):
+        return []
+
+    @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
             **kwargs):
