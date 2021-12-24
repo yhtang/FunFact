@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from ._ascii import ASCIIRenderer
-from ._base import dfs, dfs_filter, PayloadMerger, NoOp
+from ._base import dfs, dfs_filter, PayloadMerger
 from ._evaluation import Evaluator
 from ._einspec import EinsteinSpecGenerator
 from ._index_propagation import IndexPropagator
@@ -23,7 +23,6 @@ __all__ = [
     'LeafInitializer',
     'LatexRenderer',
     'PayloadMerger',
-    'NoOp',
     'ElementwiseEvaluator',
     'SlicingPropagator',
     'ShapeAnalyzer',

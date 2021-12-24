@@ -32,14 +32,16 @@ nav:
         - pages/user-guide/backends.md
         - pages/user-guide/cfg.md
     - API Reference:
-        "funfact.active_backend": api/active_backend.md
-        "funfact.available_backends": api/available_backends.md
-        "funfact.use": api/use.md
-        "funfact.factorize": api/factorize.md
-        "funfact.Factorization": api/factorization.md
         "funfact.tensor": api/tensor.md
         "funfact.index": api/index.md
         "funfact.indices": api/indices.md
+        "funfact.Factorization": api/factorization.md
+        "funfact.factorize": api/factorize.md
+        "funfact.vectorize": api/vectorize.md
+        "funfact.view": api/view.md
+        "funfact.active_backend": api/active_backend.md
+        "funfact.available_backends": api/available_backends.md
+        "funfact.use": api/use.md
     # - API Reference: reference/
     - pages/contribute.md  # contribution guide
 markdown_extensions:
