@@ -17,10 +17,10 @@ class Loss(ABC):
             if model.shape[:-1] != target.shape:
                 raise ValueError(f'Target shape {target.shape} and '
                                  f'model shape {model.shape[:-1]} mismatch.')
-            data_axis = [i for i in range(target.ndim)]
+            data_axis = tuple(i for i in range(target.ndim))
             target = target[..., None]
         elif target.ndim == model.ndim:
-            data_axis = [i for i in range(target.ndim)]
+            data_axis = tuple(i for i in range(target.ndim))
             if model.shape != target.shape:
                 raise ValueError(f'Target shape {target.shape} and '
                                  f'model shape {model.shape} mismatch.')
