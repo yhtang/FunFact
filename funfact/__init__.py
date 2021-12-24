@@ -6,6 +6,8 @@ from .lang import index, indices, tensor, template, _0, _1, delta
 from .lang._math import *  # noqa: F401, F403
 from .model import Factorization
 from .algorithm import factorize
+from .context import set_optimizable
+
 
 __all__ = [
     'use',
@@ -19,11 +21,12 @@ __all__ = [
     '_1',
     'delta',
     'Factorization',
-    'factorize'
+    'factorize',
+    'set_optimizable',
 ]
 
 
-__version__ = '0.7.0'
+__version__ = '0.7.1'
 __author__ = '''Yu-Hang "Maxin" Tang, Daan Camps, Elizaveta Rebrova'''
 __maintainer__ = 'Yu-Hang "Maxin" Tang'
 __email__ = 'Tang.Maxin@gmail.com'

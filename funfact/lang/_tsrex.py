@@ -20,6 +20,11 @@ class ASCIITreeFactory:
 
     @staticmethod
     def _make_printer(*extra_fields):
+        def _getattr_safe(obj, attr):
+            try:
+                return getattr(obj, attr)
+            except AttributeError:
+                return None
         return asciitree.LeftAligned(
             traverse=as_namedtuple(
                 'TsrExTraversal',
@@ -34,7 +39,7 @@ class ASCIITreeFactory:
                     )
                 ),
                 get_text=lambda node: node.ascii + ' ' + ' '.join([
-                    f'({v}: {getattr(node, v)})' for v in extra_fields
+                    f'({v}: {_getattr_safe(node, v)})' for v in extra_fields
                 ])
             ),
             draw=asciitree.drawing.BoxStyle(
@@ -308,7 +313,7 @@ def indices(spec):
         raise RuntimeError(f'Cannot create indices from {spec}.')
 
 
-def tensor(*spec, initializer=None):
+def tensor(*spec, initializer=None, optimizable=None):
     '''Construct an abstract tensor using `spec`.
 
     Args:
@@ -325,6 +330,17 @@ def tensor(*spec, initializer=None):
         initializer (callable):
             Initialization distribution
 
+        optimizable (boolean):
+            True/False flag indicating if a tensor leaf should be optimized.
+            The default behavior is dependent on the input for `spec`:
+
+            * if a size for each dimension is provided in `spec`, optimizable
+            is True by default
+            * if a concrete tensor is provided in `spec`, optimizable is False
+            by default
+
+            The default behavior can be overriden by user input.
+
     Returns:
         TsrEx: A tensor expression representing an abstract tensor object.
     '''
@@ -333,18 +349,26 @@ def tensor(*spec, initializer=None):
         symbol = spec[0]
         initializer = spec[1]
         size = initializer.shape
+        if optimizable is None:
+            optimizable = False
     elif len(spec) == 1 and ab.is_tensor(spec[0]):
         # concrete tensor only
         symbol = None
         initializer = spec[0]
         size = initializer.shape
+        if optimizable is None:
+            optimizable = False
     elif len(spec) >= 1 and isinstance(spec[0], str):
         # name + size
         symbol, *size = spec
+        if optimizable is None:
+            optimizable = True
     else:
         # size only
         symbol = None
         size = spec
+        if optimizable is None:
+            optimizable = True
 
     for d in size:
         if not (isinstance(d, int) and d > 0):
@@ -353,5 +377,6 @@ def tensor(*spec, initializer=None):
             )
 
     return TensorEx(P.tensor(
-        AbstractTensor(*size, symbol=symbol, initializer=initializer))
-    )
+        AbstractTensor(*size, symbol=symbol, initializer=initializer,
+                       optimizable=optimizable))
+                    )

@@ -15,7 +15,7 @@ class ShapeAnalyzer(TranscribeInterpreter):
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
-        return None
+        return tuple()
 
     @as_payload
     def tensor(self, abstract: AbstractTensor, **kwargs):

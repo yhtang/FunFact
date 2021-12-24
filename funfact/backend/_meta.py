@@ -14,7 +14,7 @@ class BackendMeta(ABCMeta):
 
     _required_methods = [
         # type conversion
-        'as_tensor'  # Convert array-like data to a tensor
+        'tensor'  # Convert array-like data to a tensor
         # operators
         'add',
         'subtract',
