@@ -165,6 +165,17 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         self.initializer = initializer
         self.optimizable = optimizable
 
+    def vectorize(self, n):
+        '''Extend dimensionality by one.'''
+        shape = (*self._shape, n)
+        if self.initializer is None or callable(self.initializer):
+            initializer = self.initializer
+        else:
+            initializer = self.initializer[..., None]
+        return type(self)(
+            *shape, initializer=initializer, optimizable=self.optimizable
+        )
+
     @property
     def shape(self):
         return self._shape

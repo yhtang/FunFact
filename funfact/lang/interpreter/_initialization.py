@@ -18,16 +18,21 @@ class LeafInitializer(TranscribeInterpreter):
 
     @as_payload
     def tensor(self, abstract, **kwargs):
-        if abstract.initializer is not None:
-            if not callable(abstract.initializer):
-                init_val = ab.tensor(abstract.initializer,
-                                     optimizable=abstract.optimizable)
+        initializer, optimizable, shape = (
+            abstract.initializer, abstract.optimizable, abstract.shape
+        )
+        if initializer is not None:
+            if not callable(initializer):
+                # If optimizable, slice for each instance must be independent.
+                # Otherwise, slices can share a view into the original tensor.
+                f = ab.tile if optimizable else ab.broadcast_to
+                return ab.tensor(
+                    f(initializer, shape), optimizable=optimizable
+                )
             else:
-                init_val = abstract.initializer(abstract.shape)
+                return initializer(shape)
         else:
-            init_val = ab.normal(0.0, 1.0, *abstract.shape,
-                                 optimizable=abstract.optimizable)
-        return init_val
+            return ab.normal(0.0, 1.0, *shape, optimizable=optimizable)
 
     @as_payload
     def index(self, item, bound, kron, **kwargs):
