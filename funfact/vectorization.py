@@ -8,7 +8,7 @@ from funfact.model import Factorization
 
 
 def vectorize(tsrex, n):
-    '''Vectorize a tensor expression by extending its dimensionality by one.
+    ''''Vectorize' a tensor expression by extending its dimensionality by one.
     Each slice along the vectorization dimension of a factorization model
     represents an independent realization of the original tensor expression.
     A typical use case is multi-replica optimization.
@@ -48,11 +48,12 @@ def view(fac, tsrex_scalar, instance: int):
         Factorization:
             A factorization model.
     '''
+    if instance >= fac.shape[-1]:
+        raise IndexError(
+            f'Only {fac.shape[-1]} vector instances exist, '
+            f'index {instance} out of range.'
+        )
     fac_scalar = Factorization(tsrex_scalar)
-    for i, f in enumerate(fac.factors):
-        try:
-            fac_scalar.factors[i] = f[..., instance]
-        except IndexError:
-            # if the last dimension is a broadcasting one
-            fac_scalar.factors[i] = f[..., 0]
+    for i, f in enumerate(fac.all_factors):
+        fac_scalar.all_factors[i] = f[..., instance]
     return fac_scalar

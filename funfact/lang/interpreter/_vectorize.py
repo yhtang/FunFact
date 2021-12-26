@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import copy
 from typing import Optional
-from funfact.util.iterable import as_tuple, flatten
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from ._base import TranscribeInterpreter
@@ -40,20 +38,8 @@ class Vectorizer(TranscribeInterpreter):
         self, tensor: P.tensor, indices: P.indices, live_indices,
         keep_indices, **kwargs
     ):
-        # update indices.items w/o altering original
-        items = copy.copy(indices.items)
-        items.append(self.vec_index)
-        indices.items = items
-        # update tensor.abstract w/o altering original
-        abstract = copy.copy(tensor.abstract)
-        shape = [abstract.shape]
-        shape.append(self.replicas)
-        abstract._shape = as_tuple(flatten(shape))
-        if abstract.initializer is not None:
-            if not callable(abstract.initializer):
-                initializer = copy.copy(abstract.initializer)
-                abstract.initializer = initializer[..., None]
-        tensor.abstract = abstract
+        indices.items = (*indices.items, self.vec_index)
+        tensor.abstract = tensor.abstract.vectorize(self.replicas)
         return []
 
     @as_payload

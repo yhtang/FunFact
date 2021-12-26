@@ -110,11 +110,9 @@ def factorize(
     # bookkeeping
     best_factors = [np.zeros_like(ab.to_numpy(x)) for x in opt_fac.factors]
     best_loss = np.ones(nvec) * np.inf
-    converged = np.zeros(nvec)
-    pbar = tqdm.tqdm(total=max_steps + 1)
+    converged = np.zeros(nvec, dtype=np.bool_)
 
-    for step in range(max_steps):
-        pbar.update(1)
+    for step in tqdm.trange(max_steps):
         _, grad = loss_and_grad(opt_fac, target)
         with ab.no_grad():
             opt.step(grad)
@@ -123,30 +121,22 @@ def factorize(
                 # update best factorization
                 curr_loss = loss(opt_fac(), target, sum_vec=False)
 
-                for i, l in enumerate(zip(curr_loss, best_loss)):
-                    if l[0] < l[1]:
-                        for b, o in zip(best_factors, opt_fac.factors):
-                            try:
-                                b[..., i] = o[..., i]
-                            except IndexError:
-                                b[..., 0] = o[..., 0]
-                        if l[0] < tol:
-                            converged[i] = 1
+                better = np.flatnonzero(curr_loss < best_loss)
+                for b, o in zip(best_factors, opt_fac.factors):
+                    b[..., better] = o[..., better]
 
+                converged |= np.where(curr_loss < tol, True, False)
                 if stop_by == 'first':
                     if np.any(converged):
-                        pbar.update(max_steps - step)
                         break
                 elif isinstance(stop_by, int):
                     if np.count_nonzero(converged) >= stop_by:
-                        pbar.update(max_steps - step)
                         break
                 else:
                     if stop_by is not None:
                         raise RuntimeError(
                             f'Invalid argument value for stop_by: {stop_by}'
                         )
-    pbar.close()
 
     best_fac = Factorization.from_tsrex(tsrex_vec)
     best_fac.factors = [ab.tensor(x) for x in best_factors]
