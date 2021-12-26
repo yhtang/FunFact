@@ -2,20 +2,20 @@
 # -*- coding: utf-8 -*-
 import itertools as it
 from typing import Optional
-from ._base import TranscribeInterpreter
+from ._base import PostOrderTranscriber
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
-class IndexPropagator(TranscribeInterpreter):
+class IndexPropagator(PostOrderTranscriber):
     '''The index propagator analyzes which of the indices survive in a
     contraction of two tensors and passes them onto the parent node.'''
 
-    Tensorial = TranscribeInterpreter.Tensorial
-    Numeric = TranscribeInterpreter.Numeric
+    Tensorial = PostOrderTranscriber.Tensorial
+    Numeric = PostOrderTranscriber.Numeric
 
-    as_payload = TranscribeInterpreter.as_payload(
+    as_payload = PostOrderTranscriber.as_payload(
         'live_indices', 'keep_indices', 'kron_indices'
     )
 

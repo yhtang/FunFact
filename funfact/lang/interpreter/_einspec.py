@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
-from ._base import TranscribeInterpreter
+from ._base import PostOrderTranscriber
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
@@ -24,55 +24,47 @@ class IndexMap:
             return self._map(ids)
 
 
-class EinsteinSpecGenerator(TranscribeInterpreter):
+class EinsteinSpecGenerator(PostOrderTranscriber):
     '''The Einstein summation specification generator creates NumPy-style spec
     strings for tensor contraction operations.'''
 
-    Tensorial = TranscribeInterpreter.Tensorial
-    Numeric = TranscribeInterpreter.Numeric
+    Tensorial = PostOrderTranscriber.Tensorial
+    Numeric = PostOrderTranscriber.Numeric
 
-    as_payload = TranscribeInterpreter.as_payload('einspec')
+    as_payload = PostOrderTranscriber.as_payload('einspec')
 
-    @as_payload
     def literal(self, value: LiteralValue, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def tensor(self, abstract: AbstractTensor, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def indices(self, items: Tuple[P.index], **kwargs):
-        return None
+        return []
 
-    @as_payload
     def index_notation(
         self, indexless: Tensorial, indices: P.indices,  **kwargs
     ):
-        return None
+        return []
 
-    @as_payload
     def call(self, f: str, x: Tensorial, **kwargs):
-        return None
+        return []
 
     @as_payload
     def pow(self, base: Numeric, exponent: Numeric, **kwargs):
         map = IndexMap()
         return f'{map(base.live_indices)},{map(exponent.live_indices)}'
 
-    @as_payload
     def neg(self, x: Numeric, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def elem(
         self, lhs: Numeric, rhs: Numeric, precedence: int, oper: str, **kwargs
     ):
-        return None
+        return []
 
     @as_payload
     def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,

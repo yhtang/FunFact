@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
-from ._base import TranscribeInterpreter
+from ._base import PostOrderTranscriber
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
 
-class ShapeAnalyzer(TranscribeInterpreter):
+class ShapeAnalyzer(PostOrderTranscriber):
     '''The shape analyzer checks the shapes of the nodes in the AST.'''
-    Tensorial = TranscribeInterpreter.Tensorial
-    Numeric = TranscribeInterpreter.Numeric
+    Tensorial = PostOrderTranscriber.Tensorial
+    Numeric = PostOrderTranscriber.Numeric
 
-    as_payload = TranscribeInterpreter.as_payload('shape')
+    as_payload = PostOrderTranscriber.as_payload('shape')
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):

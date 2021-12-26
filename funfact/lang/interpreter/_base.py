@@ -112,6 +112,7 @@ class TranscribeInterpreter(ABC):
     ]
     Numeric = Union[Tensorial, Real]
 
+    @staticmethod
     def as_payload(*k):
         if len(k) == 1:
             def wrapper(f):
@@ -125,6 +126,20 @@ class TranscribeInterpreter(ABC):
                     return dict(zip(k, f(*args, **kwargs)))
                 return wrapped_f
             return wrapper
+
+    @staticmethod
+    def insert_payload(node, payload):
+        if isinstance(payload, dict):
+            node.__dict__.update(**payload)
+        elif isinstance(payload, list):
+            for key, value in payload:
+                setattr(node, key, value)
+        elif isinstance(payload, tuple) and len(payload) == 2:
+            setattr(node, *payload)
+        elif payload is None:
+            pass
+        else:
+            raise TypeError(f'Unrecognizable type for payload {payload}')
 
     @abstractmethod
     def literal(self, value: LiteralValue, **payload):
@@ -174,37 +189,37 @@ class TranscribeInterpreter(ABC):
     def tran(self, src: Numeric, indices: P.indices):
         pass
 
+    @abstractmethod
     def __call__(self, node: _ASNode, parent: _ASNode = None):
-        node = copy.copy(node)
-        for name, value in node.fields_fixed.items():
-            setattr(node, name, _deep_apply(self, value, node))
-        rule = getattr(self, node.name)
-        payload = rule(**node.fields)
-        if isinstance(payload, dict):
-            node.__dict__.update(**payload)
-        elif isinstance(payload, list):
-            for key, value in payload:
-                setattr(node, key, value)
-        elif isinstance(payload, tuple) and len(payload) == 2:
-            setattr(node, *payload)
-        else:
-            raise TypeError(f'Unrecognizable type for payload {payload}')
-        return node
+        pass
 
     def __ror__(self, tsrex: _AST):
         return type(tsrex)(self(tsrex.root))
 
 
-class PreOrderRewriter(TranscribeInterpreter):
+class PreOrderTranscriber(TranscribeInterpreter):
 
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)
         rule = getattr(self, node.name)
-        rewrites = rule(**node.fields)
-        for key, value in rewrites:
-            setattr(node, key, value)
+        payload = rule(**node.fields)
+        self.insert_payload(node, payload)
         for name, value in node.fields_fixed.items():
             setattr(node, name, _deep_apply(self, value, node))
+        return node
+
+
+class PostOrderTranscriber(TranscribeInterpreter):
+    '''A post-order transcriber first acts on all children of a node before
+    acting on the node itself.'''
+
+    def __call__(self, node: _ASNode, parent: _ASNode = None):
+        node = copy.copy(node)
+        rule = getattr(self, node.name)
+        for name, value in node.fields_fixed.items():
+            setattr(node, name, _deep_apply(self, value, node))
+        payload = rule(**node.fields)
+        self.insert_payload(node, payload)
         return node
 
 
