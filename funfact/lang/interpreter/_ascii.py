@@ -30,8 +30,8 @@ class ASCIIRenderer(TranscribeInterpreter):
         return ','.join([i.ascii for i in items])
 
     @as_payload
-    def index_notation(self, tensor, indices, **kwargs):
-        return f'{tensor.ascii}[{indices.ascii}]'
+    def index_notation(self, indexless, indices, **kwargs):
+        return f'{indexless.ascii}[{indices.ascii}]'
 
     @as_payload
     def call(self, f, x, **kwargs):

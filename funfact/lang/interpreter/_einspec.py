@@ -50,7 +50,9 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return None
 
     @as_payload
-    def index_notation(self, tensor: P.tensor, indices: P.indices,  **kwargs):
+    def index_notation(
+        self, indexless: Tensorial, indices: P.indices,  **kwargs
+    ):
         return None
 
     @as_payload

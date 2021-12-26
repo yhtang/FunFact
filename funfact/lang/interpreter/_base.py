@@ -60,7 +60,9 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index_notation(self, tensor: Any, indices: Iterable[Any], **payload):
+    def index_notation(
+        self, indexless: Any, indices: Iterable[Any], **payload
+    ):
         pass
 
     @abstractmethod
@@ -142,7 +144,7 @@ class TranscribeInterpreter(ABC):
 
     @abstractmethod
     def index_notation(
-        self, tensor: P.tensor, indices: P.indices, **payload
+        self, indexless: Numeric, indices: P.indices, **payload
     ):
         pass
 
@@ -198,9 +200,9 @@ class PreOrderRewriter(TranscribeInterpreter):
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)
         rule = getattr(self, node.name)
-        if parent is None:
-            node.slices = self.slices
-        rule(**node.fields)
+        rewrites = rule(**node.fields)
+        for key, value in rewrites:
+            setattr(node, key, value)
         for name, value in node.fields_fixed.items():
             setattr(node, name, _deep_apply(self, value, node))
         return node

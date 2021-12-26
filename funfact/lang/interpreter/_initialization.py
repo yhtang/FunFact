@@ -43,7 +43,7 @@ class LeafInitializer(TranscribeInterpreter):
         return None
 
     @as_payload
-    def index_notation(self, tensor, indices, **kwargs):
+    def index_notation(self, indexless, indices, **kwargs):
         return None
 
     @as_payload

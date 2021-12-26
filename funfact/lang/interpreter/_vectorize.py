@@ -35,11 +35,12 @@ class Vectorizer(TranscribeInterpreter):
 
     @as_payload
     def index_notation(
-        self, tensor: P.tensor, indices: P.indices, live_indices,
+        self, indexless: Numeric, indices: P.indices, live_indices,
         keep_indices, **kwargs
     ):
         indices.items = (*indices.items, self.vec_index)
-        tensor.abstract = tensor.abstract.vectorize(self.replicas)
+        if isinstance(indexless, P.tensor):
+            indexless.abstract = indexless.abstract.vectorize(self.replicas)
         return []
 
     @as_payload

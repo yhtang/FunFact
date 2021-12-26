@@ -34,11 +34,11 @@ class SyntaxValidator:
                 raise SyntaxError('Non-index item {i} found in indices.')
 
     def index_notation(self, node: _ASNode, parent: _ASNode):
-        if not isinstance(node.tensor, P.tensor):
-            raise SyntaxError(
-                f'Index notation only applies to a tensor object, '
-                f'got {node.tensor} instead.'
-            )
+        # if not isinstance(node.tensor, P.tensor):
+        #     raise SyntaxError(
+        #         f'Index notation only applies to a tensor object, '
+        #         f'got {node.tensor} instead.'
+        #     )
         if len(node.indices.items) != node.tensor.value.ndim:
             raise SyntaxError(
                 f'Number of indices in {node.indices.items} does not match '

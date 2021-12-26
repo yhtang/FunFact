@@ -41,7 +41,7 @@ class IndexPropagator(TranscribeInterpreter):
 
     @as_payload
     def index_notation(
-        self, tensor: P.tensor, indices: P.indices, **kwargs
+        self, indexless: Numeric, indices: P.indices, **kwargs
     ):
         return indices.live_indices, indices.keep_indices, indices.kron_indices
 

@@ -45,8 +45,8 @@ class LatexRenderer(ROOFInterpreter):
     def indices(self, items, **kwargs):
         return ''.join(items)
 
-    def index_notation(self, tensor, indices, **kwargs):
-        return fr'''{{{tensor}}}_{{{indices}}}'''
+    def index_notation(self, indexless, indices, **kwargs):
+        return fr'''{{{indexless}}}_{{{indices}}}'''
 
     def call(self, f, x, **kwargs):
         return fr'\operatorname{{{f}}}{{{x}}}'

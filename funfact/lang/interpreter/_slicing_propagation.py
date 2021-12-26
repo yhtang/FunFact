@@ -4,10 +4,10 @@ import copy
 from typing import Optional
 from funfact.lang._ast import _AST, _ASNode, Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
-from ._base import _deep_apply, TranscribeInterpreter
+from ._base import _deep_apply, PreOrderRewriter
 
 
-class SlicingPropagator():
+class SlicingPropagator(PreOrderRewriter):
     '''The slicing propagator analyzes which of the slices of the leafs
     and intermediate nodes should be computed to get the desired
     output at the root.'''
@@ -30,9 +30,9 @@ class SlicingPropagator():
             i.slices = None
 
     def index_notation(
-        self, tensor: P.tensor, indices: P.indices, slices, **kwargs
+        self, indexless: Numeric, indices: P.indices, slices, **kwargs
     ):
-        tensor.slices = slices
+        indexless.slices = slices
         indices.slices = None
 
     def call(self, f: str, x: Tensorial, slices, **kwargs):

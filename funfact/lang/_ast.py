@@ -53,8 +53,8 @@ class Primitives:
         '''a tuple of indices'''
 
     @primitive(precedence=1)
-    def index_notation(tensor: _ASNode, indices: _ASNode):
-        '''indexed notation for a single tensor: tensor[indices...]'''
+    def index_notation(indexless: _ASNode, indices: _ASNode):
+        '''indexing a raw tensor or indexless expression: expr[indices...]'''
 
     @primitive(precedence=2)
     def call(f: str, x: _ASNode):

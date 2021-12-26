@@ -30,8 +30,10 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return None
 
     @as_payload
-    def index_notation(self, tensor: P.tensor, indices: P.indices,  **kwargs):
-        return tensor.shape
+    def index_notation(
+        self, indexless: Numeric, indices: P.indices,  **kwargs
+    ):
+        return indexless.shape
 
     @as_payload
     def call(self, f: str, x: Tensorial, **kwargs):

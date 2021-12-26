@@ -25,8 +25,8 @@ class Evaluator(ROOFInterpreter):
     def indices(self, items, **kwargs):
         return None
 
-    def index_notation(self, tensor, indices, **kwargs):
-        return tensor
+    def index_notation(self, indexless, indices, **kwargs):
+        return indexless
 
     def call(self, f, x, **kwargs):
         return getattr(ab, f)(x)
