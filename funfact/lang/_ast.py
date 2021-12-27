@@ -103,14 +103,18 @@ class Primitives:
 class _AST:
 
     def __init__(self, data=None):
-        try:  # copy-construct from another AST
-            self.root = data.root
+        self.root = self._parse(data)
+
+    @staticmethod
+    def _parse(data):
+        try:  # if data is an AST
+            return data.root
         except AttributeError:
             try:
-                self.root = Primitives.as_primitive(data)
+                return Primitives.as_primitive(data)
             except TypeError:
                 raise RuntimeError(
-                    f'Invalid arguments to create an AST: data = {data}.'
+                    f'Cannot parse data: {data}.'
                 )
 
     @property
