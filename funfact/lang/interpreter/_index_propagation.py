@@ -8,9 +8,10 @@ from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
-class IndexPropagator(PostOrderTranscriber):
-    '''The index propagator analyzes which of the indices survive in a
-    contraction of two tensors and passes them onto the parent node.'''
+class TypeInference(PostOrderTranscriber):
+    '''Analyzes which of the indices survive in a tensor operations and does
+    AST rewrite to replace certain operations with specialized Einstein
+    operations and index renaming operations.'''
 
     Tensorial = PostOrderTranscriber.Tensorial
     Numeric = PostOrderTranscriber.Numeric
