@@ -51,7 +51,7 @@ class ShapeAnalyzer(PostOrderTranscriber):
         return x.shape
 
     @as_payload
-    def elem(
+    def binary(
         self, lhs: Numeric, rhs: Numeric, precedence: int, oper: str, **kwargs
     ):
         assert lhs.shape == rhs.shape

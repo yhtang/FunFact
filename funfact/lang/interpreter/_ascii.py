@@ -46,7 +46,7 @@ class ASCIIRenderer(PostOrderTranscriber):
         return '-'
 
     @as_payload
-    def elem(self, lhs, rhs, precedence, oper, **kwargs):
+    def binary(self, lhs, rhs, precedence, oper, **kwargs):
         return f'{oper}'
 
     @as_payload

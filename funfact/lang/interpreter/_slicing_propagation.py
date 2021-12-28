@@ -49,7 +49,7 @@ class SlicingPropagator(PreOrderTranscriber):
     def neg(self, x: Numeric, slices, **kwargs):
         x.slices = slices
 
-    def elem(self, lhs: Numeric, rhs: Numeric, oper: str, slices, **kwargs):
+    def binary(self, lhs: Numeric, rhs: Numeric, oper: str, slices, **kwargs):
         lhs.slices = slices
         rhs.slices = slices
 

@@ -62,7 +62,7 @@ class IndexPropagator(PostOrderTranscriber):
         return x.live_indices, x.keep_indices, x.kron_indices
 
     @as_payload
-    def elem(
+    def binary(
         self, lhs: Numeric, rhs: Numeric, precedence: int, oper: str, **kwargs
     ):
         return [], [], []

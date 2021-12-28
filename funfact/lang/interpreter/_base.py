@@ -78,7 +78,7 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def elem(
+    def binary(
         self, lhs: Any, rhs: Any, precedence: int, pairwise: str, **payload
     ):
         pass
@@ -176,7 +176,7 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def elem(self, lhs: Numeric, rhs: Numeric, precedence: int, pairwise: str,
+    def binary(self, lhs: Numeric, rhs: Numeric, precedence: int, pairwise: str,
              **payload):
         pass
 

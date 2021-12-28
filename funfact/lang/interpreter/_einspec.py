@@ -61,7 +61,7 @@ class EinsteinSpecGenerator(PostOrderTranscriber):
     def neg(self, x: Numeric, **kwargs):
         return []
 
-    def elem(
+    def binary(
         self, lhs: Numeric, rhs: Numeric, precedence: int, oper: str, **kwargs
     ):
         return []

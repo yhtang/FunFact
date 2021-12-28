@@ -173,50 +173,70 @@ class _BaseEx(_AST):
 
 class SyntaxOverloadMixin:
 
+    def as_tsrex(f):
+        def wrapper(*args, **kwargs):
+            return TsrEx(f(*args, **kwargs))
+        return wrapper
+
+    @as_tsrex
     def __neg__(self, rhs):
-        return TsrEx(_neg(_AST._parse(self)))
+        return _neg(_AST._parse(self))
 
+    @as_tsrex
     def __add__(self, rhs):
-        return TsrEx(_add(_AST._parse(self), _AST._parse(rhs)))
+        return _binary(_AST._parse(self), _AST._parse(rhs), 6, 'add')
 
+    @as_tsrex
     def __sub__(self, rhs):
-        return TsrEx(_sub(_AST._parse(self), _AST._parse(rhs)))
+        return _binary(_AST._parse(self), _AST._parse(rhs), 6, 'subtract')
 
+    @as_tsrex
     def __mul__(self, rhs):
-        return TsrEx(_mul(_AST._parse(self), _AST._parse(rhs)))
+        return _binary(_AST._parse(self), _AST._parse(rhs), 5, 'multiply')
 
-    def __pow__(self, rhs):
-        return TsrEx(_pow(_AST._parse(self), _AST._parse(rhs)))
-
+    @as_tsrex
     def __truediv__(self, rhs):
-        return TsrEx(_div(_AST._parse(self), _AST._parse(rhs)))
+        return _binary(_AST._parse(self), _AST._parse(rhs), 5, 'divide')
 
+    @as_tsrex
+    def __pow__(self, rhs):
+        return _pow(_AST._parse(self), _AST._parse(rhs))
+
+    @as_tsrex
     def __radd__(self, lhs):
-        return TsrEx(_add(_AST._parse(lhs), _AST._parse(self)))
+        return _binary(_AST._parse(lhs), _AST._parse(self), 6, 'add')
 
+    @as_tsrex
     def __rsub__(self, lhs):
-        return TsrEx(_sub(_AST._parse(lhs), _AST._parse(self)))
+        return _binary(_AST._parse(lhs), _AST._parse(self), 6, 'add')
 
+    @as_tsrex
     def __rmul__(self, lhs):
-        return TsrEx(_mul(_AST._parse(lhs), _AST._parse(self)))
+        return _binary(_AST._parse(lhs), _AST._parse(self), 5, 'multiply')
 
+    @as_tsrex
     def __rtruediv__(self, lhs):
-        return TsrEx(_div(_AST._parse(lhs), _AST._parse(self)))
+        return _binary(_AST._parse(lhs), _AST._parse(self), 5, 'divide')
 
+    @as_tsrex
     def __rpow__(self, lhs):
-        return TsrEx(_pow(_AST._parse(lhs), _AST._parse(self)))
+        return _pow(_AST._parse(lhs), _AST._parse(self))
 
+    @as_tsrex
     def __getitem__(self, indices):
-        return TsrEx(_getitem(_AST._parse(self), indices))
+        return _getitem(_AST._parse(self), indices)
 
+    @as_tsrex
     def __rshift__(self, indices):
-        return TsrEx(_rshift(_AST._parse(self), indices))
+        return _rshift(_AST._parse(self), indices)
 
+    @as_tsrex
     def __invert__(self):
-        return TsrEx(_invert(_AST._parse(self)))
+        return _invert(_AST._parse(self))
 
+    @as_tsrex
     def __iter__(self):
-        return TsrEx(_iter(_AST._parse(self)))
+        return _iter(_AST._parse(self))
 
 
 class TsrEx(
@@ -242,60 +262,19 @@ class TsrEx(
 _dispatch = Dispatcher()
 
 
-@index_dispatch(True, True)
-def _add(lhs, rhs):
-    return P.ein(lhs, rhs, 6, 'sum', 'add', None)
+@_dispatch
+def _binary(lhs: _ASNode, rhs: _ASNode, precedence, oper):
+    return P.binary(lhs, rhs, precedence, oper)
 
 
-@index_dispatch(None, None)
-def _add(lhs, rhs):
-    return P.elem(lhs, rhs, 6, 'add')
+@_dispatch
+def _neg(node: _ASNode):
+    return P.neg(node)
 
 
-
-# def __radd__(self, lhs):
-#     return EinopEx(P.ein(
-#         _BaseEx(lhs).root, self.root, 6, 'sum', 'add', None
-#     ))
-
-# def __sub__(self, rhs):
-#     return EinopEx(P.ein(
-#         self.root, _BaseEx(rhs).root, 6, 'sum', 'subtract', None
-#     ))
-
-# def __rsub__(self, lhs):
-#     return EinopEx(P.ein(
-#         _BaseEx(lhs).root, self.root, 6, 'sum', 'subtract', None
-#     ))
-
-# def __mul__(self, rhs):
-#     return EinopEx(P.ein(
-#         self.root, _BaseEx(rhs).root, 5, 'sum', 'multiply', None
-#     ))
-
-# def __rmul__(self, lhs):
-#     return EinopEx(P.ein(
-#         _BaseEx(lhs).root, self.root, 5, 'sum', 'multiply', None
-#     ))
-
-# def __truediv__(self, rhs):
-#     return EinopEx(P.ein(
-#         self.root, _BaseEx(rhs).root, 5, 'sum', 'divide', None
-#     ))
-
-# def __rtruediv__(self, lhs):
-#     return EinopEx(P.ein(
-#         _BaseEx(lhs).root, self.root, 5, 'sum', 'divide', None
-#     ))
-
-# def __neg__(self):
-#     return TsrEx(P.neg(self.root))
-
-# def __pow__(self, exponent):
-#     return TsrEx(P.pow(self.root, _BaseEx(exponent).root))
-
-# def __rpow__(self, base):
-#     return TsrEx(P.pow(_BaseEx(base).root, self.root))
+@_dispatch
+def _pow(base: _ASNode, exponent: _ASNode):
+    return P.pow(base, exponent)
 
 
 @_dispatch
@@ -311,7 +290,7 @@ def _iter(node: P.index):
 
 
 @_dispatch
-def _getitem(node: P.tensor, indices):  # noqa: F811
+def _getitem(node: _ASNode, indices):  # noqa: F811
     '''create index notation'''
     return P.index_notation(
         node,
@@ -319,39 +298,39 @@ def _getitem(node: P.tensor, indices):  # noqa: F811
     )
 
 
-@_dispatch
-def _getitem(node: P.ein, indices):  # noqa: F811
-    '''Rename the free indices of a tensor expression.'''
-    tsrex = self | IndexPropagator()
+# @_dispatch
+# def _getitem(node: P.ein, indices):  # noqa: F811
+#     '''Rename the free indices of a tensor expression.'''
+#     tsrex = self | IndexPropagator()
 
-    indices = as_tuple(indices)
-    live_old = tsrex.root.live_indices
-    if len(indices) != len(live_old):
-        raise SyntaxError(
-            f'Incorrect number of indices. '
-            f'Expects {len(live_old)}, '
-            f'got {len(indices)}.'
-        )
+#     indices = as_tuple(indices)
+#     live_old = tsrex.root.live_indices
+#     if len(indices) != len(live_old):
+#         raise SyntaxError(
+#             f'Incorrect number of indices. '
+#             f'Expects {len(live_old)}, '
+#             f'got {len(indices)}.'
+#         )
 
-    for new_expr in indices:
-        if new_expr.root.name != 'index':
-            raise SyntaxError(
-                'Indices to a tensor expression must be abstract indices.'
-            )
-    live_new = [i.root.item for i in indices]
+#     for new_expr in indices:
+#         if new_expr.root.name != 'index':
+#             raise SyntaxError(
+#                 'Indices to a tensor expression must be abstract indices.'
+#             )
+#     live_new = [i.root.item for i in indices]
 
-    index_map = dict(zip(live_old, live_new))
-    # if a 'new' live index is already used as a dummy one, replace the
-    # dummy usage with an anonymous index to avoid conflict.
-    for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
-        i = n.item
-        if i not in live_old and i in live_new:
-            index_map[i] = AbstractIndex()
+#     index_map = dict(zip(live_old, live_new))
+#     # if a 'new' live index is already used as a dummy one, replace the
+#     # dummy usage with an anonymous index to avoid conflict.
+#     for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
+#         i = n.item
+#         if i not in live_old and i in live_new:
+#             index_map[i] = AbstractIndex()
 
-    for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
-        n.item = index_map.get(n.item, n.item)
+#     for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
+#         n.item = index_map.get(n.item, n.item)
 
-    return tsrex | IndexPropagator()
+#     return tsrex | IndexPropagator()
 
 
 @_dispatch
@@ -387,7 +366,7 @@ def index(symbol=None):
     Returns:
         TsrEx: A single-index tensor expression.
     '''
-    return IndexEx(P.index(AbstractIndex(symbol), bound=False, kron=False))
+    return TsrEx(P.index(AbstractIndex(symbol), bound=False, kron=False))
 
 
 def indices(spec):
@@ -491,7 +470,11 @@ def tensor(*spec, initializer=None, optimizable=None):
                 f'Tensor size must be positive integer, got {d} instead.'
             )
 
-    return TensorEx(P.tensor(
-        AbstractTensor(*size, symbol=symbol, initializer=initializer,
-                       optimizable=optimizable))
-                    )
+    return TsrEx(
+        P.tensor(
+            AbstractTensor(
+                *size, symbol=symbol, initializer=initializer,
+                optimizable=optimizable
+            )
+        )
+    )

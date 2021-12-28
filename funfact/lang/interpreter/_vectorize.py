@@ -49,7 +49,7 @@ class Vectorizer(PostOrderTranscriber):
             keep_indices, **kwargs):
         return []
 
-    def elem(self, lhs: Numeric, rhs: Numeric, oper: str, **kwargs):
+    def binary(self, lhs: Numeric, rhs: Numeric, oper: str, **kwargs):
         return []
 
     @as_payload('outidx')

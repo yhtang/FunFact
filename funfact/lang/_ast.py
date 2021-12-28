@@ -54,7 +54,9 @@ class Primitives:
 
     @primitive(precedence=1)
     def index_notation(indexless: _ASNode, indices: _ASNode):
-        '''indexing a raw tensor or indexless expression: expr[indices...]'''
+        '''indexing a raw tensor or indexless expression: expr[indices...].
+        To be interpreted either as tensor indexing or index renaming depending
+        on the type of the addressee.'''
 
     @primitive(precedence=2)
     def call(f: str, x: _ASNode):
@@ -73,8 +75,9 @@ class Primitives:
         '''indexless Kronecker product'''
 
     @primitive(precedence=None)
-    def elem(lhs: _ASNode, rhs: _ASNode, precedence: int, oper: str):
-        '''indexless elementwise operations'''
+    def binary(lhs: _ASNode, rhs: _ASNode, precedence: int, oper: str):
+        '''generic binary operations, to be interpreted as either elementwise
+        or Einstein based on index/indexless status.'''
 
     @primitive(precedence=None)
     def ein(

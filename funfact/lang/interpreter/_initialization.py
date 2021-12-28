@@ -49,7 +49,7 @@ class LeafInitializer(PostOrderTranscriber):
     def neg(self, x, **kwargs):
         return []
 
-    def elem(self, lhs, rhs, oper, **kwargs):
+    def binary(self, lhs, rhs, oper, **kwargs):
         return []
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):

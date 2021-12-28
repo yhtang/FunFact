@@ -54,7 +54,7 @@ class SyntaxValidator:
     def neg(self, node: _ASNode, parent: _ASNode):
         pass
 
-    def elem():
+    def binary():
         # TODO
         pass
 
