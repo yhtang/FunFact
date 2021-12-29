@@ -61,14 +61,17 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return []
 
     def binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str, **kwargs
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
     ):
         return []
 
     @as_payload
-    def ein(self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], live_indices,
-            kron_indices, **kwargs):
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,
+        **kwargs
+    ):
         map = IndexMap()
         return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
                f'->{map(live_indices)}|{map(kron_indices)}'

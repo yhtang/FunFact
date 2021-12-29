@@ -52,15 +52,18 @@ class ShapeAnalyzer(TranscribeInterpreter):
 
     @as_payload
     def binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str, **kwargs
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
     ):
         assert lhs.shape == rhs.shape
         return lhs.shape
 
     @as_payload
-    def ein(self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], live_indices,
-            kron_indices, **kwargs):
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,
+        **kwargs
+    ):
         dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
         dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
 

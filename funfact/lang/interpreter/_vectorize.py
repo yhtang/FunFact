@@ -52,9 +52,10 @@ class Vectorizer(TranscribeInterpreter):
         return []
 
     @as_payload('outidx')
-    def ein(self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], live_indices,
-            **kwargs):
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], live_indices, **kwargs
+    ):
         return P.indices([
             *[P.index(i, bound=False, kron=False) for i in live_indices],
             self.vec_index

@@ -111,8 +111,8 @@ class TranscribeInterpreter(ABC):
     class TraversalOrder(Enum):
         '''A post-order transcriber acts on the children of a node before
         acting on the node itself.'''
-        PRE: 0
-        POST: 1
+        PRE = 0
+        POST = 1
 
     _traversal_order: TraversalOrder
 

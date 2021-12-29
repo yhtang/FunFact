@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 import itertools as it
 from typing import Optional
-from ._base import TranscribeInterpreter
+from ._base import dfs_filter, TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
-class TypeInference(TranscribeInterpreter):
+class IndexPropagator(TranscribeInterpreter):
     '''Analyzes which of the indices survive in a tensor operations and does
     AST rewrite to replace certain operations with specialized Einstein
     operations and index renaming operations.'''
@@ -18,6 +18,59 @@ class TypeInference(TranscribeInterpreter):
     as_payload = TranscribeInterpreter.as_payload(
         'live_indices', 'keep_indices', 'kron_indices'
     )
+
+    def __call__(self, node, parent=None):
+
+        node = super().__call__(node, parent)
+
+        if isinstance(node, P.binary):
+            '''Replace by einop if both operands are indexed.'''
+            if node.lhs.live_indices and node.rhs.live_indices:
+                node = P.ein(
+                    node.lhs, node.rhs, precedence=node.precedence,
+                    reduction='sum', pairwise=node.oper, outidx=None
+                )
+                TranscribeInterpreter.emplace(
+                    node,
+                    getattr(self, node.name)(**node.fields)
+                )
+
+        if isinstance(node, P.index_notation) and node.indexless.live_indices:
+            '''Triggers renaming of free indices:
+            for new, old in zip(node.indices, node.live_indices):
+                dfs_replace(old, new)
+            '''
+            live_new = [i.item for i in node.indices.items]
+            live_old = node.indexless.live_indices
+
+            if len(live_new) != len(live_old):
+                raise SyntaxError(
+                    f'Incorrect number of indices. '
+                    f'Expects {len(live_old)}, '
+                    f'got {len(live_new)}.'
+                )
+
+            index_map = dict(zip(live_old, live_new))
+            # If a 'new' live index is already used as a dummy one,
+            # replace the dummy usage with an anonymous index to avoid
+            # conflict.
+            node = node.indexless
+            for n in dfs_filter(lambda n: n.name == 'index', node):
+                i = n.item
+                if i not in live_old and i in live_new:
+                    index_map[i] = AbstractIndex()
+
+            for n in dfs_filter(lambda n: n.name == 'index', node):
+                n.item = index_map.get(n.item, n.item)
+
+            node = super().__call__(node, parent)  # rebuild live indices
+
+        if isinstance(node, P.tran) and isinstance(node.src, P.ein):
+            '''override the `>>` behavior for einop nodes'''
+            node.src.outidx = node.indices
+            node = node.src
+
+        return node
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
@@ -63,13 +116,16 @@ class TypeInference(TranscribeInterpreter):
 
     @as_payload
     def binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str, **kwargs
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
     ):
         return [], [], []
 
     @as_payload
-    def ein(self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], **kwargs):
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], **kwargs
+    ):
         '''
         ╔════════════╗
         ║     ╔══════╬═════╗

@@ -33,7 +33,7 @@ class ASCIIRenderer(TranscribeInterpreter):
 
     @as_payload
     def index_notation(self, indexless, indices, **kwargs):
-        return f'{indexless.ascii}[{indices.ascii}]'
+        return f'[{indices.ascii}]'
 
     @as_payload
     def call(self, f, x, **kwargs):

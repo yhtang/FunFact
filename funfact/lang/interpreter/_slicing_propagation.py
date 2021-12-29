@@ -48,13 +48,18 @@ class SlicingPropagator(TranscribeInterpreter):
     def neg(self, x: P.Numeric, slices, **kwargs):
         x.slices = slices
 
-    def binary(self, lhs: P.Numeric, rhs: P.Numeric, oper: str, slices, **kwargs):
+    def binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, oper: str, slices,
+        **kwargs
+    ):
         lhs.slices = slices
         rhs.slices = slices
 
-    def ein(self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], slices, live_indices,
-            **kwargs):
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], slices, live_indices,
+        **kwargs
+    ):
         slice_dict = dict(zip(live_indices, slices))
         lhs_slices = []
         for i in lhs.live_indices:

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from copy import copy
 import dataclasses
 import re
 import sys
@@ -11,7 +10,10 @@ from funfact.backend import active_backend as ab
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
-    dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator, ShapeAnalyzer,
+    ASCIIRenderer,
+    LatexRenderer,
+    IndexPropagator,
+    ShapeAnalyzer,
     EinsteinSpecGenerator
 )
 from ._terminal import AbstractIndex, AbstractTensor
@@ -39,7 +41,9 @@ class ASCIITreeFactory:
                         )
                     )
                 ),
-                get_text=lambda node: node.ascii + ' ' + ' '.join([
+                get_text=lambda node: '{}: {} '.format(
+                    node.name, node.ascii
+                ) + ' '.join([
                     '({f}: {s})'.format(
                         f=f,
                         s=re.sub('\n', '', str(_getattr_safe(node, f)))
@@ -292,45 +296,16 @@ def _iter(node: P.index):
 @_dispatch
 def _getitem(node: _ASNode, indices):  # noqa: F811
     '''create index notation'''
+    # for new in indices_new:
+    #                 if not isinstance(new, P.index):
+    #                     raise SyntaxError(
+    #                         'Indices to a tensor expression must be '
+    #                         'abstract indices.'
+    #                     )
     return P.index_notation(
         node,
         P.indices(tuple([i.root for i in as_tuple(indices or [])]))
     )
-
-
-# @_dispatch
-# def _getitem(node: P.ein, indices):  # noqa: F811
-#     '''Rename the free indices of a tensor expression.'''
-#     tsrex = self | IndexPropagator()
-
-#     indices = as_tuple(indices)
-#     live_old = tsrex.root.live_indices
-#     if len(indices) != len(live_old):
-#         raise SyntaxError(
-#             f'Incorrect number of indices. '
-#             f'Expects {len(live_old)}, '
-#             f'got {len(indices)}.'
-#         )
-
-#     for new_expr in indices:
-#         if new_expr.root.name != 'index':
-#             raise SyntaxError(
-#                 'Indices to a tensor expression must be abstract indices.'
-#             )
-#     live_new = [i.root.item for i in indices]
-
-#     index_map = dict(zip(live_old, live_new))
-#     # if a 'new' live index is already used as a dummy one, replace the
-#     # dummy usage with an anonymous index to avoid conflict.
-#     for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
-#         i = n.item
-#         if i not in live_old and i in live_new:
-#             index_map[i] = AbstractIndex()
-
-#     for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
-#         n.item = index_map.get(n.item, n.item)
-
-#     return tsrex | IndexPropagator()
 
 
 @_dispatch
@@ -338,16 +313,6 @@ def _rshift(node: _ASNode, indices):  # noqa: F811
     '''transpose the axes by permuting the live indices into target indices.'''
     return P.tran(node,
                   P.indices(tuple([i.root for i in as_tuple(indices)])))
-
-
-@_dispatch
-def _rshift(node: P.ein, indices):  # noqa: F811
-    '''override the `>>` behavior for einop nodes'''
-    node = copy(node)
-    node.outidx = P.indices(
-        tuple([i.root for i in as_tuple(indices)])
-    )
-    return node
 
 
 def index(symbol=None):
