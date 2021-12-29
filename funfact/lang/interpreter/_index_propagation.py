@@ -2,21 +2,20 @@
 # -*- coding: utf-8 -*-
 import itertools as it
 from typing import Optional
-from ._base import PostOrderTranscriber
+from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
-class TypeInference(PostOrderTranscriber):
+class TypeInference(TranscribeInterpreter):
     '''Analyzes which of the indices survive in a tensor operations and does
     AST rewrite to replace certain operations with specialized Einstein
     operations and index renaming operations.'''
 
-    Tensorial = PostOrderTranscriber.Tensorial
-    Numeric = PostOrderTranscriber.Numeric
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = PostOrderTranscriber.as_payload(
+    as_payload = TranscribeInterpreter.as_payload(
         'live_indices', 'keep_indices', 'kron_indices'
     )
 
@@ -42,16 +41,16 @@ class TypeInference(PostOrderTranscriber):
 
     @as_payload
     def index_notation(
-        self, indexless: Numeric, indices: P.indices, **kwargs
+        self, indexless: P.Numeric, indices: P.indices, **kwargs
     ):
         return indices.live_indices, indices.keep_indices, indices.kron_indices
 
     @as_payload
-    def call(self, f: str, x: Tensorial, **kwargs):
+    def call(self, f: str, x: P.Tensorial, **kwargs):
         return x.live_indices, x.keep_indices, x.kron_indices
 
     @as_payload
-    def pow(self, base: Numeric, exponent: Numeric, **kwargs):
+    def pow(self, base: P.Numeric, exponent: P.Numeric, **kwargs):
         return (
             base.live_indices + exponent.live_indices,
             base.keep_indices + exponent.keep_indices,
@@ -59,17 +58,17 @@ class TypeInference(PostOrderTranscriber):
         )
 
     @as_payload
-    def neg(self, x: Numeric, **kwargs):
+    def neg(self, x: P.Numeric, **kwargs):
         return x.live_indices, x.keep_indices, x.kron_indices
 
     @as_payload
     def binary(
-        self, lhs: Numeric, rhs: Numeric, precedence: int, oper: str, **kwargs
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str, **kwargs
     ):
         return [], [], []
 
     @as_payload
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
+    def ein(self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], **kwargs):
         '''
         ╔════════════╗
@@ -114,5 +113,5 @@ class TypeInference(PostOrderTranscriber):
             return explicit_survival, [], explicit_kron
 
     @as_payload
-    def tran(self, src: Numeric, indices: P.indices, **kwargs):
+    def tran(self, src: P.Numeric, indices: P.indices, **kwargs):
         return indices.live_indices, indices.keep_indices, indices.kron_indices

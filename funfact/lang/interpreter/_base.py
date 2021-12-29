@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
 import copy
-from numbers import Real
-from typing import Any, Callable, Iterable, Optional, Tuple, Union
+from enum import Enum
+from typing import Any, Callable, Iterable, Optional, Tuple
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.iterable import flatten_if
@@ -107,10 +107,14 @@ class ROOFInterpreter(ABC):
 class TranscribeInterpreter(ABC):
     '''A transcribe interpreter creates a modified copy of an AST while
     traversing it.'''
-    Tensorial = Union[
-        P.index_notation, P.call, P.pow, P.neg, P.ein
-    ]
-    Numeric = Union[Tensorial, Real]
+
+    class TraversalOrder(Enum):
+        '''A post-order transcriber acts on the children of a node before
+        acting on the node itself.'''
+        PRE: 0
+        POST: 1
+
+    _traversal_order: TraversalOrder
 
     @staticmethod
     def as_payload(*k):
@@ -128,7 +132,7 @@ class TranscribeInterpreter(ABC):
             return wrapper
 
     @staticmethod
-    def insert_payload(node, payload):
+    def emplace(node, payload):
         if isinstance(payload, dict):
             node.__dict__.update(**payload)
         elif isinstance(payload, list):
@@ -159,68 +163,62 @@ class TranscribeInterpreter(ABC):
 
     @abstractmethod
     def index_notation(
-        self, indexless: Numeric, indices: P.indices, **payload
+        self, indexless: P.Numeric, indices: P.indices, **payload
     ):
         pass
 
     @abstractmethod
-    def call(self, f: str, x: Tensorial, **payload):
+    def call(self, f: str, x: P.Tensorial, **payload):
         pass
 
     @abstractmethod
-    def pow(self, base: Numeric, exponent: Numeric, **payload):
+    def pow(self, base: P.Numeric, exponent: P.Numeric, **payload):
         pass
 
     @abstractmethod
-    def neg(self, x: Numeric, **payload):
+    def neg(self, x: P.Numeric, **payload):
         pass
 
     @abstractmethod
-    def binary(self, lhs: Numeric, rhs: Numeric, precedence: int, pairwise: str,
-             **payload):
+    def binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, pairwise: str,
+        **payload
+    ):
         pass
 
     @abstractmethod
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], **payload):
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], **payload
+    ):
         pass
 
     @abstractmethod
-    def tran(self, src: Numeric, indices: P.indices):
+    def tran(self, src: P.Numeric, indices: P.indices):
         pass
 
-    @abstractmethod
     def __call__(self, node: _ASNode, parent: _ASNode = None):
-        pass
+        node = copy.copy(node)
+        rule = getattr(self, node.name)
+
+        def _do_node():
+            payload = rule(**node.fields)
+            self.emplace(node, payload)
+
+        def _do_children():
+            for name, value in node.fields_fixed.items():
+                setattr(node, name, _deep_apply(self, value, node))
+
+        if self._traversal_order == self.TraversalOrder.PRE:
+            _do_node()
+            _do_children()
+        elif self._traversal_order == self.TraversalOrder.POST:
+            _do_children()
+            _do_node()
+        return node
 
     def __ror__(self, tsrex: _AST):
         return type(tsrex)(self(tsrex.root))
-
-
-class PreOrderTranscriber(TranscribeInterpreter):
-
-    def __call__(self, node: _ASNode, parent: _ASNode = None):
-        node = copy.copy(node)
-        rule = getattr(self, node.name)
-        payload = rule(**node.fields)
-        self.insert_payload(node, payload)
-        for name, value in node.fields_fixed.items():
-            setattr(node, name, _deep_apply(self, value, node))
-        return node
-
-
-class PostOrderTranscriber(TranscribeInterpreter):
-    '''A post-order transcriber first acts on all children of a node before
-    acting on the node itself.'''
-
-    def __call__(self, node: _ASNode, parent: _ASNode = None):
-        node = copy.copy(node)
-        rule = getattr(self, node.name)
-        for name, value in node.fields_fixed.items():
-            setattr(node, name, _deep_apply(self, value, node))
-        payload = rule(**node.fields)
-        self.insert_payload(node, payload)
-        return node
 
 
 class PayloadMerger:

@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
-from ._base import PostOrderTranscriber
+from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
 
-class ShapeAnalyzer(PostOrderTranscriber):
+class ShapeAnalyzer(TranscribeInterpreter):
     '''The shape analyzer checks the shapes of the nodes in the AST.'''
-    Tensorial = PostOrderTranscriber.Tensorial
-    Numeric = PostOrderTranscriber.Numeric
 
-    as_payload = PostOrderTranscriber.as_payload('shape')
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+
+    as_payload = TranscribeInterpreter.as_payload('shape')
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
@@ -31,34 +31,34 @@ class ShapeAnalyzer(PostOrderTranscriber):
 
     @as_payload
     def index_notation(
-        self, indexless: Numeric, indices: P.indices,  **kwargs
+        self, indexless: P.Numeric, indices: P.indices,  **kwargs
     ):
         return indexless.shape
 
     @as_payload
-    def call(self, f: str, x: Tensorial, **kwargs):
+    def call(self, f: str, x: P.Tensorial, **kwargs):
         return x.shape
 
     @as_payload
-    def pow(self, base: Numeric, exponent: Numeric, **kwargs):
+    def pow(self, base: P.Numeric, exponent: P.Numeric, **kwargs):
         if base.shape:
             return base.shape
         else:
             return exponent.shape
 
     @as_payload
-    def neg(self, x: Numeric, **kwargs):
+    def neg(self, x: P.Numeric, **kwargs):
         return x.shape
 
     @as_payload
     def binary(
-        self, lhs: Numeric, rhs: Numeric, precedence: int, oper: str, **kwargs
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str, **kwargs
     ):
         assert lhs.shape == rhs.shape
         return lhs.shape
 
     @as_payload
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
+    def ein(self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
             kron_indices, **kwargs):
         dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
@@ -87,6 +87,6 @@ class ShapeAnalyzer(PostOrderTranscriber):
         return tuple(shape)
 
     @as_payload
-    def tran(self, src: Numeric, live_indices, **kwargs):
+    def tran(self, src: P.Numeric, live_indices, **kwargs):
         return tuple(src.shape[src.live_indices.index(i)]
                      for i in live_indices)

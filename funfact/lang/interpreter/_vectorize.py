@@ -3,15 +3,14 @@
 from typing import Optional
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
-from ._base import PostOrderTranscriber
+from ._base import TranscribeInterpreter
 
 
-class Vectorizer(PostOrderTranscriber):
+class Vectorizer(TranscribeInterpreter):
 
-    Tensorial = PostOrderTranscriber.Tensorial
-    Numeric = PostOrderTranscriber.Numeric
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = PostOrderTranscriber.as_payload
+    as_payload = TranscribeInterpreter.as_payload
 
     def __init__(self, replicas: int):
         self.replicas = replicas
@@ -32,28 +31,28 @@ class Vectorizer(PostOrderTranscriber):
         return (*items, self.vec_index)
 
     def index_notation(
-        self, indexless: Numeric, indices: P.indices, live_indices,
+        self, indexless: P.Numeric, indices: P.indices, live_indices,
         keep_indices, **kwargs
     ):
         return []
 
-    def call(self, f: str, x: Tensorial, live_indices,
+    def call(self, f: str, x: P.Tensorial, live_indices,
              keep_indices, **kwargs):
         return []
 
-    def pow(self, base: Numeric, exponent: Numeric, live_indices,
+    def pow(self, base: P.Numeric, exponent: P.Numeric, live_indices,
             keep_indices, **kwargs):
         return []
 
-    def neg(self, x: Numeric, live_indices,
+    def neg(self, x: P.Numeric, live_indices,
             keep_indices, **kwargs):
         return []
 
-    def binary(self, lhs: Numeric, rhs: Numeric, oper: str, **kwargs):
+    def binary(self, lhs: P.Numeric, rhs: P.Numeric, oper: str, **kwargs):
         return []
 
     @as_payload('outidx')
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
+    def ein(self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
             **kwargs):
         return P.indices([
@@ -61,6 +60,6 @@ class Vectorizer(PostOrderTranscriber):
             self.vec_index
         ])
 
-    def tran(self, src: Numeric, indices: P.indices, live_indices,
+    def tran(self, src: P.Numeric, indices: P.indices, live_indices,
              keep_indices, **kwargs):
         return []

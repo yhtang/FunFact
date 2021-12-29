@@ -3,7 +3,7 @@
 from dataclasses import make_dataclass
 import inspect
 from numbers import Real
-from typing import Optional, Tuple
+from typing import Optional, Union, Tuple
 from ._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
 
@@ -101,6 +101,11 @@ class Primitives:
                 f'Cannot use {raw} of type {type(raw)} in '
                 f'a tensor expression.'
             )
+
+    Tensorial = Union[
+        index_notation, call, pow, neg, ein
+    ]
+    Numeric = Union[Tensorial, Real]
 
 
 class _AST:

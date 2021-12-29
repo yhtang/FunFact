@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from ._base import PostOrderTranscriber
+from ._base import TranscribeInterpreter
 
 
-class ASCIIRenderer(PostOrderTranscriber):
+class ASCIIRenderer(TranscribeInterpreter):
     '''Creates ASCII representations for tensor expressions.'''
 
-    as_payload = PostOrderTranscriber.as_payload('ascii')
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+
+    as_payload = TranscribeInterpreter.as_payload('ascii')
 
     @as_payload
     def literal(self, value, **kwargs):

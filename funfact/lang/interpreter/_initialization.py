@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from funfact.backend import active_backend as ab
-from ._base import PostOrderTranscriber
+from ._base import TranscribeInterpreter
 
 
-class LeafInitializer(PostOrderTranscriber):
+class LeafInitializer(TranscribeInterpreter):
     '''Creates numeric tensors for the leaf nodes in an AST.'''
+
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
     def __init__(self):
         super().__init__()
@@ -13,7 +15,7 @@ class LeafInitializer(PostOrderTranscriber):
     def literal(self, value, **kwargs):
         return []
 
-    @PostOrderTranscriber.as_payload('data')
+    @TranscribeInterpreter.as_payload('data')
     def tensor(self, abstract, **kwargs):
         initializer, optimizable, shape = (
             abstract.initializer, abstract.optimizable, abstract.shape

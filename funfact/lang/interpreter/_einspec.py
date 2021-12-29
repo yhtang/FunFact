@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
-from ._base import PostOrderTranscriber
+from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
@@ -24,14 +24,13 @@ class IndexMap:
             return self._map(ids)
 
 
-class EinsteinSpecGenerator(PostOrderTranscriber):
+class EinsteinSpecGenerator(TranscribeInterpreter):
     '''The Einstein summation specification generator creates NumPy-style spec
     strings for tensor contraction operations.'''
 
-    Tensorial = PostOrderTranscriber.Tensorial
-    Numeric = PostOrderTranscriber.Numeric
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = PostOrderTranscriber.as_payload('einspec')
+    as_payload = TranscribeInterpreter.as_payload('einspec')
 
     def literal(self, value: LiteralValue, **kwargs):
         return []
@@ -46,28 +45,28 @@ class EinsteinSpecGenerator(PostOrderTranscriber):
         return []
 
     def index_notation(
-        self, indexless: Tensorial, indices: P.indices,  **kwargs
+        self, indexless: P.Tensorial, indices: P.indices,  **kwargs
     ):
         return []
 
-    def call(self, f: str, x: Tensorial, **kwargs):
+    def call(self, f: str, x: P.Tensorial, **kwargs):
         return []
 
     @as_payload
-    def pow(self, base: Numeric, exponent: Numeric, **kwargs):
+    def pow(self, base: P.Numeric, exponent: P.Numeric, **kwargs):
         map = IndexMap()
         return f'{map(base.live_indices)},{map(exponent.live_indices)}'
 
-    def neg(self, x: Numeric, **kwargs):
+    def neg(self, x: P.Numeric, **kwargs):
         return []
 
     def binary(
-        self, lhs: Numeric, rhs: Numeric, precedence: int, oper: str, **kwargs
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str, **kwargs
     ):
         return []
 
     @as_payload
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
+    def ein(self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
             pairwise: str, outidx: Optional[P.indices], live_indices,
             kron_indices, **kwargs):
         map = IndexMap()
@@ -75,6 +74,6 @@ class EinsteinSpecGenerator(PostOrderTranscriber):
                f'->{map(live_indices)}|{map(kron_indices)}'
 
     @as_payload
-    def tran(self, src: Numeric, indices: P.indices, live_indices, **kwargs):
+    def tran(self, src: P.Numeric, indices: P.indices, live_indices, **kwargs):
         map = IndexMap()
         return f'{map(src.live_indices)}->{map(live_indices)}'
