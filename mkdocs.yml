@@ -30,10 +30,10 @@ theme:
     - navigation.top
 plugins:
   - search
-  - gen-files:
-      scripts:
-      - docs/gen_ref_nav.py
-      # - docs/gen_credits.py
+  # - gen-files:
+  #     scripts:
+  #     - docs/gen_ref_nav.py
+  #     - docs/gen_credits.py
   - section-index
   - literate-nav:
       nav_file: SUMMARY.md
