@@ -204,7 +204,6 @@ def yield_tsrex(f):
 
 class SyntaxOverloadMixin:
 
-
     @as_tsrex
     def __neg__(self, rhs):
         return _neg(_as_node(self))
