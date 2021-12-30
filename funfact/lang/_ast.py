@@ -90,18 +90,6 @@ class Primitives:
     def tran(src: _ASNode, indices: _ASNode):
         '''transposition/axis reordering'''
 
-    @classmethod
-    def as_primitive(cls, raw):
-        if isinstance(raw, _ASNode):
-            return raw
-        elif isinstance(raw, Real):
-            return cls.literal(value=LiteralValue(raw))
-        else:
-            raise TypeError(
-                f'Cannot use {raw} of type {type(raw)} in '
-                f'a tensor expression.'
-            )
-
     Tensorial = Union[
         index_notation, call, pow, neg, ein
     ]
@@ -110,20 +98,8 @@ class Primitives:
 
 class _AST:
 
-    def __init__(self, data=None):
-        self.root = self._parse(data)
-
-    @staticmethod
-    def _parse(data):
-        try:  # if data is an AST
-            return data.root
-        except AttributeError:
-            try:
-                return Primitives.as_primitive(data)
-            except TypeError:
-                raise RuntimeError(
-                    f'Cannot parse data: {data}.'
-                )
+    def __init__(self, root=None):
+        self.root = root
 
     @property
     def root(self):

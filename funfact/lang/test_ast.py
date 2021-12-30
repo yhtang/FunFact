@@ -54,13 +54,6 @@ def test_ast():
     def prim():
         pass
 
-    # constract from scalar literal
-    ast = _AST(1)
-    assert hasattr(ast, 'root')
-    assert ast.root.name == 'literal'
-    # re-assign root
-    ast.root = prim()
-    assert ast.root.name == 'prim'
-
     # construct from ASNode
-    assert _AST(prim()).root.name == 'prim'
+    ast = _AST(prim())
+    assert ast.root.name == 'prim'

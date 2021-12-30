@@ -5,6 +5,7 @@ import re
 import sys
 import asciitree
 import functools
+from numbers import Number
 from plum import Dispatcher
 from funfact.backend import active_backend as ab
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
@@ -16,7 +17,7 @@ from .interpreter import (
     ShapeAnalyzer,
     EinsteinSpecGenerator
 )
-from ._terminal import AbstractIndex, AbstractTensor
+from ._terminal import LiteralValue, AbstractIndex, AbstractTensor
 
 
 class ASCIITreeFactory:
@@ -175,78 +176,94 @@ class _BaseEx(_AST):
         return self._static_analyzed.einspec
 
 
+def _as_node(x):
+    if isinstance(x, _ASNode):
+        return x
+    elif isinstance(x, _AST):
+        return x.root
+    elif isinstance(x, Number):
+        return P.literal(value=LiteralValue(x))
+    else:
+        raise TypeError(
+            f'Cannot use {x} of type {type(x)} in a tensor expression.'
+        )
+
+
+def as_tsrex(f):
+    def wrapper(*args, **kwargs):
+        return TsrEx(f(*args, **kwargs))
+    return wrapper
+
+
+def yield_tsrex(f):
+    def wrapper(*args, **kwargs):
+        for n in f(*args, **kwargs):
+            yield TsrEx(n)
+    return wrapper
+
+
 class SyntaxOverloadMixin:
 
-    def as_tsrex(f):
-        def wrapper(*args, **kwargs):
-            return TsrEx(f(*args, **kwargs))
-        return wrapper
-
-    def as_tsrex_from(f):
-        def wrapper(*args, **kwargs):
-            for n in f(*args, **kwargs):
-                yield TsrEx(n)
-        return wrapper
 
     @as_tsrex
     def __neg__(self, rhs):
-        return _neg(_AST._parse(self))
+        return _neg(_as_node(self))
 
     @as_tsrex
     def __add__(self, rhs):
-        return _binary(_AST._parse(self), _AST._parse(rhs), 6, 'add')
+        return _binary(_as_node(self), _as_node(rhs), 6, 'add')
 
     @as_tsrex
     def __sub__(self, rhs):
-        return _binary(_AST._parse(self), _AST._parse(rhs), 6, 'subtract')
+        return _binary(_as_node(self), _as_node(rhs), 6, 'subtract')
 
     @as_tsrex
     def __mul__(self, rhs):
-        return _binary(_AST._parse(self), _AST._parse(rhs), 5, 'multiply')
+        return _binary(_as_node(self), _as_node(rhs), 5, 'multiply')
 
     @as_tsrex
     def __truediv__(self, rhs):
-        return _binary(_AST._parse(self), _AST._parse(rhs), 5, 'divide')
+        return _binary(_as_node(self), _as_node(rhs), 5, 'divide')
 
     @as_tsrex
     def __pow__(self, rhs):
-        return _pow(_AST._parse(self), _AST._parse(rhs))
+        return _pow(_as_node(self), _as_node(rhs))
 
     @as_tsrex
     def __radd__(self, lhs):
-        return _binary(_AST._parse(lhs), _AST._parse(self), 6, 'add')
+        return _binary(_as_node(lhs), _as_node(self), 6, 'add')
 
     @as_tsrex
     def __rsub__(self, lhs):
-        return _binary(_AST._parse(lhs), _AST._parse(self), 6, 'add')
+        return _binary(_as_node(lhs), _as_node(self), 6, 'add')
 
     @as_tsrex
     def __rmul__(self, lhs):
-        return _binary(_AST._parse(lhs), _AST._parse(self), 5, 'multiply')
+        return _binary(_as_node(lhs), _as_node(self), 5, 'multiply')
 
     @as_tsrex
     def __rtruediv__(self, lhs):
-        return _binary(_AST._parse(lhs), _AST._parse(self), 5, 'divide')
+        return _binary(_as_node(lhs), _as_node(self), 5, 'divide')
 
     @as_tsrex
     def __rpow__(self, lhs):
-        return _pow(_AST._parse(lhs), _AST._parse(self))
+        return _pow(_as_node(lhs), _as_node(self))
 
     @as_tsrex
     def __getitem__(self, indices):
-        return _getitem(_AST._parse(self), indices)
+        return _getitem(_as_node(self), indices)
 
     @as_tsrex
     def __rshift__(self, indices):
-        return _rshift(_AST._parse(self), indices)
+        return _rshift(_as_node(self), indices)
 
     @as_tsrex
     def __invert__(self):
-        return _invert(_AST._parse(self))
+        return _invert(_as_node(self))
 
-    @as_tsrex_from
+    @yield_tsrex
     def __iter__(self):
-        return _iter(_AST._parse(self))
+        return _iter(_as_node(self))
 
 
 class TsrEx(
