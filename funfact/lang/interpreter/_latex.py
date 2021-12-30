@@ -57,6 +57,9 @@ class LatexRenderer(ROOFInterpreter):
     def neg(self, x, **kwargs):
         return fr'-{x}'
 
+    def matmul(self, lhs, rhs, **kwargs):
+        return fr'{lhs} {rhs}'
+
     def binary(self, lhs, rhs, precedence, oper, **kwargs):
         return fr'{lhs} {_omap[oper]} {rhs}'
 

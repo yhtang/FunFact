@@ -71,6 +71,10 @@ class Primitives:
         '''elementwise negation'''
 
     @primitive(precedence=5)
+    def matmul(lhs: _ASNode, rhs: _ASNode):
+        '''indexless matrix multiplication'''
+
+    @primitive(precedence=5)
     def kron(lhs: _ASNode, rhs: _ASNode):
         '''indexless Kronecker product'''
 

@@ -78,6 +78,10 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
+    def matmul(self, lhs: Any, rhs: Any, **payload):
+        pass
+
+    @abstractmethod
     def binary(
         self, lhs: Any, rhs: Any, precedence: int, pairwise: str, **payload
     ):
@@ -177,6 +181,10 @@ class TranscribeInterpreter(ABC):
 
     @abstractmethod
     def neg(self, x: P.Numeric, **payload):
+        pass
+
+    @abstractmethod
+    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **payload):
         pass
 
     @abstractmethod

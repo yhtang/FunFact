@@ -60,6 +60,9 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     def neg(self, x: P.Numeric, **kwargs):
         return []
 
+    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
+        return []
+
     def binary(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs
