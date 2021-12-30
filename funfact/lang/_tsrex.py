@@ -182,6 +182,12 @@ class SyntaxOverloadMixin:
             return TsrEx(f(*args, **kwargs))
         return wrapper
 
+    def as_tsrex_from(f):
+        def wrapper(*args, **kwargs):
+            for n in f(*args, **kwargs):
+                yield TsrEx(n)
+        return wrapper
+
     @as_tsrex
     def __neg__(self, rhs):
         return _neg(_AST._parse(self))
@@ -238,7 +244,7 @@ class SyntaxOverloadMixin:
     def __invert__(self):
         return _invert(_AST._parse(self))
 
-    @as_tsrex
+    @as_tsrex_from
     def __iter__(self):
         return _iter(_AST._parse(self))
 
