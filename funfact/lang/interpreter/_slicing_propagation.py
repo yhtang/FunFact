@@ -48,6 +48,10 @@ class SlicingPropagator(TranscribeInterpreter):
     def neg(self, x: P.Numeric, slices, **kwargs):
         x.slices = slices
 
+    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, slices, **kwargs):
+        lhs.slices = (slices[0], slice(None))
+        rhs.slices = (slice(None), slices[1])
+
     def binary(
         self, lhs: P.Numeric, rhs: P.Numeric, oper: str, slices,
         **kwargs

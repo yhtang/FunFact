@@ -115,6 +115,10 @@ class IndexPropagator(TranscribeInterpreter):
         return x.live_indices, x.keep_indices, x.kron_indices
 
     @as_payload
+    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
+        return [], [], []
+
+    @as_payload
     def binary(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs

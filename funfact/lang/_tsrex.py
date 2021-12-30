@@ -221,6 +221,10 @@ class SyntaxOverloadMixin:
         return _binary(_as_node(self), _as_node(rhs), 5, 'multiply')
 
     @as_tsrex
+    def __matmul__(self, rhs):
+        return _matmul(_as_node(self), _as_node(rhs))
+
+    @as_tsrex
     def __truediv__(self, rhs):
         return _binary(_as_node(self), _as_node(rhs), 5, 'divide')
 
@@ -239,6 +243,10 @@ class SyntaxOverloadMixin:
     @as_tsrex
     def __rmul__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 5, 'multiply')
+
+    @as_tsrex
+    def __rmatmul__(self, lhs):
+        return _matmul(_as_node(lhs), _as_node(self))
 
     @as_tsrex
     def __rtruediv__(self, lhs):
@@ -286,6 +294,11 @@ class TsrEx(
 
 
 _dispatch = Dispatcher()
+
+
+@_dispatch
+def _matmul(lhs: _ASNode, rhs: _ASNode):
+    return P.matmul(lhs, rhs)
 
 
 @_dispatch
