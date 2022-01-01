@@ -48,9 +48,6 @@ class SyntaxValidator:
     def call(self, node: _ASNode, parent: _ASNode):
         pass
 
-    def pow(self, node: _ASNode, parent: _ASNode):
-        pass
-
     def neg(self, node: _ASNode, parent: _ASNode):
         pass
 

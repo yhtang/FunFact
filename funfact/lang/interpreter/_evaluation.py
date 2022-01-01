@@ -31,9 +31,6 @@ class Evaluator(ROOFInterpreter):
     def call(self, f, x, **kwargs):
         return getattr(ab, f)(x)
 
-    def pow(self, base, exponent, **kwargs):
-        return ab.power(base, exponent)
-
     def neg(self, x, **kwargs):
         return -x
 

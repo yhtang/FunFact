@@ -45,9 +45,6 @@ class LeafInitializer(TranscribeInterpreter):
     def call(self, f, x, **kwargs):
         return []
 
-    def pow(self, base, exponent, **kwargs):
-        return []
-
     def neg(self, x, **kwargs):
         return []
 

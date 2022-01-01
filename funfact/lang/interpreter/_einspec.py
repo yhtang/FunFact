@@ -52,11 +52,6 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     def call(self, f: str, x: P.Tensorial, **kwargs):
         return []
 
-    @as_payload
-    def pow(self, base: P.Numeric, exponent: P.Numeric, **kwargs):
-        map = IndexMap()
-        return f'{map(base.live_indices)},{map(exponent.live_indices)}'
-
     def neg(self, x: P.Numeric, **kwargs):
         return []
 

@@ -70,10 +70,6 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def pow(self, base: Any, exponent: Any, **payload):
-        pass
-
-    @abstractmethod
     def neg(self, x: Any, **payload):
         pass
 
@@ -173,10 +169,6 @@ class TranscribeInterpreter(ABC):
 
     @abstractmethod
     def call(self, f: str, x: P.Tensorial, **payload):
-        pass
-
-    @abstractmethod
-    def pow(self, base: P.Numeric, exponent: P.Numeric, **payload):
         pass
 
     @abstractmethod

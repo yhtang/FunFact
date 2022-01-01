@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
+import numpy as np
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
@@ -40,13 +41,6 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return x.shape
 
     @as_payload
-    def pow(self, base: P.Numeric, exponent: P.Numeric, **kwargs):
-        if base.shape:
-            return base.shape
-        else:
-            return exponent.shape
-
-    @as_payload
     def neg(self, x: P.Numeric, **kwargs):
         return x.shape
 
@@ -74,12 +68,13 @@ class ShapeAnalyzer(TranscribeInterpreter):
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs
     ):
-        if lhs.shape != rhs.shape:
+        try:
+            return tuple(np.broadcast_shapes(lhs.shape, rhs.shape))
+        except ValueError:
             raise SyntaxError(
-                'Elementwise operations require tensors of same shape. '
+                'Binary operations require tensors of compatible shape. '
                 f'Got {lhs.shape} and {rhs.shape}.'
             )
-        return lhs.shape
 
     @as_payload
     def ein(
