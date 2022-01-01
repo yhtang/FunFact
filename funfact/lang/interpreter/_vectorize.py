@@ -47,6 +47,9 @@ class Vectorizer(TranscribeInterpreter):
     def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
         return []
 
+    def kron(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
+        return []
+
     def binary(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs

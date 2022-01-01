@@ -64,6 +64,15 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return (lhs.shape[0], rhs.shape[1])
 
     @as_payload
+    def kron(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
+        if len(lhs.shape) != len(rhs.shape):
+            raise SyntaxError(
+                'Kronecker product only possible between matrices of same '
+                f'dimensionality. Got {len(lhs.shape)} and {len(rhs.shape)}.'
+            )
+        return tuple(np.multiply(lhs.shape, rhs.shape))
+
+    @as_payload
     def binary(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs

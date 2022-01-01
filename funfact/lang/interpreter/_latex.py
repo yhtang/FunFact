@@ -56,7 +56,10 @@ class LatexRenderer(ROOFInterpreter):
         return fr'-{x}'
 
     def matmul(self, lhs, rhs, **kwargs):
-        return fr'{lhs} {rhs}'
+        return fr'{{{lhs}}} {{{rhs}}}'
+
+    def kron(self, lhs, rhs, **kwargs):
+        return fr'{{{lhs}}} \otimes {{{rhs}}}'
 
     def binary(self, lhs, rhs, precedence, oper, **kwargs):
         return fr'{{{lhs}}} {_omap[oper]} {{{rhs}}}'
@@ -68,7 +71,7 @@ class LatexRenderer(ROOFInterpreter):
             op = r'\underset{{{}:{}}}{{\star}}'.format(
                 _omap[reduction], _omap[pairwise]
             )
-        body = fr'{lhs} {op} {rhs}'
+        body = fr'{{{lhs}}} {op} {{{rhs}}}'
         suffix = fr'\rightarrow_{{{outidx}}}' if outidx is not None else ''
         return body + suffix
 

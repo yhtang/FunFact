@@ -51,6 +51,9 @@ class LeafInitializer(TranscribeInterpreter):
     def matmul(self, lhs, rhs, **kwargs):
         return []
 
+    def kron(self, lhs, rhs, **kwargs):
+        return []
+
     def binary(self, lhs, rhs, precedence, oper, **kwargs):
         return []
 

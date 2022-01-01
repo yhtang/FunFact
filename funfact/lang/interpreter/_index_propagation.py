@@ -111,6 +111,10 @@ class IndexPropagator(TranscribeInterpreter):
         return [], [], []
 
     @as_payload
+    def kron(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
+        return [], [], []
+
+    @as_payload
     def binary(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs
