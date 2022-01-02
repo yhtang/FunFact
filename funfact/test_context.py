@@ -24,6 +24,7 @@ def test_enable_grad_torch():
         __name__='Torch'
     )
 
+    prev_backend = getattr(funfact.backend, '_active_backend')
     setattr(funfact.backend, '_active_backend', mock_backend)
 
     with enable_grad(True):
@@ -33,3 +34,5 @@ def test_enable_grad_torch():
             mock_backend.set_grad_enabled.assert_called_with(False)
             assert is_grad_on() is False
         assert is_grad_on() is True
+
+    setattr(funfact.backend, '_active_backend', prev_backend)
