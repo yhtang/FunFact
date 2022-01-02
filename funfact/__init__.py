@@ -7,7 +7,7 @@ from .lang._math import *  # noqa: F401, F403
 from .model import Factorization
 from .algorithm import factorize
 from .vectorization import vectorize, view
-from .context import set_optimizable
+from .context import is_grad_on, enable_grad
 
 
 __all__ = [
@@ -26,7 +26,8 @@ __all__ = [
     'factorize',
     'vectorize',
     'view',
-    'set_optimizable',
+    'is_grad_on',
+    'enable_grad',
 ]
 
 

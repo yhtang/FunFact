@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pytest
+import pytest  # noqa: F401
 from .iterable import (
     as_namedtuple,
     as_tuple,

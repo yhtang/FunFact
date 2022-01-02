@@ -4,24 +4,23 @@ from funfact.backend import active_backend as ab
 from contextlib import contextmanager
 
 
-_all_optimizable = True
+_grad_on = True
 
 
-def is_optimizable():
-    global _all_optimizable
-    return _all_optimizable
+def is_grad_on():
+    return _grad_on
 
 
 @contextmanager
-def set_optimizable(mode: bool) -> None:
-    global _all_optimizable
-    _prev_mode = _all_optimizable
-    _all_optimizable = mode
-    if 'torch' in ab.__repr__().lower():
+def enable_grad(mode: bool) -> None:
+    global _grad_on
+    prev_mode = _grad_on
+    _grad_on = mode
+    if 'torch' in repr(ab).lower():
         ab.set_grad_enabled(mode)
     try:
-        yield None
+        yield
     finally:
-        _all_optimizable = _prev_mode
-        if 'torch' in ab.__repr__().lower():
-            ab.set_grad_enabled(_prev_mode)
+        _grad_on = prev_mode
+        if 'torch' in repr(ab).lower():
+            ab.set_grad_enabled(prev_mode)
