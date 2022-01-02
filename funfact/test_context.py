@@ -21,7 +21,7 @@ def test_enable_grad():
 def test_enable_grad_torch():
 
     mock_backend = MagicMock(
-        __name__= 'Torch'
+        __name__='Torch'
     )
 
     setattr(funfact.backend, '_active_backend', mock_backend)
