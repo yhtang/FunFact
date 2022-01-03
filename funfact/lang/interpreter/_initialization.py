@@ -51,7 +51,10 @@ class LeafInitializer(TranscribeInterpreter):
     def neg(self, x, **kwargs):
         return []
 
-    def binary(self, lhs, rhs, oper, **kwargs):
+    def matmul(self, lhs, rhs, **kwargs):
+        return []
+
+    def binary(self, lhs, rhs, precedence, oper, **kwargs):
         return []
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):

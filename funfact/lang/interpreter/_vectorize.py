@@ -48,7 +48,13 @@ class Vectorizer(TranscribeInterpreter):
             keep_indices, **kwargs):
         return []
 
-    def binary(self, lhs: P.Numeric, rhs: P.Numeric, oper: str, **kwargs):
+    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
+        return []
+
+    def binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
+    ):
         return []
 
     @as_payload('outidx')

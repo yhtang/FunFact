@@ -51,11 +51,34 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return x.shape
 
     @as_payload
+    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
+        if len(lhs.shape) != 2:
+            raise SyntaxError(
+                'Only matrices (2D tensors) supports multiplication '
+                f'using `@`. Left-hand side operand has shape {lhs.shape}.'
+            )
+        if len(rhs.shape) != 2:
+            raise SyntaxError(
+                'Only matrices (2D tensors) supports multiplication '
+                f'using `@`. Right-hand side operand has shape {rhs.shape}.'
+            )
+        if lhs.shape[1] != rhs.shape[0]:
+            raise SyntaxError(
+                f'Dimensions of matrices {lhs.shape} and {rhs.shape} '
+                'not compatible for multiplication using `@`.'
+            )
+        return (lhs.shape[0], rhs.shape[1])
+
+    @as_payload
     def binary(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs
     ):
-        assert lhs.shape == rhs.shape
+        if lhs.shape != rhs.shape:
+            raise SyntaxError(
+                'Elementwise operations require tensors of same shape. '
+                f'Got {lhs.shape} and {rhs.shape}.'
+            )
         return lhs.shape
 
     @as_payload

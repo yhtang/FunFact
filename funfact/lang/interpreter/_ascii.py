@@ -41,11 +41,15 @@ class ASCIIRenderer(TranscribeInterpreter):
 
     @as_payload
     def pow(self, base, exponent, **kwargs):
-        return 'pow'
+        return ''
 
     @as_payload
     def neg(self, x, **kwargs):
-        return '-'
+        return ''
+
+    @as_payload
+    def matmul(self, lhs, rhs, **kwargs):
+        return ''
 
     @as_payload
     def binary(self, lhs, rhs, precedence, oper, **kwargs):
