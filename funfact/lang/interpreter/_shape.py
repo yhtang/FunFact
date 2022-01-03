@@ -65,7 +65,7 @@ class ShapeAnalyzer(TranscribeInterpreter):
         if lhs.shape[1] != rhs.shape[0]:
             raise SyntaxError(
                 f'Dimensions of matrices {lhs.shape} and {rhs.shape} '
-                'not compatible for multiplication.'
+                'not compatible for multiplication using `@`.'
             )
         return (lhs.shape[0], rhs.shape[1])
 
