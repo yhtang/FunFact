@@ -7,16 +7,15 @@ from ._base import TranscribeInterpreter
 class LeafInitializer(TranscribeInterpreter):
     '''Creates numeric tensors for the leaf nodes in an AST.'''
 
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+
     def __init__(self):
         super().__init__()
 
-    as_payload = TranscribeInterpreter.as_payload('data')
-
-    @as_payload
     def literal(self, value, **kwargs):
-        return None
+        return []
 
-    @as_payload
+    @TranscribeInterpreter.as_payload('data')
     def tensor(self, abstract, **kwargs):
         initializer, optimizable, shape = (
             abstract.initializer, abstract.optimizable, abstract.shape
@@ -34,34 +33,29 @@ class LeafInitializer(TranscribeInterpreter):
         else:
             return ab.normal(0.0, 1.0, *shape, optimizable=optimizable)
 
-    @as_payload
     def index(self, item, bound, kron, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def indices(self, items, **kwargs):
-        return None
+        return []
 
-    @as_payload
-    def index_notation(self, tensor, indices, **kwargs):
-        return None
+    def index_notation(self, indexless, indices, **kwargs):
+        return []
 
-    @as_payload
     def call(self, f, x, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def pow(self, base, exponent, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def neg(self, x, **kwargs):
-        return None
+        return []
 
-    @as_payload
+    def binary(self, lhs, rhs, oper, **kwargs):
+        return []
+
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def tran(self, src, indices, **kwargs):
-        return None
+        return []

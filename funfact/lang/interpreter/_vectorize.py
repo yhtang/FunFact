@@ -8,63 +8,59 @@ from ._base import TranscribeInterpreter
 
 class Vectorizer(TranscribeInterpreter):
 
-    Tensorial = TranscribeInterpreter.Tensorial
-    Numeric = TranscribeInterpreter.Numeric
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = TranscribeInterpreter.as_payload('outidx')
+    as_payload = TranscribeInterpreter.as_payload
 
     def __init__(self, replicas: int):
         self.replicas = replicas
         self.vec_index = P.index(AbstractIndex(), bound=False, kron=False)
 
-    @as_payload
     def literal(self, value: LiteralValue, **kwargs):
         return []
 
-    @as_payload
+    @as_payload('abstract')
     def tensor(self, abstract: AbstractTensor, **kwargs):
-        return []
+        return abstract.vectorize(self.replicas)
 
-    @as_payload
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
         return []
 
-    @as_payload
+    @as_payload('items')
     def indices(self, items: AbstractIndex, **kwargs):
-        return []
+        return (*items, self.vec_index)
 
-    @as_payload
     def index_notation(
-        self, tensor: P.tensor, indices: P.indices, live_indices,
+        self, indexless: P.Numeric, indices: P.indices, live_indices,
         keep_indices, **kwargs
     ):
-        indices.items = (*indices.items, self.vec_index)
-        tensor.abstract = tensor.abstract.vectorize(self.replicas)
         return []
 
-    @as_payload
-    def call(self, f: str, x: Tensorial, live_indices,
+    def call(self, f: str, x: P.Tensorial, live_indices,
              keep_indices, **kwargs):
         return []
 
-    @as_payload
-    def pow(self, base: Numeric, exponent: Numeric, live_indices,
+    def pow(self, base: P.Numeric, exponent: P.Numeric, live_indices,
             keep_indices, **kwargs):
         return []
 
-    @as_payload
-    def neg(self, x: Numeric, live_indices,
+    def neg(self, x: P.Numeric, live_indices,
             keep_indices, **kwargs):
         return []
 
-    @as_payload
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], live_indices,
-            **kwargs):
-        return P.indices([*[P.index(i, bound=False, kron=False) for i in
-                         live_indices], self.vec_index])
+    def binary(self, lhs: P.Numeric, rhs: P.Numeric, oper: str, **kwargs):
+        return []
 
-    @as_payload
-    def tran(self, src: Numeric, indices: P.indices, live_indices,
+    @as_payload('outidx')
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], live_indices, **kwargs
+    ):
+        return P.indices([
+            *[P.index(i, bound=False, kron=False) for i in live_indices],
+            self.vec_index
+        ])
+
+    def tran(self, src: P.Numeric, indices: P.indices, live_indices,
              keep_indices, **kwargs):
         return []

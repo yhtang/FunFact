@@ -1,19 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from copy import copy
 import dataclasses
 import re
 import sys
 import asciitree
 import functools
+from numbers import Number
+from plum import Dispatcher
 from funfact.backend import active_backend as ab
 from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
-    dfs_filter, ASCIIRenderer, LatexRenderer, IndexPropagator, ShapeAnalyzer,
+    ASCIIRenderer,
+    LatexRenderer,
+    IndexPropagator,
+    ShapeAnalyzer,
     EinsteinSpecGenerator
 )
-from ._terminal import AbstractIndex, AbstractTensor
+from ._terminal import LiteralValue, AbstractIndex, AbstractTensor
 
 
 class ASCIITreeFactory:
@@ -38,8 +42,13 @@ class ASCIITreeFactory:
                         )
                     )
                 ),
-                get_text=lambda node: node.ascii + ' ' + ' '.join([
-                    f'({v}: {_getattr_safe(node, v)})' for v in extra_fields
+                get_text=lambda node: '{}: {} '.format(
+                    node.name, node.ascii
+                ) + ' '.join([
+                    '({f}: {s})'.format(
+                        f=f,
+                        s=re.sub('\n', '', str(_getattr_safe(node, f)))
+                    ) for f in extra_fields
                 ])
             ),
             draw=asciitree.drawing.BoxStyle(
@@ -167,105 +176,99 @@ class _BaseEx(_AST):
         return self._static_analyzed.einspec
 
 
-class ArithmeticMixin:
+def _as_node(x):
+    if isinstance(x, _ASNode):
+        return x
+    elif isinstance(x, _AST):
+        return x.root
+    elif isinstance(x, Number):
+        return P.literal(value=LiteralValue(x))
+    else:
+        raise TypeError(
+            f'Cannot use {x} of type {type(x)} in a tensor expression.'
+        )
 
+
+def as_tsrex(f):
+    def wrapper(*args, **kwargs):
+        return TsrEx(f(*args, **kwargs))
+    return wrapper
+
+
+def yield_tsrex(f):
+    def wrapper(*args, **kwargs):
+        for n in f(*args, **kwargs):
+            yield TsrEx(n)
+    return wrapper
+
+
+class SyntaxOverloadMixin:
+
+    @as_tsrex
+    def __neg__(self, rhs):
+        return _neg(_as_node(self))
+
+    @as_tsrex
     def __add__(self, rhs):
-        return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 6, 'sum', 'add', None
-        ))
+        return _binary(_as_node(self), _as_node(rhs), 6, 'add')
 
-    def __radd__(self, lhs):
-        return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 6, 'sum', 'add', None
-        ))
-
+    @as_tsrex
     def __sub__(self, rhs):
-        return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 6, 'sum', 'subtract', None
-        ))
+        return _binary(_as_node(self), _as_node(rhs), 6, 'subtract')
 
-    def __rsub__(self, lhs):
-        return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 6, 'sum', 'subtract', None
-        ))
-
+    @as_tsrex
     def __mul__(self, rhs):
-        return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 5, 'sum', 'multiply', None
-        ))
+        return _binary(_as_node(self), _as_node(rhs), 5, 'multiply')
 
-    def __rmul__(self, lhs):
-        return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 5, 'sum', 'multiply', None
-        ))
-
+    @as_tsrex
     def __truediv__(self, rhs):
-        return EinopEx(P.ein(
-            self.root, _BaseEx(rhs).root, 5, 'sum', 'divide', None
-        ))
+        return _binary(_as_node(self), _as_node(rhs), 5, 'divide')
 
+    @as_tsrex
+    def __pow__(self, rhs):
+        return _pow(_as_node(self), _as_node(rhs))
+
+    @as_tsrex
+    def __radd__(self, lhs):
+        return _binary(_as_node(lhs), _as_node(self), 6, 'add')
+
+    @as_tsrex
+    def __rsub__(self, lhs):
+        return _binary(_as_node(lhs), _as_node(self), 6, 'subtract')
+
+    @as_tsrex
+    def __rmul__(self, lhs):
+        return _binary(_as_node(lhs), _as_node(self), 5, 'multiply')
+
+    @as_tsrex
     def __rtruediv__(self, lhs):
-        return EinopEx(P.ein(
-            _BaseEx(lhs).root, self.root, 5, 'sum', 'divide', None
-        ))
+        return _binary(_as_node(lhs), _as_node(self), 5, 'divide')
 
-    def __neg__(self):
-        return TsrEx(P.neg(self.root))
+    @as_tsrex
+    def __rpow__(self, lhs):
+        return _pow(_as_node(lhs), _as_node(self))
 
-    def __pow__(self, exponent):
-        return TsrEx(P.pow(self.root, _BaseEx(exponent).root))
-
-    def __rpow__(self, base):
-        return TsrEx(P.pow(_BaseEx(base).root, self.root))
-
-
-class IndexRenamingMixin:
-    '''Rename the free indices of a tensor expression.'''
-
+    @as_tsrex
     def __getitem__(self, indices):
+        return _getitem(_as_node(self), indices)
 
-        tsrex = self | IndexPropagator()
-
-        indices = as_tuple(indices)
-        live_old = tsrex.root.live_indices
-        if len(indices) != len(live_old):
-            raise SyntaxError(
-                f'Incorrect number of indices. '
-                f'Expects {len(live_old)}, '
-                f'got {len(indices)}.'
-            )
-
-        for new_expr in indices:
-            if new_expr.root.name != 'index':
-                raise SyntaxError(
-                    'Indices to a tensor expression must be abstract indices.'
-                )
-        live_new = [i.root.item for i in indices]
-
-        index_map = dict(zip(live_old, live_new))
-        # if a 'new' live index is already used as a dummy one, replace the
-        # dummy usage with an anonymous index to avoid conflict.
-        for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
-            i = n.item
-            if i not in live_old and i in live_new:
-                index_map[i] = AbstractIndex()
-
-        for n in dfs_filter(lambda n: n.name == 'index', tsrex.root):
-            n.item = index_map.get(n.item, n.item)
-
-        return tsrex | IndexPropagator()
-
-
-class TranspositionMixin:
-    '''transpose the axes by permuting the live indices into target indices.'''
+    @as_tsrex
     def __rshift__(self, indices):
-        return TsrEx(P.tran(
-            self.root,
-            P.indices(tuple([i.root for i in as_tuple(indices)]))
-        ))
+        return _rshift(_as_node(self), indices)
+
+    @as_tsrex
+    def __invert__(self):
+        return _invert(_as_node(self))
+
+    @yield_tsrex
+    def __iter__(self):
+        return _iter(_as_node(self))
 
 
-class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin, TranspositionMixin):
+class TsrEx(
+    _BaseEx,
+    SyntaxOverloadMixin,
+):
     '''A expression of potentially nested and composite tensor computations.
 
     Supported operations between tensor expressions include:
@@ -279,41 +282,59 @@ class TsrEx(_BaseEx, ArithmeticMixin, IndexRenamingMixin, TranspositionMixin):
 
     For more details, see the corresponding
     [user guide page](../../pages/user-guide/tsrex).
-
     '''
-    pass
 
 
-class IndexEx(_BaseEx):
-    def __invert__(self):
-        '''Implements the `~i` syntax.'''
-        return IndexEx(dataclasses.replace(self.root, bound=True, kron=False))
-
-    def __iter__(self):
-        '''Implements the `*i` syntax.'''
-        yield IndexEx(dataclasses.replace(self.root, bound=False, kron=True))
+_dispatch = Dispatcher()
 
 
-class TensorEx(_BaseEx):
-    def __getitem__(self, indices):
-        return TsrEx(
-            P.index_notation(
-                self.root,
-                P.indices(
-                    tuple([i.root for i in as_tuple(indices or [])])
-                )
-            )
-        )
+@_dispatch
+def _binary(lhs: _ASNode, rhs: _ASNode, precedence, oper):
+    return P.binary(lhs, rhs, precedence, oper)
 
 
-class EinopEx(TsrEx):
-    # override the `>>` behavior from TranspositionMixin
-    def __rshift__(self, output_indices):
-        tsrex = EinopEx(copy(self.root))
-        tsrex.root.outidx = P.indices(
-            tuple([i.root for i in as_tuple(output_indices)])
-        )
-        return tsrex
+@_dispatch
+def _neg(node: _ASNode):
+    return P.neg(node)
+
+
+@_dispatch
+def _pow(base: _ASNode, exponent: _ASNode):
+    return P.pow(base, exponent)
+
+
+@_dispatch
+def _invert(node: P.index):
+    '''Implements the `~i` syntax.'''
+    return dataclasses.replace(node, bound=True, kron=False)
+
+
+@_dispatch
+def _iter(node: P.index):
+    '''Implements the `*i` syntax.'''
+    yield dataclasses.replace(node, bound=False, kron=True)
+
+
+@_dispatch
+def _getitem(node: _ASNode, indices):  # noqa: F811
+    '''create index notation'''
+    # for new in indices_new:
+    #                 if not isinstance(new, P.index):
+    #                     raise SyntaxError(
+    #                         'Indices to a tensor expression must be '
+    #                         'abstract indices.'
+    #                     )
+    return P.index_notation(
+        node,
+        P.indices(tuple([i.root for i in as_tuple(indices or [])]))
+    )
+
+
+@_dispatch
+def _rshift(node: _ASNode, indices):  # noqa: F811
+    '''transpose the axes by permuting the live indices into target indices.'''
+    return P.tran(node,
+                  P.indices(tuple([i.root for i in as_tuple(indices)])))
 
 
 def index(symbol=None):
@@ -332,7 +353,7 @@ def index(symbol=None):
     Returns:
         TsrEx: A single-index tensor expression.
     '''
-    return IndexEx(P.index(AbstractIndex(symbol), bound=False, kron=False))
+    return TsrEx(P.index(AbstractIndex(symbol), bound=False, kron=False))
 
 
 def indices(spec):
@@ -436,7 +457,11 @@ def tensor(*spec, initializer=None, optimizable=None):
                 f'Tensor size must be positive integer, got {d} instead.'
             )
 
-    return TensorEx(P.tensor(
-        AbstractTensor(*size, symbol=symbol, initializer=initializer,
-                       optimizable=optimizable))
-                    )
+    return TsrEx(
+        P.tensor(
+            AbstractTensor(
+                *size, symbol=symbol, initializer=initializer,
+                optimizable=optimizable
+            )
+        )
+    )

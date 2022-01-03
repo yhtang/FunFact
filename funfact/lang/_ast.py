@@ -3,7 +3,7 @@
 from dataclasses import make_dataclass
 import inspect
 from numbers import Real
-from typing import Optional, Tuple
+from typing import Optional, Union, Tuple
 from ._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
 
@@ -53,8 +53,10 @@ class Primitives:
         '''a tuple of indices'''
 
     @primitive(precedence=1)
-    def index_notation(tensor: _ASNode, indices: _ASNode):
-        '''indexed notation for a single tensor: tensor[indices...]'''
+    def index_notation(indexless: _ASNode, indices: _ASNode):
+        '''indexing a raw tensor or indexless expression: expr[indices...].
+        To be interpreted either as tensor indexing or index renaming depending
+        on the type of the addressee.'''
 
     @primitive(precedence=2)
     def call(f: str, x: _ASNode):
@@ -68,6 +70,15 @@ class Primitives:
     def neg(x: _ASNode):
         '''elementwise negation'''
 
+    @primitive(precedence=5)
+    def kron(lhs: _ASNode, rhs: _ASNode):
+        '''indexless Kronecker product'''
+
+    @primitive(precedence=None)
+    def binary(lhs: _ASNode, rhs: _ASNode, precedence: int, oper: str):
+        '''generic binary operations, to be interpreted as either elementwise
+        or Einstein based on index/indexless status.'''
+
     @primitive(precedence=None)
     def ein(
         lhs: _ASNode, rhs: _ASNode, precedence: int,
@@ -79,31 +90,16 @@ class Primitives:
     def tran(src: _ASNode, indices: _ASNode):
         '''transposition/axis reordering'''
 
-    @classmethod
-    def as_primitive(cls, raw):
-        if isinstance(raw, _ASNode):
-            return raw
-        elif isinstance(raw, Real):
-            return cls.literal(value=LiteralValue(raw))
-        else:
-            raise TypeError(
-                f'Cannot use {raw} of type {type(raw)} in '
-                f'a tensor expression.'
-            )
+    Tensorial = Union[
+        index_notation, call, pow, neg, ein
+    ]
+    Numeric = Union[Tensorial, Real]
 
 
 class _AST:
 
-    def __init__(self, data=None):
-        try:  # copy-construct from another AST
-            self.root = data.root
-        except AttributeError:
-            try:
-                self.root = Primitives.as_primitive(data)
-            except TypeError:
-                raise RuntimeError(
-                    f'Invalid arguments to create an AST: data = {data}.'
-                )
+    def __init__(self, root=None):
+        self.root = root
 
     @property
     def root(self):

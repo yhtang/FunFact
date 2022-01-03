@@ -8,8 +8,8 @@ from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
 class ShapeAnalyzer(TranscribeInterpreter):
     '''The shape analyzer checks the shapes of the nodes in the AST.'''
-    Tensorial = TranscribeInterpreter.Tensorial
-    Numeric = TranscribeInterpreter.Numeric
+
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
     as_payload = TranscribeInterpreter.as_payload('shape')
 
@@ -30,28 +30,40 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return None
 
     @as_payload
-    def index_notation(self, tensor: P.tensor, indices: P.indices,  **kwargs):
-        return tensor.shape
+    def index_notation(
+        self, indexless: P.Numeric, indices: P.indices,  **kwargs
+    ):
+        return indexless.shape
 
     @as_payload
-    def call(self, f: str, x: Tensorial, **kwargs):
+    def call(self, f: str, x: P.Tensorial, **kwargs):
         return x.shape
 
     @as_payload
-    def pow(self, base: Numeric, exponent: Numeric, **kwargs):
+    def pow(self, base: P.Numeric, exponent: P.Numeric, **kwargs):
         if base.shape:
             return base.shape
         else:
             return exponent.shape
 
     @as_payload
-    def neg(self, x: Numeric, **kwargs):
+    def neg(self, x: P.Numeric, **kwargs):
         return x.shape
 
     @as_payload
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], live_indices,
-            kron_indices, **kwargs):
+    def binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
+    ):
+        assert lhs.shape == rhs.shape
+        return lhs.shape
+
+    @as_payload
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,
+        **kwargs
+    ):
         dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
         dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
 
@@ -78,6 +90,6 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return tuple(shape)
 
     @as_payload
-    def tran(self, src: Numeric, live_indices, **kwargs):
+    def tran(self, src: P.Numeric, live_indices, **kwargs):
         return tuple(src.shape[src.live_indices.index(i)]
                      for i in live_indices)

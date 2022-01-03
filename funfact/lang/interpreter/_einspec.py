@@ -28,53 +28,55 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     '''The Einstein summation specification generator creates NumPy-style spec
     strings for tensor contraction operations.'''
 
-    Tensorial = TranscribeInterpreter.Tensorial
-    Numeric = TranscribeInterpreter.Numeric
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
     as_payload = TranscribeInterpreter.as_payload('einspec')
 
-    @as_payload
     def literal(self, value: LiteralValue, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def tensor(self, abstract: AbstractTensor, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
-        return None
+        return []
 
-    @as_payload
     def indices(self, items: Tuple[P.index], **kwargs):
-        return None
+        return []
+
+    def index_notation(
+        self, indexless: P.Tensorial, indices: P.indices,  **kwargs
+    ):
+        return []
+
+    def call(self, f: str, x: P.Tensorial, **kwargs):
+        return []
 
     @as_payload
-    def index_notation(self, tensor: P.tensor, indices: P.indices,  **kwargs):
-        return None
-
-    @as_payload
-    def call(self, f: str, x: Tensorial, **kwargs):
-        return None
-
-    @as_payload
-    def pow(self, base: Numeric, exponent: Numeric, **kwargs):
+    def pow(self, base: P.Numeric, exponent: P.Numeric, **kwargs):
         map = IndexMap()
         return f'{map(base.live_indices)},{map(exponent.live_indices)}'
 
-    @as_payload
-    def neg(self, x: Numeric, **kwargs):
-        return None
+    def neg(self, x: P.Numeric, **kwargs):
+        return []
+
+    def binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
+    ):
+        return []
 
     @as_payload
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], live_indices,
-            kron_indices, **kwargs):
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,
+        **kwargs
+    ):
         map = IndexMap()
         return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
                f'->{map(live_indices)}|{map(kron_indices)}'
 
     @as_payload
-    def tran(self, src: Numeric, indices: P.indices, live_indices, **kwargs):
+    def tran(self, src: P.Numeric, indices: P.indices, live_indices, **kwargs):
         map = IndexMap()
         return f'{map(src.live_indices)}->{map(live_indices)}'

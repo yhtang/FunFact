@@ -45,8 +45,8 @@ class LatexRenderer(ROOFInterpreter):
     def indices(self, items, **kwargs):
         return ''.join(items)
 
-    def index_notation(self, tensor, indices, **kwargs):
-        return fr'''{{{tensor}}}_{{{indices}}}'''
+    def index_notation(self, indexless, indices, **kwargs):
+        return fr'''{{{indexless}}}_{{{indices}}}'''
 
     def call(self, f, x, **kwargs):
         return fr'\operatorname{{{f}}}{{{x}}}'
@@ -56,6 +56,9 @@ class LatexRenderer(ROOFInterpreter):
 
     def neg(self, x, **kwargs):
         return fr'-{x}'
+
+    def binary(self, lhs, rhs, precedence, oper, **kwargs):
+        return fr'{lhs} {_omap[oper]} {rhs}'
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         if reduction == 'sum':

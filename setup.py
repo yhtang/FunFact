@@ -39,6 +39,7 @@ setup(
         'matplotlib>=3.4',
         'scipy>=1.7.1',
         'asciitree>=0.3.3',
+        'plum-dispatch>=1.5.8'
     ],
     extras_require={
         'jax': [

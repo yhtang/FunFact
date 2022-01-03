@@ -15,8 +15,8 @@ def test_vectorize_random():
     tsrex_vector = vectorize(tsrex, nvec)
     assert tsrex_vector.ndim == tsrex.ndim + 1
     assert tsrex_vector.shape == (*tsrex.shape, nvec)
-    assert tsrex_vector.root.lhs.tensor.abstract.shape == (*a.shape, nvec)
-    assert tsrex_vector.root.rhs.tensor.abstract.shape == (*b.shape, nvec)
+    assert tsrex_vector.root.lhs.indexless.abstract.shape == (*a.shape, nvec)
+    assert tsrex_vector.root.rhs.indexless.abstract.shape == (*b.shape, nvec)
 
     fac = Factorization.from_tsrex(tsrex_vector)
     assert fac.ndim == tsrex_vector.ndim
@@ -33,8 +33,8 @@ def test_vectorize_concrete():
     tsrex_vector = vectorize(tsrex, nvec)
     assert tsrex_vector.ndim == tsrex.ndim + 1
     assert tsrex_vector.shape == (*tsrex.shape, nvec)
-    assert tsrex_vector.root.lhs.tensor.abstract.shape == (*a.shape, nvec)
-    assert tsrex_vector.root.rhs.tensor.abstract.shape == (*b.shape, nvec)
+    assert tsrex_vector.root.lhs.indexless.abstract.shape == (*a.shape, nvec)
+    assert tsrex_vector.root.rhs.indexless.abstract.shape == (*b.shape, nvec)
 
     fac = Factorization.from_tsrex(tsrex_vector)
     assert fac.ndim == tsrex_vector.ndim

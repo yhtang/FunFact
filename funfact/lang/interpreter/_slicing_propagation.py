@@ -1,53 +1,65 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import copy
 from typing import Optional
-from funfact.lang._ast import _AST, _ASNode, Primitives as P
+from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
-from ._base import _deep_apply, TranscribeInterpreter
+from ._base import TranscribeInterpreter
 
 
-class SlicingPropagator():
+class SlicingPropagator(TranscribeInterpreter):
     '''The slicing propagator analyzes which of the slices of the leafs
     and intermediate nodes should be computed to get the desired
     output at the root.'''
 
-    Tensorial = TranscribeInterpreter.Tensorial
-    Numeric = TranscribeInterpreter.Numeric
+    _traversal_order = TranscribeInterpreter.TraversalOrder.PRE
 
-    def literal(self, value: LiteralValue, slices, **kwargs):
-        value.slices = None
+    def __init__(self, slices):
+        self.slices = slices
 
-    def tensor(self, abstract: AbstractTensor, slices, **kwargs):
-        abstract.slices = None
+    def __call__(self, node, parent=None):
+        if parent is None:
+            node.slices = self.slices
+        return super().__call__(node, parent)
 
-    def index(self, item: AbstractIndex, bound: bool, kron: bool, slices,
-              **kwargs):
-        item.slices = None
+    def literal(self, value: LiteralValue, **kwargs):
+        pass
 
-    def indices(self, items: AbstractIndex, slices, **kwargs):
-        for i in items:
-            i.slices = None
+    def tensor(self, abstract: AbstractTensor, **kwargs):
+        pass
+
+    def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
+        pass
+
+    def indices(self, items: AbstractIndex, **kwargs):
+        pass
 
     def index_notation(
-        self, tensor: P.tensor, indices: P.indices, slices, **kwargs
+        self, indexless: P.Numeric, indices: P.indices, slices, **kwargs
     ):
-        tensor.slices = slices
-        indices.slices = None
+        indexless.slices = slices
 
-    def call(self, f: str, x: Tensorial, slices, **kwargs):
+    def call(self, f: str, x: P.Tensorial, slices, **kwargs):
         x.slices = slices
 
-    def pow(self, base: Numeric, exponent: Numeric, slices, **kwargs):
+    def pow(self, base: P.Numeric, exponent: P.Numeric, slices, **kwargs):
         base.slices = slices
         exponent.slices = slices
 
-    def neg(self, x: Numeric, slices, **kwargs):
+    def neg(self, x: P.Numeric, slices, **kwargs):
         x.slices = slices
 
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], slices, live_indices,
-            **kwargs):
+    def binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, oper: str, slices,
+        **kwargs
+    ):
+        lhs.slices = slices
+        rhs.slices = slices
+
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], slices, live_indices,
+        **kwargs
+    ):
         slice_dict = dict(zip(live_indices, slices))
         lhs_slices = []
         for i in lhs.live_indices:
@@ -66,23 +78,7 @@ class SlicingPropagator():
         if outidx is not None:
             outidx.slices = None
 
-    def tran(self, src: Numeric, indices: P.indices, slices, **kwargs):
+    def tran(self, src: P.Numeric, indices: P.indices, slices, **kwargs):
         src.slices = [
             slices[src.live_indices.index(i)] for i in indices.live_indices
         ]
-
-    def __call__(self, node: _ASNode, parent: _ASNode = None):
-        node = copy.copy(node)
-        rule = getattr(self, node.name)
-        if parent is None:
-            node.slices = self.slices
-        rule(**node.fields)
-        for name, value in node.fields_fixed.items():
-            setattr(node, name, _deep_apply(self, value, node))
-        return node
-
-    def __init__(self, slices):
-        self.slices = slices
-
-    def __ror__(self, tsrex: _AST):
-        return type(tsrex)(self(tsrex.root))
