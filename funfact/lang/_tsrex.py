@@ -234,7 +234,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __rsub__(self, lhs):
-        return _binary(_as_node(lhs), _as_node(self), 6, 'add')
+        return _binary(_as_node(lhs), _as_node(self), 6, 'subtract')
 
     @as_tsrex
     def __rmul__(self, lhs):
