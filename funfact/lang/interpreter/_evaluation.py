@@ -37,6 +37,9 @@ class Evaluator(ROOFInterpreter):
     def matmul(self, lhs, rhs, **kwargs):
         return lhs @ rhs
 
+    def kron(self, lhs, rhs, **kwargs):
+        return ab.kron(lhs, rhs)
+
     def binary(self, lhs, rhs, precedence, oper, **kwargs):
         return getattr(ab, oper)(lhs, rhs)
 

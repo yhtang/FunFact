@@ -48,6 +48,10 @@ class ASCIIRenderer(TranscribeInterpreter):
         return ''
 
     @as_payload
+    def kron(self, lhs, rhs, **kwargs):
+        return ''
+
+    @as_payload
     def binary(self, lhs, rhs, precedence, oper, **kwargs):
         return f'{oper}'
 

@@ -48,6 +48,9 @@ class SlicingPropagator(TranscribeInterpreter):
         lhs.slices = (slices[0], slice(None))
         rhs.slices = (slice(None), slices[1])
 
+    def kron(self, lhs: P.Numeric, rhs: P.Numeric, slices, **kwargs):
+        raise NotImplementedError()
+
     def binary(
         self, lhs: P.Numeric, rhs: P.Numeric, oper: str, slices,
         **kwargs

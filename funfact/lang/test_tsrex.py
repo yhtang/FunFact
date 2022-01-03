@@ -281,7 +281,7 @@ from ._tsrex import (
 # def test_tensor_0d():
 #     t = tensor('x')
 #     assert isinstance(t, TsrEx)
-#     assert t.shape == tuple()
+#     assert t.shape == ()
 #     assert t.ndim == 0
 
 

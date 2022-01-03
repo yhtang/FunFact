@@ -233,6 +233,10 @@ class SyntaxOverloadMixin:
         return _binary(_as_node(self), _as_node(rhs), 3, 'float_power')
 
     @as_tsrex
+    def __and__(self, rhs):
+        return _kron(_as_node(self), _as_node(rhs))
+
+    @as_tsrex
     def __radd__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 6, 'add')
 
@@ -255,6 +259,10 @@ class SyntaxOverloadMixin:
     @as_tsrex
     def __rpow__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 3, 'float_power')
+
+    @as_tsrex
+    def __rand__(self, lhs):
+        return _kron(_as_node(lhs), _as_node(self))
 
     @as_tsrex
     def __getitem__(self, indices):
@@ -304,6 +312,11 @@ def _matmul(lhs: _ASNode, rhs: _ASNode):
 @_dispatch
 def _binary(lhs: _ASNode, rhs: _ASNode, precedence, oper):
     return P.binary(lhs, rhs, precedence, oper)
+
+
+@_dispatch
+def _kron(lhs: _ASNode, rhs: _ASNode):
+    return P.kron(lhs, rhs)
 
 
 @_dispatch

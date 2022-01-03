@@ -56,7 +56,7 @@ def flatten_if(iterable, pred):
 
 
 def flatten_dict(iterable):
-    '''Converts a nested dictionary of dinctionaries and/or non-iterable
+    '''Converts a nested dictionary of dictionaries and/or non-iterable
     elements into a flat tuple in depth-first order.
 
     Parameters
