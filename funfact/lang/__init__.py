@@ -3,7 +3,7 @@
 import warnings
 from ._tsrex import index, indices, tensor, TsrEx
 from ._tplex import template
-from ._predefined_literal import _0, _1, delta
+from ._predefined_literal import _0, _1, delta, pi
 
 
 try:
@@ -23,5 +23,13 @@ except Exception:
 
 
 __all__ = [
-    'index', 'indices', 'tensor', 'template', '_0', '_1', 'delta', 'TsrEx'
+    'index',
+    'indices',
+    'tensor',
+    'template',
+    '_0',
+    '_1',
+    'delta',
+    'pi',
+    'TsrEx'
 ]

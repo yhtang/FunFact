@@ -41,10 +41,6 @@ class SlicingPropagator(TranscribeInterpreter):
     def call(self, f: str, x: P.Tensorial, slices, **kwargs):
         x.slices = slices
 
-    def pow(self, base: P.Numeric, exponent: P.Numeric, slices, **kwargs):
-        base.slices = slices
-        exponent.slices = slices
-
     def neg(self, x: P.Numeric, slices, **kwargs):
         x.slices = slices
 

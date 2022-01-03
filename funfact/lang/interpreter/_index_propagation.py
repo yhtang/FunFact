@@ -103,14 +103,6 @@ class IndexPropagator(TranscribeInterpreter):
         return x.live_indices, x.keep_indices, x.kron_indices
 
     @as_payload
-    def pow(self, base: P.Numeric, exponent: P.Numeric, **kwargs):
-        return (
-            base.live_indices + exponent.live_indices,
-            base.keep_indices + exponent.keep_indices,
-            base.kron_indices + exponent.kron_indices
-        )
-
-    @as_payload
     def neg(self, x: P.Numeric, **kwargs):
         return x.live_indices, x.keep_indices, x.kron_indices
 

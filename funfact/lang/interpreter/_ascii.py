@@ -40,10 +40,6 @@ class ASCIIRenderer(TranscribeInterpreter):
         return f
 
     @as_payload
-    def pow(self, base, exponent, **kwargs):
-        return ''
-
-    @as_payload
     def neg(self, x, **kwargs):
         return ''
 

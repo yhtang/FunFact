@@ -230,7 +230,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __pow__(self, rhs):
-        return _pow(_as_node(self), _as_node(rhs))
+        return _binary(_as_node(self), _as_node(rhs), 3, 'float_power')
 
     @as_tsrex
     def __radd__(self, lhs):
@@ -254,7 +254,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __rpow__(self, lhs):
-        return _pow(_as_node(lhs), _as_node(self))
+        return _binary(_as_node(lhs), _as_node(self), 3, 'float_power')
 
     @as_tsrex
     def __getitem__(self, indices):
@@ -309,11 +309,6 @@ def _binary(lhs: _ASNode, rhs: _ASNode, precedence, oper):
 @_dispatch
 def _neg(node: _ASNode):
     return P.neg(node)
-
-
-@_dispatch
-def _pow(base: _ASNode, exponent: _ASNode):
-    return P.pow(base, exponent)
 
 
 @_dispatch

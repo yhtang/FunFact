@@ -62,10 +62,6 @@ class Primitives:
     def call(f: str, x: _ASNode):
         '''general function call: f(x)'''
 
-    @primitive(precedence=3)
-    def pow(base: _ASNode, exponent: _ASNode):
-        '''raise to power: base**exponent'''
-
     @primitive(precedence=4)
     def neg(x: _ASNode):
         '''elementwise negation'''

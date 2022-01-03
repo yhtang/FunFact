@@ -8,6 +8,7 @@ _omap = dict(
     subtract='-',
     multiply=r'\times',
     divide='/',
+    float_power='^',
     min=r'\min',
     max=r'\max',
     log_sum_exp='LSE',
@@ -51,9 +52,6 @@ class LatexRenderer(ROOFInterpreter):
     def call(self, f, x, **kwargs):
         return fr'\operatorname{{{f}}}{{{x}}}'
 
-    def pow(self, base, exponent, **kwargs):
-        return fr'{{{base}}}^{{{exponent}}}'
-
     def neg(self, x, **kwargs):
         return fr'-{x}'
 
@@ -61,7 +59,7 @@ class LatexRenderer(ROOFInterpreter):
         return fr'{lhs} {rhs}'
 
     def binary(self, lhs, rhs, precedence, oper, **kwargs):
-        return fr'{lhs} {_omap[oper]} {rhs}'
+        return fr'{{{lhs}}} {_omap[oper]} {{{rhs}}}'
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         if reduction == 'sum':

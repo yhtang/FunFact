@@ -40,10 +40,6 @@ class Vectorizer(TranscribeInterpreter):
              keep_indices, **kwargs):
         return []
 
-    def pow(self, base: P.Numeric, exponent: P.Numeric, live_indices,
-            keep_indices, **kwargs):
-        return []
-
     def neg(self, x: P.Numeric, live_indices,
             keep_indices, **kwargs):
         return []
