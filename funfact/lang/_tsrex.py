@@ -13,7 +13,7 @@ from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
     ASCIIRenderer,
     LatexRenderer,
-    IndexPropagator,
+    IndexAnalyzer,
     ShapeAnalyzer,
     EinsteinSpecGenerator
 )
@@ -95,7 +95,7 @@ class _BaseEx(_AST):
     _latex_intr = LatexRenderer()
     _asciitree_factory = ASCIITreeFactory()
     _einspec_generator = EinsteinSpecGenerator()
-    _index_propagator = IndexPropagator()
+    _index_propagator = IndexAnalyzer()
     _shape_analyzer = ShapeAnalyzer()
 
     @functools.lru_cache()

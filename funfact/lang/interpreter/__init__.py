@@ -4,13 +4,13 @@ from ._ascii import ASCIIRenderer
 from ._base import dfs, dfs_filter, PayloadMerger
 from ._evaluation import Evaluator
 from ._einspec import EinsteinSpecGenerator
-from ._index_propagation import IndexPropagator
+from ._index_propagation import IndexAnalyzer
 from ._initialization import LeafInitializer
 from ._latex import LatexRenderer
 from ._elementwise import ElementwiseEvaluator
 from ._slicing_propagation import SlicingPropagator
 from ._shape import ShapeAnalyzer
-from ._vectorize import Vectorizer
+from ._vectorize import LeafVectorizer, EinopVectorizer
 
 
 __all__ = [
@@ -19,12 +19,13 @@ __all__ = [
     'ASCIIRenderer',
     'Evaluator',
     'EinsteinSpecGenerator',
-    'IndexPropagator',
+    'IndexAnalyzer',
     'LeafInitializer',
     'LatexRenderer',
     'PayloadMerger',
     'ElementwiseEvaluator',
     'SlicingPropagator',
     'ShapeAnalyzer',
-    'Vectorizer'
+    'LeafVectorizer',
+    'EinopVectorizer',
 ]

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from funfact.lang import index
 from funfact.lang.interpreter import (
-    IndexPropagator,
-    Vectorizer
+    IndexAnalyzer,
+    LeafVectorizer,
+    EinopVectorizer,
 )
 from funfact.model import Factorization
 
@@ -30,7 +32,8 @@ def vectorize(tsrex, n):
         TsrEx:
             A vectorized tensor expression.
     '''
-    return tsrex | IndexPropagator() | Vectorizer(n)
+    i = index().root
+    return tsrex | LeafVectorizer(n, i) | IndexAnalyzer() | EinopVectorizer(i)
 
 
 def view(fac, tsrex_scalar, instance: int):
