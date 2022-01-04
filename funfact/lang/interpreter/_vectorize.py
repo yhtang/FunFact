@@ -85,7 +85,7 @@ class EinopVectorizer(_VectorizerBase):
         pairwise: str, outidx: Optional[P.indices], live_indices, **kwargs
     ):
         return P.indices([
-            *[P.index(i, bound=False, kron=False) for i in live_indices if i != self.vec_index.item],
-            # *[P.index(i, bound=False, kron=False) for i in live_indices],
+            *[P.index(i, bound=False, kron=False) for i in live_indices
+              if i != self.vec_index.item],
             self.vec_index
         ])
