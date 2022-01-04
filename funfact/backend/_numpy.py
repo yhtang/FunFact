@@ -25,7 +25,7 @@ class NumPyBackend(metaclass=BackendMeta):
         cls._rng = np.random.default_rng(seed=key)
 
     @classmethod
-    def normal(cls, mean, std, *shape, optimizable=False, dtype=np.float32):
+    def normal(cls, mean, std, shape, dtype=np.float32):
         return cls._rng.normal(mean, std, shape)
 
     @staticmethod
@@ -41,3 +41,7 @@ class NumPyBackend(metaclass=BackendMeta):
 
     def no_grad():
         pass
+
+    @classmethod
+    def set_optimizable(cls, x: native_t, optimizable: bool):
+        return x

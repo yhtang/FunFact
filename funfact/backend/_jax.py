@@ -31,7 +31,7 @@ class JAXBackend(metaclass=BackendMeta):
         cls._key = jrn.PRNGKey(key)
 
     @classmethod
-    def normal(cls, mean, std, *shape, optimizable=True, dtype=jnp.float32):
+    def normal(cls, mean, std, shape, dtype=jnp.float32):
         cls._key, subkey = jrn.split(cls._key)
         return mean + std * jrn.normal(subkey, shape, dtype)
 
@@ -63,3 +63,7 @@ class JAXBackend(metaclass=BackendMeta):
 
     def no_grad():
         return contextlib.nullcontext()
+
+    @classmethod
+    def set_optimizable(self, x: native_t, optimizable: bool):
+        return x

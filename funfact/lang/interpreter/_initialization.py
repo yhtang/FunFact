@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from funfact.backend import active_backend as ab
+from funfact.initializers import normal
 from ._base import TranscribeInterpreter
 
 
@@ -33,10 +34,9 @@ class LeafInitializer(TranscribeInterpreter):
                     dtype=self.dtype
                 )
             else:
-                return initializer(shape, dtype=self.dtype)
+                return ab.set_optimizable(initializer(shape), optimizable)
         else:
-            return ab.normal(0.0, 1.0, *shape, optimizable=optimizable,
-                             dtype=self.dtype)
+            return normal(shape, optimizable=optimizable)
 
     def index(self, item, bound, kron, **kwargs):
         return []

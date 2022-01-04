@@ -16,8 +16,10 @@ class PyTorchBackend(metaclass=BackendMeta):
     @classmethod
     def tensor(cls, array, optimizable=False, **kwargs):
         if type(array) is cls.native_t:
-            return array.clone().detach().requires_grad_(optimizable)
-        return torch.tensor(array, requires_grad=optimizable, **kwargs)
+            t = array.clone().detach()
+        else:
+            t = torch.tensor(array, **kwargs)
+        return cls.set_optimizable(t, optimizable)
 
     @classmethod
     def to_numpy(cls, tensor, **kwargs):
@@ -30,12 +32,11 @@ class PyTorchBackend(metaclass=BackendMeta):
         cls._gen.manual_seed(key)
 
     @classmethod
-    def normal(cls, mean, std, *shape, optimizable=True, dtype=torch.float32):
-        data = torch.normal(mean, std, shape, dtype=dtype, generator=cls._gen)
-        if optimizable:
-            return data.clone().detach().requires_grad_(True)
-        else:
-            return data
+    def normal(cls, mean, std, shape, dtype=torch.float32):
+        with torch.no_grad():
+            return torch.normal(
+                mean, std, shape, dtype=dtype, generator=cls._gen
+            )
 
     @classmethod
     def transpose(cls, a, axes):
@@ -74,3 +75,7 @@ class PyTorchBackend(metaclass=BackendMeta):
         def __iter__(self):
             for f in self.factors:
                 yield f
+
+    @classmethod
+    def set_optimizable(self, x: native_t, optimizable: bool):
+        return x.requires_grad_(optimizable)
