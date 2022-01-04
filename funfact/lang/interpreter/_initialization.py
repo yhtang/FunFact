@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from funfact.backend import active_backend as ab
-from funfact.initializers import normal
+from funfact.initializers import _Initializer, normal
 from ._base import TranscribeInterpreter
 
 
@@ -25,7 +25,9 @@ class LeafInitializer(TranscribeInterpreter):
             abstract.initializer, abstract.optimizable, abstract.shape
         )
         if initializer is not None:
-            if not callable(initializer):
+            if isinstance(initializer, _Initializer):
+                return ab.set_optimizable(initializer.init(shape), optimizable)
+            else:
                 # If optimizable, slice for each instance must be independent.
                 # Otherwise, slices can share a view into the original tensor.
                 f = ab.tile if optimizable else ab.broadcast_to
@@ -33,10 +35,8 @@ class LeafInitializer(TranscribeInterpreter):
                     f(initializer, shape), optimizable=optimizable,
                     dtype=self.dtype
                 )
-            else:
-                return ab.set_optimizable(initializer(shape), optimizable)
         else:
-            return normal(shape, optimizable=optimizable)
+            return ab.set_optimizable(normal.init(shape), optimizable)
 
     def index(self, item, bound, kron, **kwargs):
         return []
