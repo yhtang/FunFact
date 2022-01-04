@@ -119,7 +119,16 @@ class IndexPropagator(TranscribeInterpreter):
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs
     ):
-        return [], [], []
+        '''If one operand is a literal, preserve the indexness; otherwise,
+        treat the result as indexless '''
+        if isinstance(lhs, P.literal) is not isinstance(rhs, P.literal):
+            return (
+                lhs.live_indices or rhs.live_indices,
+                lhs.keep_indices or rhs.keep_indices,
+                lhs.kron_indices or rhs.kron_indices
+            )
+        else:
+            return [], [], []
 
     @as_payload
     def ein(
