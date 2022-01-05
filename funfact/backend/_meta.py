@@ -6,10 +6,12 @@ from abc import ABCMeta
 class BackendMeta(ABCMeta):
 
     _required_properties = [
-        'native_t',  # tensor type native to the backend
-        'tensor_t',  # tensor type interoperable with the backend
-        'float32',   # single-precision floats
-        'float64',   # double-precision floats
+        'native_t',   # tensor type native to the backend
+        'tensor_t',   # tensor type interoperable with the backend
+        'float32',    # single-precision floats
+        'float64',    # double-precision floats
+        'complex64',  # single-precision complex floats
+        'complex128'  # double-precision complex floats
     ]
 
     _required_methods = [

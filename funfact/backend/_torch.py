@@ -20,11 +20,10 @@ class PyTorchBackend(metaclass=BackendMeta):
         return torch.tensor(array, requires_grad=optimizable, **kwargs)
 
     @classmethod
-    def to_numpy(cls, tensor):
+    def to_numpy(cls, tensor, **kwargs):
         if tensor.requires_grad:
-            return tensor.detach().numpy()
-        else:
-            return tensor.numpy()
+            tensor = tensor.detach()
+        return np.asarray(tensor.numpy(), **kwargs)
 
     @classmethod
     def seed(cls, key):

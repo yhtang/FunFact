@@ -9,7 +9,10 @@ class LeafInitializer(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    def __init__(self):
+    def __init__(self, dtype):
+        if dtype is None:
+            dtype = ab.float32
+        self.dtype = dtype
         super().__init__()
 
     def literal(self, value, **kwargs):
@@ -26,12 +29,14 @@ class LeafInitializer(TranscribeInterpreter):
                 # Otherwise, slices can share a view into the original tensor.
                 f = ab.tile if optimizable else ab.broadcast_to
                 return ab.tensor(
-                    f(initializer, shape), optimizable=optimizable
+                    f(initializer, shape), optimizable=optimizable,
+                    dtype=self.dtype
                 )
             else:
-                return initializer(shape)
+                return initializer(shape, dtype=self.dtype)
         else:
-            return ab.normal(0.0, 1.0, *shape, optimizable=optimizable)
+            return ab.normal(0.0, 1.0, *shape, optimizable=optimizable,
+                             dtype=self.dtype)
 
     def index(self, item, bound, kron, **kwargs):
         return []
