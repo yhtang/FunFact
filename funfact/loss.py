@@ -45,6 +45,7 @@ class Loss(ABC):
 class MSE(Loss):
 
     def _loss(self, model, target):
+        # absolute value is for compatibility with complex data
         return ab.square(ab.abs(ab.subtract(model, target)))
 
 

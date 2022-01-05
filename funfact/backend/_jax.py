@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import contextlib
+import warnings
 import numpy as np
 import jax.numpy as jnp
 import jax.random as jrn
@@ -11,6 +12,17 @@ from ._meta import BackendMeta
 
 
 class JAXBackend(metaclass=BackendMeta):
+
+    if (os.getenv('JAX_ENABLE_X64') == 'True') and \
+       (not jax.config.FLAGS.jax_enable_x64):
+        warnings.warn_explicit('JAX was previously loaded without X64 enabled,'
+                               ' restart kernel to enable X64.', Warning,
+                               'WARNING', 0)
+    elif (os.getenv('JAX_ENABLE_X64') == 'False') and \
+         (jax.config.FLAGS.jax_enable_x64):
+        warnings.warn_explicit('JAX was previously loaded with X64 enabled,'
+                               ' restart kernel to disable X64.', Warning,
+                               'WARNING', 0)
 
     _nla = jnp
     _key = jrn.PRNGKey(int.from_bytes(os.urandom(7), 'big'))

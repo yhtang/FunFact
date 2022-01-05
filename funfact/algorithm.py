@@ -13,7 +13,7 @@ from funfact.vectorization import vectorize, view
 def factorize(
     tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
     loss='mse_loss', nvec=1, stop_by='first', returns='best',
-    checkpoint_freq=50, dtype='target', **kwargs
+    checkpoint_freq=50, dtype=None, **kwargs
 ):
     '''Factorize a target tensor using the given tensor expression. The
     solution is found by minimizing the loss function between the original and
@@ -57,9 +57,9 @@ def factorize(
 
         checkpoint_freq (int >= 1): The frequency of convergence checking.
 
-        dtype: The datatype of the factorization model ('target', ab.dtype):
+        dtype: The datatype of the factorization model (None, ab.dtype):
 
-            - If 'target', the same data type as the target tensor is used.
+            - If None, the same data type as the target tensor is used.
             - If concrete dtype (float32, float64, complex64, complex128),
             that data type is used.
 
@@ -73,7 +73,7 @@ def factorize(
             that represents all the solutions.
     '''
 
-    if dtype == 'target':
+    if dtype is None:
         dtype = str(target.dtype)
         dtype = operator.attrgetter(dtype)(ab)
 

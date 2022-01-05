@@ -59,8 +59,8 @@ def use(backend: str, enable_x64: bool = False):
     '''
     global _active_backend
     try:
-        if enable_x64 and backend == 'jax':
-            os.environ['JAX_ENABLE_X64'] = 'True'
+        if backend == 'jax':
+            os.environ['JAX_ENABLE_X64'] = 'True' if enable_x64 else 'False'
         clsname = available_backends[backend]
         _active_backend = getattr(
             importlib.import_module(f'funfact.backend._{backend}'), clsname
