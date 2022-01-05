@@ -39,7 +39,7 @@ def use(backend: str, enable_x64: bool = False):
             Dynamic switching betwewen backends is allowed. However, tensors
             created by the previous backend will not be automatically ported to
             the new backend.
-        
+
         enable_x64 (bool):
             Enable 64bit floating point type for JAX backend.
 
