@@ -1,25 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from abc import ABC, abstractmethod
 from numbers import Number
 from funfact import active_backend as ab
 
 
-class _Initializer(ABC):
-
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def __call__(self, *args, **kwargs):
-        return type(self)(*args, **kwargs)
-
-    @abstractmethod
-    def init(self, *args, **kwargs):
-        pass
-
-
-class Zeros(_Initializer):
+class Zeros:
     '''Set all elements to 0.
 
     Args:
@@ -29,11 +14,11 @@ class Zeros(_Initializer):
     def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32
 
-    def init(self, shape):
+    def __call__(self, shape):
         return ab.zeros(shape, self.dtype)
 
 
-class Ones(_Initializer):
+class Ones:
     '''Set all elements to 1.
 
     Args:
@@ -43,11 +28,11 @@ class Ones(_Initializer):
     def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32
 
-    def init(self, shape):
+    def __call__(self, shape):
         ab.ones(shape, self.dtype)
 
 
-class Normal(_Initializer):
+class Normal:
     '''Sample elements from i.i.d. normal distributions.
 
     Args:
@@ -72,14 +57,14 @@ class Normal(_Initializer):
         else:
             self.truncation = 0
 
-    def init(self, shape):
+    def __call__(self, shape):
         n = ab.normal(0.0, self.std, shape, dtype=self.dtype)
         if self.truncation:
             n = ab.maximum(-self.truncation, ab.minimun(self.truncation, n))
         return n
 
 
-class Uniform(_Initializer):
+class Uniform:
     '''Sample elements from the uniform distributions.
 
     Args:
@@ -91,11 +76,11 @@ class Uniform(_Initializer):
         self.scale = scale
         self.dtype = dtype or ab.float32
 
-    def init(self, shape):
+    def __call__(self, shape):
         return self.scale * ab.uniform(shape, dtype=self.dtype)
 
 
-class VarianceScaling(_Initializer):
+class VarianceScaling:
     '''Initializes with adaptive scale according to the shape.
 
     Args:
@@ -138,13 +123,6 @@ class VarianceScaling(_Initializer):
         else:
             raise ValueError(f'Invalid distribution: {distribution}.')
 
-    def init(self, shape):
+    def __call__(self, shape):
         std = (self.scale / shape[self.axis])**0.5
         return std * self.distribution.init(shape)
-
-
-zeros = Zeros()
-ones = Ones()
-normal = Normal()
-uniform = Uniform()
-variance_scaling = VarianceScaling()
