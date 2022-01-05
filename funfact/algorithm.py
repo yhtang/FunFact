@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
+import operator
 import tqdm
 import funfact.optim
 import funfact.loss
@@ -12,7 +13,7 @@ from funfact.vectorization import vectorize, view
 def factorize(
     tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
     loss='mse_loss', nvec=1, stop_by='first', returns='best',
-    checkpoint_freq=50, **kwargs
+    checkpoint_freq=50, dtype='target', **kwargs
 ):
     '''Factorize a target tensor using the given tensor expression. The
     solution is found by minimizing the loss function between the original and
@@ -55,6 +56,13 @@ def factorize(
             - If 'all', return all instances.
 
         checkpoint_freq (int >= 1): The frequency of convergence checking.
+
+        dtype: The datatype of the factorization model ('target', ab.dtype):
+
+            - If 'target', the same data type as the target tensor is used.
+            - If concrete dtype (float32, float64, complex64, complex128),
+            that data type is used.
+
     Returns:
         *:
             - If `returns == 'best'`, return a factorization object of type
@@ -65,7 +73,11 @@ def factorize(
             that represents all the solutions.
     '''
 
-    target = ab.tensor(target)
+    if dtype == 'target':
+        dtype = str(target.dtype)
+        dtype = operator.attrgetter(dtype)(ab)
+
+    target = ab.tensor(target, dtype=dtype)
 
     @ab.autograd_decorator
     class _Factorization(Factorization, ab.AutoGradMixin):
@@ -96,7 +108,7 @@ def factorize(
             )
 
     tsrex_vec = vectorize(tsrex, nvec)
-    opt_fac = _Factorization.from_tsrex(tsrex_vec)
+    opt_fac = _Factorization.from_tsrex(tsrex_vec, dtype=dtype)
 
     try:
         opt = optimizer(opt_fac.factors, lr=lr, **kwargs)
@@ -119,9 +131,9 @@ def factorize(
 
             if step % checkpoint_freq == 0:
                 # update best factorization
-                curr_loss = loss(opt_fac(), target, sum_vec=False)
-
+                curr_loss = ab.to_numpy(loss(opt_fac(), target, sum_vec=False))
                 better = np.flatnonzero(curr_loss < best_loss)
+                best_loss = np.minimum(best_loss, curr_loss)
                 for b, o in zip(best_factors, opt_fac.factors):
                     b[..., better] = o[..., better]
 
@@ -138,7 +150,7 @@ def factorize(
                             f'Invalid argument value for stop_by: {stop_by}'
                         )
 
-    best_fac = Factorization.from_tsrex(tsrex_vec)
+    best_fac = Factorization.from_tsrex(tsrex_vec, dtype=dtype)
     best_fac.factors = [ab.tensor(x) for x in best_factors]
     if returns == 'best':
         return view(best_fac, tsrex, np.argmin(best_loss))

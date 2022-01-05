@@ -23,8 +23,8 @@ class JAXBackend(metaclass=BackendMeta):
         return jnp.asarray(array, **kwargs)
 
     @classmethod
-    def to_numpy(cls, tensor):
-        return np.asarray(tensor)
+    def to_numpy(cls, tensor, **kwargs):
+        return np.asarray(tensor, **kwargs)
 
     @classmethod
     def seed(cls, key):

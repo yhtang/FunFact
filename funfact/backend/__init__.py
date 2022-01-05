@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 import sys
 import importlib
 
@@ -18,11 +19,11 @@ available_backends = {
 Examples:
     >>> from funfact import available_backends
     >>> available_backends.keys()
-    dict_keys(['numpy', 'jax', 'torch'])
+    dict_keys(['jax', 'torch', 'numpy'])
 '''
 
 
-def use(backend: str):
+def use(backend: str, enable_x64: bool = False):
     '''Specify the numerical tensor algebra library to use as the computational
     backend.
 
@@ -38,6 +39,9 @@ def use(backend: str):
             Dynamic switching betwewen backends is allowed. However, tensors
             created by the previous backend will not be automatically ported to
             the new backend.
+        
+        enable_x64 (bool):
+            Enable 64bit floating point type for JAX backend.
 
     Examples:
         >>> from funfact import use, active_backend as ab
@@ -55,6 +59,8 @@ def use(backend: str):
     '''
     global _active_backend
     try:
+        if enable_x64 and backend == 'jax':
+            os.environ['JAX_ENABLE_X64'] = 'True'
         clsname = available_backends[backend]
         _active_backend = getattr(
             importlib.import_module(f'funfact.backend._{backend}'), clsname
