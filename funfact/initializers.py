@@ -20,6 +20,11 @@ class _Initializer(ABC):
 
 
 class Zeros(_Initializer):
+    '''Set all elements to 0.
+
+    Args:
+        dtype: Numerical type of elements.
+    '''
 
     def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32
@@ -29,6 +34,11 @@ class Zeros(_Initializer):
 
 
 class Ones(_Initializer):
+    '''Set all elements to 1.
+
+    Args:
+        dtype: Numerical type of elements.
+    '''
 
     def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32
@@ -38,6 +48,19 @@ class Ones(_Initializer):
 
 
 class Normal(_Initializer):
+    '''Sample elements from i.i.d. normal distributions.
+
+    Args:
+        std: Standard deviation of the distribution.
+        truncation:
+
+            - If `True`, clamp values at twice the standard deviation.
+            - If `False`, no truncation happens.
+            - If number, clamp values at the specified multiple of standard
+            deviation
+
+        dtype: numerical type of elements.
+    '''
 
     def __init__(self, std=0.01, truncation=False, dtype=None):
         self.std = std
@@ -57,6 +80,12 @@ class Normal(_Initializer):
 
 
 class Uniform(_Initializer):
+    '''Sample elements from the uniform distributions.
+
+    Args:
+        scale: Upper bound of the distribution. Lower bound is always 0.
+        dtype: numerical type of elements.
+    '''
 
     def __init__(self, scale=0.01, dtype=None):
         self.scale = scale
@@ -67,16 +96,32 @@ class Uniform(_Initializer):
 
 
 class VarianceScaling(_Initializer):
+    '''Initializes with adaptive scale according to the shape.
 
+    Args:
+        scale: Scaling factor (positive float).
+        distribution: 'truncated' or 'normal' or 'uniform'.
+
+            - If `'normal'`, draw from a zero-mean normal distribution with
+            standard deviation `sqrt(scale / n)`, where `n` is the
+            dimensionality of `axis`.
+
+            - If `'truncated'`, the absolute values of the samples are
+            truncated below 2 standard deviations before truncation.
+
+            - If `'uniform'`, samples are drawn from:
+                - a uniform interval, if `dtype` is real
+                - a uniform disk, if `dtype` is complex with a mean of zero
+                and a standard deviation of `scale`.
+
+        axis: dimension of the given shape.
+        dtype: numerical type of elements.
+    '''
     def __init__(
-        self, mode, scale=0.01, distribution='normal', in_axis=-2, out_axis=-1,
-        dtype=None
+        self, scale=0.01, distribution='normal', axis=-1, dtype=None
     ):
-        assert mode in ['fan_in', 'fan_out', 'fan_avg']
-        self.mode = mode
         self.scale = scale
-        self.in_axis = in_axis
-        self.out_axis = out_axis
+        self.axis = axis
         self.dtype = dtype or ab.float32
         if distribution == 'normal':
             self.distribution = Normal(
@@ -94,15 +139,7 @@ class VarianceScaling(_Initializer):
             raise ValueError(f'Invalid distribution: {distribution}.')
 
     def init(self, shape):
-        if self.mode == 'fan_out':
-            std = (self.scale / shape[self.out_axis])**0.5
-        elif self.mode == 'fan_in':
-            std = (self.scale / shape[self.in_axis])**0.5
-        elif self.mode == 'fan_avg':
-            std = (
-                self.scale / (0.5 * (shape[self.out_axis] + shape[self.in_axis]))
-            )**0.5
-
+        std = (self.scale / shape[self.axis])**0.5
         return std * self.distribution.init(shape)
 
 
@@ -110,4 +147,4 @@ zeros = Zeros()
 ones = Ones()
 normal = Normal()
 uniform = Uniform()
-variance_scaling = VarianceScaling('fan_avg')
+variance_scaling = VarianceScaling()
