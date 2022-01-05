@@ -42,12 +42,12 @@ class Factorization:
         self.__dict__.update(**extra_attributes)
 
     @classmethod
-    def from_tsrex(cls, tsrex, dtype, initialize=True):
+    def from_tsrex(cls, tsrex, dtype=None, initialize=True):
         '''Construct a factorization model from a tensor expresson.
 
         Args:
             tsrex (TsrEx): The tensor expression.
-            dtype: data type.
+            dtype: numerical data type, defaults to float32.
             initialize (bool):
                 Whether or not to fill abstract tensors with actual data.
         '''

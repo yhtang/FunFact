@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-import operator
 import tqdm
 import funfact.optim
 import funfact.loss
@@ -74,10 +73,10 @@ def factorize(
     '''
 
     if dtype is None:
-        dtype = str(target.dtype)
-        dtype = operator.attrgetter(dtype)(ab)
-
-    target = ab.tensor(target, dtype=dtype)
+        target = ab.tensor(target)
+        dtype = target.dtype
+    else:
+        target = ab.tensor(target, dtype=dtype)
 
     @ab.autograd_decorator
     class _Factorization(Factorization, ab.AutoGradMixin):
