@@ -55,7 +55,6 @@ class Normal:
             self.truncation = float(truncation) * std
 
     def __call__(self, shape):
-        print(0.0, self.std, shape, self.dtype)
         n = ab.normal(0.0, self.std, as_tuple(shape), dtype=self.dtype)
         if self.truncation:
             n = ab.maximum(-self.truncation, ab.minimum(self.truncation, n))
