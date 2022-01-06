@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from numbers import Number
 from funfact import active_backend as ab
 from funfact.util.iterable import as_tuple
 
