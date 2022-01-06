@@ -4,6 +4,7 @@ import pytest
 from .initializers import (
     Ones,
     Zeros,
+    Eye,
     Normal,
     Uniform,
     VarianceScaling
@@ -46,6 +47,20 @@ def test_zeros():
     initializer = Zeros()
     for n in initializer(100):
         assert n == 0.0
+
+
+def test_eye():
+    initializer = Eye()
+    n = 9
+    t = initializer((n, n))
+    for i in range(n):
+        for j in range(n):
+            assert t[i, j] == (1 if i == j else 0)
+
+    with pytest.raises(Exception):
+        initializer(1)
+    with pytest.raises(Exception):
+        initializer((1, 2, 3))
 
 
 def test_normal():

@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """Fun-Fact"""
 from .backend import use, active_backend, available_backends
-from .lang import index, indices, tensor, template, _0, _1, delta, pi
+from .lang import (
+    index, indices, tensor, template, pi, zeros, ones, eye
+)
 from .lang._math import *  # noqa: F401, F403
 from .model import Factorization
 from .algorithm import factorize
@@ -19,9 +21,9 @@ __all__ = [
     'indices',
     'tensor',
     'template',
-    '_0',
-    '_1',
-    'delta',
+    'zeros',
+    'ones',
+    'eye',
     'pi',
     'Factorization',
     'factorize',
