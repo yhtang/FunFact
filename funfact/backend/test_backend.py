@@ -11,8 +11,8 @@ from . import (
 )
 
 
-def test_import():
-    assert _active_backend is None
+# def test_import():
+#     assert _active_backend is None
 
 
 def test_available_backends():

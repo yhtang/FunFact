@@ -48,7 +48,7 @@ plugins:
             show_root_full_path: False
             # show_signature_annotations: True
             # show_root_members_full_path: True
-            members_order: source
+            members_order: "source"
             heading_level: 1
             # show_root_toc_entry: True
 nav:
@@ -68,6 +68,7 @@ nav:
         - "funfact.tensor": api/tensor.md
         - "funfact.index": api/index.md
         - "funfact.indices": api/indices.md
+        - "funfact.initializers": api/initializers.md
         - "funfact.TsrEx": api/tsrex.md
         - "funfact.Factorization": api/factorization.md
         - "funfact.factorize": api/factorize.md
