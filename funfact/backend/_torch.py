@@ -39,6 +39,13 @@ class PyTorchBackend(metaclass=BackendMeta):
             )
 
     @classmethod
+    def uniform(cls, low, high, shape, dtype=torch.float32):
+        with torch.no_grad():
+            return torch.rand(
+                *shape, dtype=dtype, generator=cls._gen
+            ) * (high - low) + low
+
+    @classmethod
     def transpose(cls, a, axes):
         '''torch equivalent is torch.permute'''
         return torch.permute(a, (*axes,))

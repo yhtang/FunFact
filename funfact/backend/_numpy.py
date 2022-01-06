@@ -28,6 +28,10 @@ class NumPyBackend(metaclass=BackendMeta):
     def normal(cls, mean, std, shape, dtype=np.float32):
         return cls._rng.normal(mean, std, shape)
 
+    @classmethod
+    def uniform(cls, low, high, shape, dtype=np.float32):
+        return cls._rng.uniform(low, high, shape)
+
     @staticmethod
     def loss_and_grad(loss_fn, example_model, example_target):
         raise TypeError('NumPy backend does not support autograd and backward '

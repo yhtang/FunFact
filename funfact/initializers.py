@@ -125,4 +125,4 @@ class VarianceScaling:
 
     def __call__(self, shape):
         std = (self.scale / shape[self.axis])**0.5
-        return std * self.distribution.init(shape)
+        return std * self.distribution(shape)
