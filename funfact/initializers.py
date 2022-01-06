@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 from numbers import Number
 from funfact import active_backend as ab
+from funfact.util.iterable import as_tuple
 
 
 class Zeros:
-    '''Set all elements to 0.
+    '''Initializes all elements to 0.
 
     Args:
-        dtype: Numerical type of elements.
+        dtype (None): Numerical type of elements.
     '''
-
     def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32
 
@@ -19,21 +19,20 @@ class Zeros:
 
 
 class Ones:
-    '''Set all elements to 1.
+    '''Initializes all elements to 1.
 
     Args:
         dtype: Numerical type of elements.
     '''
-
     def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32
 
     def __call__(self, shape):
-        ab.ones(shape, self.dtype)
+        return ab.ones(shape, self.dtype)
 
 
 class Normal:
-    '''Sample elements from i.i.d. normal distributions.
+    '''Initializes elements using i.i.d. normal distributions.
 
     Args:
         std: Standard deviation of the distribution.
@@ -46,38 +45,39 @@ class Normal:
 
         dtype: numerical type of elements.
     '''
-
     def __init__(self, std=0.01, truncation=False, dtype=None):
         self.std = std
         self.dtype = dtype or ab.float32
         if truncation is True:
             self.truncation = 2.0 * std
-        elif isinstance(truncation, Number):
-            self.truncation = float(truncation) * std
-        else:
+        elif truncation is False:
             self.truncation = 0
+        else:
+            self.truncation = float(truncation) * std
 
     def __call__(self, shape):
-        n = ab.normal(0.0, self.std, shape, dtype=self.dtype)
+        print(0.0, self.std, shape, self.dtype)
+        n = ab.normal(0.0, self.std, as_tuple(shape), dtype=self.dtype)
         if self.truncation:
-            n = ab.maximum(-self.truncation, ab.minimun(self.truncation, n))
+            n = ab.maximum(-self.truncation, ab.minimum(self.truncation, n))
         return n
 
 
 class Uniform:
-    '''Sample elements from the uniform distributions.
+    '''Initializes elements using the uniform distributions.
 
     Args:
         scale: Upper bound of the distribution. Lower bound is always 0.
         dtype: numerical type of elements.
     '''
-
     def __init__(self, scale=0.01, dtype=None):
         self.scale = scale
         self.dtype = dtype or ab.float32
 
     def __call__(self, shape):
-        return self.scale * ab.uniform(shape, dtype=self.dtype)
+        return self.scale * ab.uniform(
+            0, self.scale, as_tuple(shape), dtype=self.dtype
+        )
 
 
 class VarianceScaling:
@@ -103,7 +103,7 @@ class VarianceScaling:
         dtype: numerical type of elements.
     '''
     def __init__(
-        self, scale=0.01, distribution='normal', axis=-1, dtype=None
+        self, scale=0.01, distribution='normal', axis=0, dtype=None
     ):
         self.scale = scale
         self.axis = axis
@@ -124,5 +124,6 @@ class VarianceScaling:
             raise ValueError(f'Invalid distribution: {distribution}.')
 
     def __call__(self, shape):
+        shape = as_tuple(shape)
         std = (self.scale / shape[self.axis])**0.5
         return std * self.distribution(shape)

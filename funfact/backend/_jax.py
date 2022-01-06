@@ -38,7 +38,7 @@ class JAXBackend(metaclass=BackendMeta):
     @classmethod
     def uniform(cls, low, high, shape, dtype=jnp.float32):
         cls._key, subkey = jrn.split(cls._key)
-        return jrn.normal(subkey, shape, dtype, minval=low, maxval=high)
+        return jrn.uniform(subkey, shape, dtype, minval=low, maxval=high)
 
     @staticmethod
     def loss_and_grad(loss_fn, example_model, example_target):
