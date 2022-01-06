@@ -5,6 +5,7 @@ import multiprocessing
 import re
 import numbers
 import uuid
+from funfact.initializers import vectorize_initializer
 
 
 class Symbol:
@@ -169,7 +170,7 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         '''Extend dimensionality by one.'''
         shape = (*self._shape, n) if post else (n, *self._shape)
         if self.initializer is None or callable(self.initializer):
-            initializer = self.initializer
+            initializer = vectorize_initializer(self.initializer, post)
         else:
             initializer = self.initializer[..., None] if post else \
                           self.initializer[None, ...]

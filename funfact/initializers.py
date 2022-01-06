@@ -125,3 +125,22 @@ class VarianceScaling:
         shape = as_tuple(shape)
         std = (self.scale / shape[self.axis])**0.5
         return std * self.distribution(shape)
+
+
+def vectorize_initializer(initializer, post: bool = True):
+    '''Vectorizes an initializer.
+
+    Args:
+        post (bool):
+            If True, the last index of shape is considered the vectorizing
+            index. If False, the first index of shape tuple is considered
+            the vectorizing index.
+    '''
+    if initializer is None:
+        return None
+
+    def wrapper(shape):
+        return ab.stack([initializer(shape[:-1] if post else shape[1:]) for i
+                        in range(shape[-1] if post else shape[0])], -1 if post
+                        else 0)
+    return wrapper

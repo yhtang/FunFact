@@ -106,7 +106,7 @@ def factorize(
                 'funfact.optim.'
             )
 
-    tsrex_vec = vectorize(tsrex, nvec)
+    tsrex_vec = vectorize(tsrex, nvec, post=True)
     opt_fac = _Factorization.from_tsrex(tsrex_vec, dtype=dtype)
 
     try:

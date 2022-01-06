@@ -27,7 +27,10 @@ def vectorize(tsrex, n, post: bool = True):
     Args:
         n (int > 0):
             Size of the vectorization dimension.
-        post (post or pre order boolean) TODO
+        post (bool):
+            If True, the vectorizing index is set to the last index of every
+            leaf. If False, the vectorizing index is set to the first index
+            of every leaf.
 
     Returns
         TsrEx:
