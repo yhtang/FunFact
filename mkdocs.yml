@@ -76,7 +76,7 @@ nav:
     - pages/installation.md
     - Examples:
       # - Nonlinear matrix approximation: pages/examples/nma.md
-      - Nonlinear matrix approximation: examples/rbf-approximation.ipynb
+      - Nonlinear matrix approximation: examples/matrix-approximation.ipynb
     - pages/cheatsheet.md
     - User Guide:
         - pages/user-guide/tensor-and-indices.md
