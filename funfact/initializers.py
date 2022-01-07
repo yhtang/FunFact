@@ -30,6 +30,23 @@ class Ones:
         return ab.ones(shape, self.dtype)
 
 
+class Eye:
+    '''Initializes diagonal elements to 1 and all others to 0.
+
+    Args:
+        dtype: Numerical type of elements.
+    '''
+    def __init__(self, dtype=None):
+        self.dtype = dtype or ab.float32
+
+    def __call__(self, shape):
+        if len(shape) != 2:
+            raise ValueError(
+                'Only 2D matrices can be initialized as identity'
+            )
+        return ab.eye(*shape, dtype=self.dtype)
+
+
 class Normal:
     '''Initializes elements using i.i.d. normal distributions.
 
