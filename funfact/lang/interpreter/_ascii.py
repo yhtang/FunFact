@@ -6,6 +6,8 @@ from ._base import TranscribeInterpreter
 class ASCIIRenderer(TranscribeInterpreter):
     '''Creates ASCII representations for tensor expressions.'''
 
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+
     as_payload = TranscribeInterpreter.as_payload('ascii')
 
     @as_payload
@@ -30,20 +32,28 @@ class ASCIIRenderer(TranscribeInterpreter):
         return ','.join([i.ascii for i in items])
 
     @as_payload
-    def index_notation(self, tensor, indices, **kwargs):
-        return f'{tensor.ascii}[{indices.ascii}]'
+    def index_notation(self, indexless, indices, **kwargs):
+        return f'[{indices.ascii}]'
 
     @as_payload
     def call(self, f, x, **kwargs):
         return f
 
     @as_payload
-    def pow(self, base, exponent, **kwargs):
-        return 'pow'
+    def neg(self, x, **kwargs):
+        return ''
 
     @as_payload
-    def neg(self, x, **kwargs):
-        return '-'
+    def matmul(self, lhs, rhs, **kwargs):
+        return ''
+
+    @as_payload
+    def kron(self, lhs, rhs, **kwargs):
+        return ''
+
+    @as_payload
+    def binary(self, lhs, rhs, precedence, oper, **kwargs):
+        return f'{oper}'
 
     @as_payload
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):

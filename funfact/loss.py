@@ -17,10 +17,10 @@ class Loss(ABC):
             if model.shape[:-1] != target.shape:
                 raise ValueError(f'Target shape {target.shape} and '
                                  f'model shape {model.shape[:-1]} mismatch.')
-            data_axis = [i for i in range(target.ndim)]
+            data_axis = tuple(i for i in range(target.ndim))
             target = target[..., None]
         elif target.ndim == model.ndim:
-            data_axis = [i for i in range(target.ndim)]
+            data_axis = tuple(i for i in range(target.ndim))
             if model.shape != target.shape:
                 raise ValueError(f'Target shape {target.shape} and '
                                  f'model shape {model.shape} mismatch.')
@@ -37,7 +37,7 @@ class Loss(ABC):
                 f'{reduction} instead.'
             )
         if sum_vec:
-            return ab.sum(_loss, axis=None)
+            return ab.sum(_loss)
         else:
             return _loss
 
@@ -45,7 +45,8 @@ class Loss(ABC):
 class MSE(Loss):
 
     def _loss(self, model, target):
-        return ab.square(ab.subtract(model, target))
+        # absolute value is for compatibility with complex data
+        return ab.square(ab.abs(ab.subtract(model, target)))
 
 
 class L1(Loss):

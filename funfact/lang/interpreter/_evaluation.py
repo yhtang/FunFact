@@ -25,17 +25,23 @@ class Evaluator(ROOFInterpreter):
     def indices(self, items, **kwargs):
         return None
 
-    def index_notation(self, tensor, indices, **kwargs):
-        return tensor
+    def index_notation(self, indexless, indices, **kwargs):
+        return indexless
 
     def call(self, f, x, **kwargs):
         return getattr(ab, f)(x)
 
-    def pow(self, base, exponent, **kwargs):
-        return ab.power(base, exponent)
-
     def neg(self, x, **kwargs):
         return -x
+
+    def matmul(self, lhs, rhs, **kwargs):
+        return lhs @ rhs
+
+    def kron(self, lhs, rhs, **kwargs):
+        return ab.kron(lhs, rhs)
+
+    def binary(self, lhs, rhs, precedence, oper, **kwargs):
+        return getattr(ab, oper)(lhs, rhs)
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, einspec,
             **kwargs):

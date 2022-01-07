@@ -105,18 +105,20 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     op_redu = getattr(ab, reduction)
     op_pair = getattr(ab, pairwise)
 
+    def op_redu_overload(tensor):
+        return op_redu(tensor, tuple(con_ax)) if con_ax else tensor
+
     # reorder contraction according to out_spec
     dictionary = dict(zip(indices_rem, np.arange(len(indices_rem))))
     res_order = [dictionary[key] for key in out_spec]
 
     return ab.transpose(
         ab.reshape(
-            op_redu(
+            op_redu_overload(
                 op_pair(
                     lhs[tuple(dim_lhs)],
                     rhs[tuple(dim_rhs)]
                 ),
-                axis=tuple(con_ax)
             ),
             tuple(kron_res),
             order='F'

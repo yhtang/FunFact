@@ -5,6 +5,7 @@ import multiprocessing
 import re
 import numbers
 import uuid
+from funfact.initializers import stack
 
 
 class Symbol:
@@ -164,6 +165,20 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         self.symbol = self.TensorSymbol(symbol or self.uuid)
         self.initializer = initializer
         self.optimizable = optimizable
+
+    def vectorize(self, n, append):
+        '''Extend dimensionality by one.'''
+        shape = (*self._shape, n) if append else (n, *self._shape)
+        if self.initializer is None:
+            initializer = self.initializer
+        elif callable(self.initializer):
+            initializer = stack(self.initializer, append)
+        else:
+            initializer = self.initializer[..., None] if append else \
+                          self.initializer[None, ...]
+        return type(self)(
+            *shape, initializer=initializer, optimizable=self.optimizable
+        )
 
     @property
     def shape(self):

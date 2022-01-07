@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
 import copy
-from numbers import Real
-from typing import Any, Callable, Iterable, Optional, Tuple, Union
+from enum import Enum
+from typing import Any, Callable, Iterable, Optional, Tuple
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.iterable import flatten_if
@@ -44,43 +44,52 @@ class ROOFInterpreter(ABC):
     by another transcribe interpreter.'''
 
     @abstractmethod
-    def literal(self, value: LiteralValue, **payload: Any):
+    def literal(self, value: LiteralValue, **payload):
         pass
 
     @abstractmethod
-    def tensor(self, abstract: AbstractTensor, **payload: Any):
+    def tensor(self, abstract: AbstractTensor, **payload):
         pass
 
     @abstractmethod
-    def index(self, item: AbstractIndex, bound: bool, kron: bool,
-              **payload: Any):
+    def index(self, item: AbstractIndex, bound: bool, kron: bool, **payload):
         pass
 
     @abstractmethod
-    def indices(self, items: AbstractIndex, **payload: Any):
+    def indices(self, items: AbstractIndex, **payload):
         pass
 
     @abstractmethod
     def index_notation(
-        self, tensor: Any, indices: Iterable[Any], **payload: Any
+        self, indexless: Any, indices: Iterable[Any], **payload
     ):
         pass
 
     @abstractmethod
-    def call(self, f: str, x: Any, **payload: Any):
+    def call(self, f: str, x: Any, **payload):
         pass
 
     @abstractmethod
-    def pow(self, base: Any, exponent: Any, **payload: Any):
+    def neg(self, x: Any, **payload):
         pass
 
     @abstractmethod
-    def neg(self, x: Any, **payload: Any):
+    def matmul(self, lhs: Any, rhs: Any, **payload):
+        pass
+
+    @abstractmethod
+    def kron(self, lhs: Any, rhs: Any):
+        pass
+
+    @abstractmethod
+    def binary(
+        self, lhs: Any, rhs: Any, precedence: int, pairwise: str, **payload
+    ):
         pass
 
     @abstractmethod
     def ein(self, lhs: Any, rhs: Any, precedence: int, reduction: str,
-            pairwise: str, outidx: Any, **payload: Any):
+            pairwise: str, outidx: Any, **payload):
         pass
 
     @abstractmethod
@@ -102,11 +111,16 @@ class ROOFInterpreter(ABC):
 class TranscribeInterpreter(ABC):
     '''A transcribe interpreter creates a modified copy of an AST while
     traversing it.'''
-    Tensorial = Union[
-        P.index_notation, P.call, P.pow, P.neg, P.ein
-    ]
-    Numeric = Union[Tensorial, Real]
 
+    class TraversalOrder(Enum):
+        '''A post-order transcriber acts on the children of a node before
+        acting on the node itself.'''
+        PRE = 0
+        POST = 1
+
+    _traversal_order: TraversalOrder
+
+    @staticmethod
     def as_payload(*k):
         if len(k) == 1:
             def wrapper(f):
@@ -121,56 +135,8 @@ class TranscribeInterpreter(ABC):
                 return wrapped_f
             return wrapper
 
-    @abstractmethod
-    def literal(self, value: LiteralValue, **payload: Any):
-        pass
-
-    @abstractmethod
-    def tensor(self, abstract: AbstractTensor, **payload: Any):
-        pass
-
-    @abstractmethod
-    def index(self, item: AbstractIndex, bound: bool, kron: bool,
-              **payload: Any):
-        pass
-
-    @abstractmethod
-    def indices(self, items: Tuple[AbstractIndex], **payload: Any):
-        pass
-
-    @abstractmethod
-    def index_notation(
-        self, tensor: P.tensor, indices: P.indices, **payload: Any
-    ):
-        pass
-
-    @abstractmethod
-    def call(self, f: str, x: Tensorial, **payload: Any):
-        pass
-
-    @abstractmethod
-    def pow(self, base: Numeric, exponent: Numeric, **payload: Any):
-        pass
-
-    @abstractmethod
-    def neg(self, x: Numeric, **payload: Any):
-        pass
-
-    @abstractmethod
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], **payload: Any):
-        pass
-
-    @abstractmethod
-    def tran(self, src: Numeric, indices: P.indices):
-        pass
-
-    def __call__(self, node: _ASNode, parent: _ASNode = None):
-        node = copy.copy(node)
-        for name, value in node.fields_fixed.items():
-            setattr(node, name, _deep_apply(self, value, node))
-        rule = getattr(self, node.name)
-        payload = rule(**node.fields)
+    @staticmethod
+    def emplace(node, payload):
         if isinstance(payload, dict):
             node.__dict__.update(**payload)
         elif isinstance(payload, list):
@@ -178,8 +144,85 @@ class TranscribeInterpreter(ABC):
                 setattr(node, key, value)
         elif isinstance(payload, tuple) and len(payload) == 2:
             setattr(node, *payload)
+        elif payload is None:
+            pass
         else:
             raise TypeError(f'Unrecognizable type for payload {payload}')
+
+    @abstractmethod
+    def literal(self, value: LiteralValue, **payload):
+        pass
+
+    @abstractmethod
+    def tensor(self, abstract: AbstractTensor, **payload):
+        pass
+
+    @abstractmethod
+    def index(self, item: AbstractIndex, bound: bool, kron: bool, **payload):
+        pass
+
+    @abstractmethod
+    def indices(self, items: Tuple[AbstractIndex], **payload):
+        pass
+
+    @abstractmethod
+    def index_notation(
+        self, indexless: P.Numeric, indices: P.indices, **payload
+    ):
+        pass
+
+    @abstractmethod
+    def call(self, f: str, x: P.Tensorial, **payload):
+        pass
+
+    @abstractmethod
+    def neg(self, x: P.Numeric, **payload):
+        pass
+
+    @abstractmethod
+    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **payload):
+        pass
+
+    @abstractmethod
+    def kron(self, lhs: P.Numeric, rhs: P.Numeric):
+        pass
+
+    @abstractmethod
+    def binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, pairwise: str,
+        **payload
+    ):
+        pass
+
+    @abstractmethod
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], **payload
+    ):
+        pass
+
+    @abstractmethod
+    def tran(self, src: P.Numeric, indices: P.indices):
+        pass
+
+    def __call__(self, node: _ASNode, parent: _ASNode = None):
+        node = copy.copy(node)
+        rule = getattr(self, node.name)
+
+        def _do_node():
+            payload = rule(**node.fields)
+            self.emplace(node, payload)
+
+        def _do_children():
+            for name, value in node.fields_fixed.items():
+                setattr(node, name, _deep_apply(self, value, node))
+
+        if self._traversal_order == self.TraversalOrder.PRE:
+            _do_node()
+            _do_children()
+        elif self._traversal_order == self.TraversalOrder.POST:
+            _do_children()
+            _do_node()
         return node
 
     def __ror__(self, tsrex: _AST):
@@ -202,15 +245,6 @@ class PayloadMerger:
 
     def __ror__(self, tsrex_list: Iterable[_AST]):
         return type(tsrex_list[0])(self(*[tsrex.root for tsrex in tsrex_list]))
-
-
-class NoOp:
-    '''An interpreter that does nothing.'''
-    def __call__(self, node, **kwargs):
-        return node
-
-    def __ror__(self, tsrex):
-        return tsrex
 
 
 def dfs(node: _ASNode):

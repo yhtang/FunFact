@@ -1,50 +1,63 @@
 site_name: "FunFact: Tensor Algebra and Deep Learning via Einstein Notations"
+# site_description: "Automatic documentation from sources, for MkDocs."
+site_url: "https://funfact.readthedocs.io/"
+repo_url: "https://github.com/yhtang/FunFact/"
+edit_uri: "blob/develop/docs/"
+repo_name: "yhtang/FunFact"
+site_dir: "site"
 theme:
   name: material
   logo: assets/funfact.svg
   favicon: assets/favicon.png
   palette:
+  - media: "(prefers-color-scheme: light)"
     scheme: default
     primary: amber
+    # accent: purple
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: "indigo"
+    # accent: lime
+    toggle:
+      icon: material/weather-night
+      name: Switch to light mode
   features:
-    content.code.annotate
+    - content.code.annotate
+    - navigation.tabs
+    - navigation.top
 plugins:
   - search
-  - autorefs
-  - mkdocstrings:
-      watch:
-        - funfact
   # - gen-files:
   #     scripts:
   #     - docs/gen_ref_nav.py
-      # - docs/gen_credits.py
-nav:
-    - index.md
-    - pages/installation.md
-    - Examples:
-      - Nonlinear matrix approximation: pages/examples/nma.md
-    - pages/cheatsheet.md
-    - User Guide:
-        - pages/user-guide/tensor-and-indices.md
-        - pages/user-guide/einop.md
-        - pages/user-guide/eval.md
-        - pages/user-guide/factorize.md
-        - pages/user-guide/backends.md
-        - pages/user-guide/cfg.md
-    - API Reference:
-        "funfact.active_backend": api/active_backend.md
-        "funfact.available_backends": api/available_backends.md
-        "funfact.use": api/use.md
-        "funfact.factorize": api/factorize.md
-        "funfact.Factorization": api/factorization.md
-        "funfact.tensor": api/tensor.md
-        "funfact.index": api/index.md
-        "funfact.indices": api/indices.md
-    # - API Reference: reference/
-    - pages/contribute.md  # contribution guide
+  #     - docs/gen_credits.py
+  - section-index
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - autorefs
+  - mkdocs-jupyter:
+      include_source: True
+  - mkdocstrings:
+      watch:
+        - funfact
+      handlers:
+        python:
+          rendering:
+            show_root_heading: True
+            show_root_full_path: False
+            # show_signature_annotations: True
+            # show_root_members_full_path: True
+            members_order: "source"
+            heading_level: 1
+            # show_root_toc_entry: True
 markdown_extensions:
   - admonition
   - tables
+  - toc:
+      permalink: "¶"
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.highlight:
@@ -58,3 +71,32 @@ extra_javascript:
   - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+nav:
+    - index.md
+    - pages/installation.md
+    - Examples:
+      # - Nonlinear matrix approximation: pages/examples/nma.md
+      - Nonlinear matrix approximation: examples/matrix-approximation.ipynb
+    - pages/cheatsheet.md
+    - User Guide:
+        - pages/user-guide/tensor-and-indices.md
+        - pages/user-guide/tsrex.md
+        - pages/user-guide/eval.md
+        - pages/user-guide/factorize.md
+        - pages/user-guide/backends.md
+        - pages/user-guide/cfg.md
+    - API Reference:
+        - "funfact.tensor": api/tensor.md
+        - "funfact.index": api/index.md
+        - "funfact.indices": api/indices.md
+        - "funfact.initializers": api/initializers.md
+        - "funfact.TsrEx": api/tsrex.md
+        - "funfact.Factorization": api/factorization.md
+        - "funfact.factorize": api/factorize.md
+        - "funfact.vectorize": api/vectorize.md
+        - "funfact.view": api/view.md
+        - "funfact.active_backend": api/active_backend.md
+        - "funfact.available_backends": api/available_backends.md
+        - "funfact.use": api/use.md
+    # - Debug: reference/
+    - pages/contribute.md  # contribution guide
