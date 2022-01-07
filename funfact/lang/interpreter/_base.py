@@ -5,7 +5,12 @@ import copy
 from enum import Enum
 from typing import Any, Callable, Iterable, Optional, Tuple
 from funfact.lang._ast import _ASNode, _AST, Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import (
+    AbstractIndex,
+    AbstractEllipsis,
+    AbstractTensor,
+    LiteralValue
+)
 from funfact.util.iterable import flatten_if
 
 
@@ -49,6 +54,10 @@ class ROOFInterpreter(ABC):
 
     @abstractmethod
     def tensor(self, abstract: AbstractTensor, **payload):
+        pass
+
+    @abstractmethod
+    def ellipsis(self, ellipsis: AbstractEllipsis, **payload):
         pass
 
     @abstractmethod
@@ -155,6 +164,10 @@ class TranscribeInterpreter(ABC):
 
     @abstractmethod
     def tensor(self, abstract: AbstractTensor, **payload):
+        pass
+
+    @abstractmethod
+    def ellipsis(self, ellipsis: AbstractEllipsis, **payload):
         pass
 
     @abstractmethod

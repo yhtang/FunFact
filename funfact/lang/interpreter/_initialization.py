@@ -38,6 +38,9 @@ class LeafInitializer(TranscribeInterpreter):
                 optimizable=optimizable
             )
 
+    def ellipsis(self, ellipsis, **kwargs):
+        return []
+
     def index(self, item, bound, kron, **kwargs):
         return []
 

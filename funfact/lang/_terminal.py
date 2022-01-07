@@ -131,6 +131,22 @@ class AbstractIndex(Identifiable, LaTexReprMixin):
             return fr'{{{letter}}}'
 
 
+class AbstractEllipsis(Identifiable, LaTexReprMixin):
+    _uuid = uuid.uuid4()
+
+    def __init__(self, symbol: str = None):
+        self.uuid = self._uuid
+
+    def __str__(self):
+        return '...'
+
+    def __repr__(self) -> str:
+        return '...'
+
+    def _repr_tex_(self):
+        return r'{{\ldots}}'
+
+
 class AbstractTensor(Identifiable, LaTexReprMixin):
     '''An abstract tensor is a symbolic representation of a multidimensional
     array and is convenient for specifying **tensor expressions**. At

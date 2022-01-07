@@ -3,7 +3,12 @@
 from typing import Optional, Tuple
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import (
+    AbstractIndex,
+    AbstractEllipsis,
+    AbstractTensor,
+    LiteralValue
+)
 
 
 class IndexMap:
@@ -11,6 +16,8 @@ class IndexMap:
         self._index_map = {}
 
     def _map(self, idx):
+        if isinstance(idx, AbstractEllipsis):
+            return chr(46)
         try:
             return self._index_map[idx]
         except KeyError:
@@ -36,6 +43,9 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return []
 
     def tensor(self, abstract: AbstractTensor, **kwargs):
+        return []
+
+    def ellipsis(self, ellipsis: AbstractEllipsis, **kwargs):
         return []
 
     def index(self, item: AbstractIndex, bound: bool, **kwargs):

@@ -34,6 +34,9 @@ class LatexRenderer(ROOFInterpreter):
     def tensor(self, abstract, **kwargs):
         return abstract._repr_tex_()
 
+    def ellipsis(self, ellipsis):
+        return ellipsis._repr_tex_()
+
     def index(self, item, bound, kron, **kwargs):
         if bound:
             accent = r'\widetilde'
@@ -44,7 +47,6 @@ class LatexRenderer(ROOFInterpreter):
         return fr'{{{item._repr_tex_(accent=accent)}}}'
 
     def indices(self, items, **kwargs):
-        items = [r'{\ldots}' if i is Ellipsis else i for i in items]
         return ''.join(items)
 
     def index_notation(self, indexless, indices, **kwargs):

@@ -4,7 +4,12 @@ from typing import Optional, Tuple
 import numpy as np
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import (
+    AbstractIndex,
+    AbstractEllipsis,
+    AbstractTensor,
+    LiteralValue
+)
 
 
 class ShapeAnalyzer(TranscribeInterpreter):
@@ -21,6 +26,10 @@ class ShapeAnalyzer(TranscribeInterpreter):
     @as_payload
     def tensor(self, abstract: AbstractTensor, **kwargs):
         return abstract.shape
+
+    @as_payload
+    def ellipsis(self, ellipsis: AbstractEllipsis, **kwargs):
+        return None
 
     @as_payload
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
@@ -91,8 +100,21 @@ class ShapeAnalyzer(TranscribeInterpreter):
         pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,
         **kwargs
     ):
+        # TODO: for live_indices that are ellipsis multiple shapese have to be added
+        # See notebook.
+        '''
+        def map_shapes(live_indices, shape):
+            _dict = {}
+            for i in enumerate(live_indices):
+                if isinstance(i, AbstractEllipsis):
+                
+                else:
+                    _dict[i]
+        '''
         dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
         dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
+        print(dict_lhs)
+        print(dict_rhs)
 
         for i in lhs.live_indices:
             if i in rhs.live_indices and i not in kron_indices:

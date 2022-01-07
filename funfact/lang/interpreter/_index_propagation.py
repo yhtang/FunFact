@@ -4,7 +4,12 @@ import itertools as it
 from typing import Optional
 from ._base import dfs_filter, TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import (
+    AbstractIndex,
+    AbstractEllipsis,
+    AbstractTensor,
+    LiteralValue
+)
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
@@ -79,6 +84,10 @@ class IndexAnalyzer(TranscribeInterpreter):
     @as_payload
     def tensor(self, abstract: AbstractTensor, **kwargs):
         return [], [], []
+
+    @as_payload
+    def ellipsis(self, ellipsis: AbstractEllipsis):
+        return [ellipsis], [ellipsis], []
 
     @as_payload
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):

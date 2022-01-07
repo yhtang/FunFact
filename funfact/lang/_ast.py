@@ -4,7 +4,12 @@ from dataclasses import make_dataclass
 import inspect
 from numbers import Real
 from typing import Optional, Union, Tuple
-from ._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from ._terminal import (
+    AbstractIndex,
+    AbstractEllipsis,
+    AbstractTensor,
+    LiteralValue
+)
 
 
 class _ASNode:
@@ -42,6 +47,14 @@ class Primitives:
     def tensor(abstract: AbstractTensor):
         '''an abstract tensor'''
 
+    #@primitive(precedence=0)
+    #def ellipsis(ellipsis: AbstractEllipsis):
+    #    '''an ellipsis for indexing tensors.'''
+    
+    @primitive(precedence=0)
+    def ellipsis():
+        '''an ellipsis for indexing tensors.'''
+
     @primitive(precedence=0)
     def index(item: AbstractIndex, bound: bool, kron: bool):
         '''an index; bound indices are not reduced even if they appear twice;
@@ -49,7 +62,7 @@ class Primitives:
         same index.'''
 
     @primitive(precedence=0)
-    def indices(items: Tuple[AbstractIndex]):
+    def indices(items: Tuple[index, ellipsis]):
         '''a tuple of indices'''
 
     @primitive(precedence=1)
