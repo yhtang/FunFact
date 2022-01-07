@@ -44,6 +44,7 @@ class LatexRenderer(ROOFInterpreter):
         return fr'{{{item._repr_tex_(accent=accent)}}}'
 
     def indices(self, items, **kwargs):
+        items = [r'{\ldots}' if i is Ellipsis else i for i in items]
         return ''.join(items)
 
     def index_notation(self, indexless, indices, **kwargs):

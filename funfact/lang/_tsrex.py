@@ -345,10 +345,16 @@ def _getitem(node: _ASNode, indices):  # noqa: F811
     #                         'Indices to a tensor expression must be '
     #                         'abstract indices.'
     #                     )
+    new_indices = tuple([i.root if i is not Ellipsis else Ellipsis for i in
+                         as_tuple(indices or [])])
     return P.index_notation(
         node,
-        P.indices(tuple([i.root for i in as_tuple(indices or [])]))
+        P.indices(new_indices)
     )
+    # return P.index_notation(
+    #     node,
+    #     P.indices(tuple([i.root for i in as_tuple(indices or [])]))
+    # )
 
 
 @_dispatch
