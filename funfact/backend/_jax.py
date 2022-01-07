@@ -50,7 +50,7 @@ class JAXBackend(metaclass=BackendMeta):
 
         def wrapper(model, target):
             loss, dmodel = loss_and_grad_fn(model, target)
-            return loss, dmodel.factors
+            return loss, [jnp.conjugate(df) for df in dmodel.factors]
         return wrapper
 
     def autograd_decorator(*args, **kwargs):

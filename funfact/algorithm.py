@@ -11,7 +11,7 @@ from funfact.vectorization import vectorize, view
 
 def factorize(
     tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
-    loss='mse_loss', nvec=1, stop_by='first', returns='best',
+    loss='mse_loss', nvec=1, append=False, stop_by='first', returns='best',
     checkpoint_freq=50, dtype=None, **kwargs
 ):
     '''Factorize a target tensor using the given tensor expression. The
@@ -39,6 +39,7 @@ def factorize(
             [funfact.loss.Loss]().
 
         nvec (int): Number of parallel instances to compute.
+        append (bool): If vectorizing axis is appended or prepended.
         stop_by ('first', int >= 1, or None):
 
             - If 'first', stop optimization as soon as one solution is
@@ -106,7 +107,7 @@ def factorize(
                 'funfact.optim.'
             )
 
-    tsrex_vec = vectorize(tsrex, nvec)
+    tsrex_vec = vectorize(tsrex, nvec, append=append)
     opt_fac = _Factorization.from_tsrex(tsrex_vec, dtype=dtype)
 
     try:

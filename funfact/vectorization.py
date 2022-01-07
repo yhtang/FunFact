@@ -9,7 +9,7 @@ from funfact.lang.interpreter import (
 from funfact.model import Factorization
 
 
-def vectorize(tsrex, n):
+def vectorize(tsrex, n, append: bool = True):
     ''''Vectorize' a tensor expression by extending its dimensionality by one.
     Each slice along the vectorization dimension of a factorization model
     represents an independent realization of the original tensor expression.
@@ -27,13 +27,18 @@ def vectorize(tsrex, n):
     Args:
         n (int > 0):
             Size of the vectorization dimension.
+        append (bool):
+            If True, the vectorizing index is set to the last index of every
+            leaf. If False, the vectorizing index is set to the first index
+            of every leaf.
 
     Returns
         TsrEx:
             A vectorized tensor expression.
     '''
     i = index().root
-    return tsrex | LeafVectorizer(n, i) | IndexAnalyzer() | EinopVectorizer(i)
+    return tsrex | LeafVectorizer(n, i, append) | IndexAnalyzer() \
+                 | EinopVectorizer(i, append)
 
 
 def view(fac, tsrex_scalar, instance: int):
