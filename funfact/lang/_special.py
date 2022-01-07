@@ -39,15 +39,3 @@ def eye(n, optimizable=False, dtype=None):
             )
         )
     )
-
-
-def delta(n, d, optimizable=False, dtype=None):
-    return TsrEx(
-        P.tensor(
-            AbstractTensor(
-                n, n, symbol=(r'\delta', None),
-                initializer=ini.KroneckerDelta(dtype=dtype),
-                optimizable=optimizable
-            )
-        )
-    )
