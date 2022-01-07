@@ -127,20 +127,18 @@ class VarianceScaling:
         return std * self.distribution(shape)
 
 
-def vectorize_initializer(initializer, post: bool = True):
-    '''Vectorizes an initializer.
+def stack(initializer, append: bool = True):
+    '''Stacks initializers for the purpose of vectorization.
 
     Args:
-        post (bool):
+        append (bool):
             If True, the last index of shape is considered the vectorizing
             index. If False, the first index of shape tuple is considered
             the vectorizing index.
     '''
-    if initializer is None:
-        return None
-
     def wrapper(shape):
-        return ab.stack([initializer(shape[:-1] if post else shape[1:]) for i
-                        in range(shape[-1] if post else shape[0])], -1 if post
-                        else 0)
+        nvec = shape[-1] if append else shape[0]
+        shape = shape[:-1] if append else shape[1:]
+        axis = -1 if append else 0
+        return ab.stack([initializer(shape) for i in range(nvec)], axis)
     return wrapper

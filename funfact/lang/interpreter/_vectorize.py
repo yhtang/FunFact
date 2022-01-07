@@ -47,18 +47,18 @@ class LeafVectorizer(_VectorizerBase):
 
     as_payload = TranscribeInterpreter.as_payload
 
-    def __init__(self, replicas: int, vec_index: P.index, post: bool = True):
+    def __init__(self, replicas: int, vec_index: P.index, append: bool = True):
         self.replicas = replicas
         self.vec_index = vec_index
-        self.post = post
+        self.append = append
 
     @as_payload('abstract')
     def tensor(self, abstract: AbstractTensor, **kwargs):
-        return abstract.vectorize(self.replicas, self.post)
+        return abstract.vectorize(self.replicas, self.append)
 
     @as_payload('items')
     def indices(self, items: AbstractIndex, **kwargs):
-        if self.post:
+        if self.append:
             return (*items, self.vec_index)
         return (self.vec_index, *items)
 
@@ -73,9 +73,9 @@ class EinopVectorizer(_VectorizerBase):
 
     as_payload = TranscribeInterpreter.as_payload
 
-    def __init__(self, vec_index: P.index, post: bool = True):
+    def __init__(self, vec_index: P.index, append: bool = True):
         self.vec_index = vec_index
-        self.post = post
+        self.append = append
 
     def tensor(self, abstract: AbstractTensor, **kwargs):
         return []
@@ -88,14 +88,10 @@ class EinopVectorizer(_VectorizerBase):
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
         pairwise: str, outidx: Optional[P.indices], live_indices, **kwargs
     ):
-        if self.post:
-            return P.indices([
-                *[P.index(i, bound=False, kron=False) for i in live_indices
-                  if i != self.vec_index.item],
-                self.vec_index
-            ])
-        return P.indices([
-            self.vec_index,
-            *[P.index(i, bound=False, kron=False) for i in live_indices
-              if i != self.vec_index.item]
-        ])
+
+        indices = [P.index(i, bound=False, kron=False) for i in live_indices
+                   if i != self.vec_index.item]
+        if self.append:
+            return P.indices([*indices, self.vec_index])
+        else:
+            return P.indices([self.vec_index, *indices])
