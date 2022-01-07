@@ -40,11 +40,11 @@ class Eye:
         self.dtype = dtype or ab.float32
 
     def __call__(self, shape):
-        if len(shape) != 2 or shape[0] != shape[1]:
+        if len(shape) != 2:
             raise ValueError(
-                'Only 2D square matrices can be initialized as identity'
+                'Only 2D matrices can be initialized as identity'
             )
-        return ab.eye(shape[0], dtype=self.dtype)
+        return ab.eye(*shape, dtype=self.dtype)
 
 
 class Normal:
