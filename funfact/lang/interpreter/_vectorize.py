@@ -52,6 +52,42 @@ class LeafVectorizer(_VectorizerBase):
         self.vec_index = vec_index
         self.append = append
 
+    def __call__(self, node, parent=None):
+
+        if isinstance(node, P.matmul):
+            '''Replace by einop.'''
+            i, j, k = [
+                P.index(AbstractIndex(), bound=False, kron=False)
+                for _ in range(3)
+            ]
+            node = P.ein(
+                P.index_notation(node.lhs, P.indices((i, j))),
+                P.index_notation(node.rhs, P.indices((j, k))),
+                precedence=node.precedence,
+                reduction='sum',
+                pairwise='multiply',
+                outidx=None
+            )
+
+        elif isinstance(node, P.kron):
+            '''Replace by einop.'''
+            i, j = [
+                P.index(AbstractIndex(), bound=False, kron=True)
+                for _ in range(2)
+            ]
+            node = P.ein(
+                P.index_notation(node.lhs, P.indices((i, j))),
+                P.index_notation(node.rhs, P.indices((i, j))),
+                precedence=node.precedence,
+                reduction='sum',
+                pairwise='multiply',
+                outidx=None
+            )
+
+        node = super().__call__(node, parent)
+
+        return node
+
     @as_payload('abstract')
     def tensor(self, abstract: AbstractTensor, **kwargs):
         return abstract.vectorize(self.replicas, self.append)
