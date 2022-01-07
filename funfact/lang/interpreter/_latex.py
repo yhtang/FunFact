@@ -8,6 +8,7 @@ _omap = dict(
     subtract='-',
     multiply=r'\times',
     divide='/',
+    float_power='^',
     min=r'\min',
     max=r'\max',
     log_sum_exp='LSE',
@@ -45,17 +46,23 @@ class LatexRenderer(ROOFInterpreter):
     def indices(self, items, **kwargs):
         return ''.join(items)
 
-    def index_notation(self, tensor, indices, **kwargs):
-        return fr'''{{{tensor}}}_{{{indices}}}'''
+    def index_notation(self, indexless, indices, **kwargs):
+        return fr'''{{{indexless}}}_{{{indices}}}'''
 
     def call(self, f, x, **kwargs):
         return fr'\operatorname{{{f}}}{{{x}}}'
 
-    def pow(self, base, exponent, **kwargs):
-        return fr'{{{base}}}^{{{exponent}}}'
-
     def neg(self, x, **kwargs):
         return fr'-{x}'
+
+    def matmul(self, lhs, rhs, **kwargs):
+        return fr'{{{lhs}}} {{{rhs}}}'
+
+    def kron(self, lhs, rhs, **kwargs):
+        return fr'{{{lhs}}} \otimes {{{rhs}}}'
+
+    def binary(self, lhs, rhs, precedence, oper, **kwargs):
+        return fr'{{{lhs}}} {_omap[oper]} {{{rhs}}}'
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         if reduction == 'sum':
@@ -64,7 +71,7 @@ class LatexRenderer(ROOFInterpreter):
             op = r'\underset{{{}:{}}}{{\star}}'.format(
                 _omap[reduction], _omap[pairwise]
             )
-        body = fr'{lhs} {op} {rhs}'
+        body = fr'{{{lhs}}} {op} {{{rhs}}}'
         suffix = fr'\rightarrow_{{{outidx}}}' if outidx is not None else ''
         return body + suffix
 

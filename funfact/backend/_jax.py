@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import contextlib
 import numpy as np
 import jax.numpy as jnp
 import jax.random as jrn
@@ -22,21 +23,35 @@ class JAXBackend(metaclass=BackendMeta):
         return jnp.asarray(array, **kwargs)
 
     @classmethod
+    def to_numpy(cls, tensor, **kwargs):
+        return np.asarray(tensor, **kwargs)
+
+    @classmethod
     def seed(cls, key):
         cls._key = jrn.PRNGKey(key)
 
     @classmethod
-    def normal(cls, mean, std, *shape, optimizable=True, dtype=jnp.float32):
+    def normal(cls, mean, std, shape, dtype=jnp.float32):
         cls._key, subkey = jrn.split(cls._key)
         return mean + std * jrn.normal(subkey, shape, dtype)
 
-    @staticmethod
-    def grad(*args, **kwargs):
-        return jax.grad(*args, **kwargs)
+    @classmethod
+    def uniform(cls, low, high, shape, dtype=jnp.float32):
+        cls._key, subkey = jrn.split(cls._key)
+        return jrn.uniform(subkey, shape, dtype, minval=low, maxval=high)
 
     @staticmethod
-    def jit(*args, **kwargs):
-        return jax.jit(*args, **kwargs)
+    def loss_and_grad(loss_fn, example_model, example_target):
+        loss_and_grad_fn = jax.jit(
+            jax.value_and_grad(
+                lambda model, target: loss_fn(model(), target)
+            )
+        )
+
+        def wrapper(model, target):
+            loss, dmodel = loss_and_grad_fn(model, target)
+            return loss, [jnp.conjugate(df) for df in dmodel.factors]
+        return wrapper
 
     def autograd_decorator(*args, **kwargs):
         return register_pytree_node_class(*args, **kwargs)
@@ -50,3 +65,10 @@ class JAXBackend(metaclass=BackendMeta):
             unflatten = cls(*metadata, initialize=False)
             unflatten.factors = children
             return unflatten
+
+    def no_grad():
+        return contextlib.nullcontext()
+
+    @classmethod
+    def set_optimizable(self, x: native_t, optimizable: bool):
+        return x

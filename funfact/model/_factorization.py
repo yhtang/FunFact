@@ -5,7 +5,7 @@ from funfact.lang.interpreter import (
     EinsteinSpecGenerator,
     Evaluator,
     LeafInitializer,
-    IndexPropagator,
+    IndexAnalyzer,
     ElementwiseEvaluator,
     SlicingPropagator,
     ShapeAnalyzer
@@ -36,22 +36,23 @@ class Factorization:
 
     def __init__(self, tsrex, **extra_attributes):
         self._tsrex = (tsrex
-                       | IndexPropagator()
+                       | IndexAnalyzer()
                        | EinsteinSpecGenerator()
                        | ShapeAnalyzer())
         self.__dict__.update(**extra_attributes)
 
     @classmethod
-    def from_tsrex(cls, tsrex, initialize=True):
+    def from_tsrex(cls, tsrex, dtype=None, initialize=True):
         '''Construct a factorization model from a tensor expresson.
 
         Args:
             tsrex (TsrEx): The tensor expression.
+            dtype: numerical data type, defaults to float32.
             initialize (bool):
                 Whether or not to fill abstract tensors with actual data.
         '''
         if initialize:
-            tsrex = tsrex | LeafInitializer()
+            tsrex = tsrex | LeafInitializer(dtype)
         return cls(tsrex)
 
     @property

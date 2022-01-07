@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
+import numpy as np
 from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
@@ -8,14 +9,14 @@ from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 
 class ShapeAnalyzer(TranscribeInterpreter):
     '''The shape analyzer checks the shapes of the nodes in the AST.'''
-    Tensorial = TranscribeInterpreter.Tensorial
-    Numeric = TranscribeInterpreter.Numeric
+
+    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
     as_payload = TranscribeInterpreter.as_payload('shape')
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
-        return tuple()
+        return ()
 
     @as_payload
     def tensor(self, abstract: AbstractTensor, **kwargs):
@@ -30,28 +31,66 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return None
 
     @as_payload
-    def index_notation(self, tensor: P.tensor, indices: P.indices,  **kwargs):
-        return tensor.shape
+    def index_notation(
+        self, indexless: P.Numeric, indices: P.indices,  **kwargs
+    ):
+        return indexless.shape
 
     @as_payload
-    def call(self, f: str, x: Tensorial, **kwargs):
+    def call(self, f: str, x: P.Tensorial, **kwargs):
         return x.shape
 
     @as_payload
-    def pow(self, base: Numeric, exponent: Numeric, **kwargs):
-        if base.shape:
-            return base.shape
-        else:
-            return exponent.shape
-
-    @as_payload
-    def neg(self, x: Numeric, **kwargs):
+    def neg(self, x: P.Numeric, **kwargs):
         return x.shape
 
     @as_payload
-    def ein(self, lhs: Numeric, rhs: Numeric, precedence: int, reduction: str,
-            pairwise: str, outidx: Optional[P.indices], live_indices,
-            kron_indices, **kwargs):
+    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
+        if len(lhs.shape) != 2:
+            raise SyntaxError(
+                'Only matrices (2D tensors) supports multiplication '
+                f'using `@`. Left-hand side operand has shape {lhs.shape}.'
+            )
+        if len(rhs.shape) != 2:
+            raise SyntaxError(
+                'Only matrices (2D tensors) supports multiplication '
+                f'using `@`. Right-hand side operand has shape {rhs.shape}.'
+            )
+        if lhs.shape[1] != rhs.shape[0]:
+            raise SyntaxError(
+                f'Dimensions of matrices {lhs.shape} and {rhs.shape} '
+                'not compatible for multiplication using `@`.'
+            )
+        return (lhs.shape[0], rhs.shape[1])
+
+    @as_payload
+    def kron(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
+        if len(lhs.shape) != len(rhs.shape):
+            raise SyntaxError(
+                'Kronecker product only possible between matrices of same '
+                f'dimensionality. Got {len(lhs.shape)} and {len(rhs.shape)}.'
+            )
+        return tuple(np.multiply(lhs.shape, rhs.shape))
+
+    @as_payload
+    def binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
+    ):
+        try:
+            return tuple(np.broadcast_shapes(lhs.shape, rhs.shape))
+        except ValueError:
+            raise SyntaxError(
+                'Binary operations require tensors of compatible shape. '
+                f'Got {lhs.shape} and {rhs.shape}.'
+            )
+
+    @as_payload
+    def ein(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
+        pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,
+        **kwargs
+    ):
         dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
         dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
 
@@ -78,6 +117,6 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return tuple(shape)
 
     @as_payload
-    def tran(self, src: Numeric, live_indices, **kwargs):
+    def tran(self, src: P.Numeric, live_indices, **kwargs):
         return tuple(src.shape[src.live_indices.index(i)]
                      for i in live_indices)

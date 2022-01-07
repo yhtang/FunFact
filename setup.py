@@ -39,6 +39,7 @@ setup(
         'matplotlib>=3.4',
         'scipy>=1.7.1',
         'asciitree>=0.3.3',
+        'plum-dispatch>=1.5.8'
     ],
     extras_require={
         'jax': [
@@ -51,6 +52,9 @@ setup(
             'mkdocs==1.2.3',
             'mkdocs-gen-files==0.3.3',
             'mkdocs-material==8.0.5',
+            'mkdocs-literate-nav==0.4.1',
+            'mkdocs-section-index==0.3.2',
+            'mkdocs-jupyter==0.19.0',
             'mkdocstrings==0.16.2',
         ],
         'devel': [

@@ -11,7 +11,8 @@ from funfact.vectorization import vectorize, view
 
 def factorize(
     tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
-    loss='mse_loss', nvec=1, stop_by='first', returns='best', **kwargs
+    loss='mse_loss', nvec=1, append=False, stop_by='first', returns='best',
+    checkpoint_freq=50, dtype=None, **kwargs
 ):
     '''Factorize a target tensor using the given tensor expression. The
     solution is found by minimizing the loss function between the original and
@@ -38,6 +39,7 @@ def factorize(
             [funfact.loss.Loss]().
 
         nvec (int): Number of parallel instances to compute.
+        append (bool): If vectorizing axis is appended or prepended.
         stop_by ('first', int >= 1, or None):
 
             - If 'first', stop optimization as soon as one solution is
@@ -52,6 +54,15 @@ def factorize(
             - If 'best', return the solution with the smallest loss.
             - If int `n`, return the top `n` instances.
             - If 'all', return all instances.
+
+        checkpoint_freq (int >= 1): The frequency of convergence checking.
+
+        dtype: The datatype of the factorization model (None, ab.dtype):
+
+            - If None, the same data type as the target tensor is used.
+            - If concrete dtype (float32, float64, complex64, complex128),
+            that data type is used.
+
     Returns:
         *:
             - If `returns == 'best'`, return a factorization object of type
@@ -61,6 +72,12 @@ def factorize(
             - If `returns == 'all'`, return a vectorized factorization object
             that represents all the solutions.
     '''
+
+    if dtype is None:
+        target = ab.tensor(target)
+        dtype = target.dtype
+    else:
+        target = ab.tensor(target, dtype=dtype)
 
     @ab.autograd_decorator
     class _Factorization(Factorization, ab.AutoGradMixin):
@@ -90,9 +107,8 @@ def factorize(
                 'funfact.optim.'
             )
 
-    tsrex_vec = vectorize(tsrex, nvec)
-    opt_fac = _Factorization.from_tsrex(tsrex_vec)
-    best_fac = Factorization.from_tsrex(tsrex_vec)
+    tsrex_vec = vectorize(tsrex, nvec, append=append)
+    opt_fac = _Factorization.from_tsrex(tsrex_vec, dtype=dtype)
 
     try:
         opt = optimizer(opt_fac.factors, lr=lr, **kwargs)
@@ -101,52 +117,41 @@ def factorize(
             'Invalid optimization algorithm:\n{e}'
         )
 
-    @ab.jit
-    def _loss(fac, target):
-        return loss(fac(), target)
-    gradient = ab.jit(ab.grad(_loss))
+    loss_and_grad = ab.loss_and_grad(loss, opt_fac, target)
 
+    # bookkeeping
+    best_factors = [np.zeros_like(ab.to_numpy(x)) for x in opt_fac.factors]
     best_loss = np.ones(nvec) * np.inf
-    converged = np.zeros(nvec)
-    pbar = tqdm.tqdm(total=max_steps + 1)
+    converged = np.zeros(nvec, dtype=np.bool_)
 
-    for step in range(max_steps):
-        pbar.update(1)
-        opt.step(gradient(opt_fac, target).factors)
+    for step in tqdm.trange(max_steps):
+        _, grad = loss_and_grad(opt_fac, target)
+        with ab.no_grad():
+            opt.step(grad)
 
-        if step % round(max_steps/20) == 0:
-            # update best factorization
-            curr_loss = loss(opt_fac(), target, sum_vec=False)
-            new_best = []
-            for b, o in zip(best_fac.factors, opt_fac.factors):
-                for i, l in enumerate(zip(curr_loss, best_loss)):
-                    if l[0] < l[1]:
-                        if b.shape[-1] == 1:
-                            # TODO: this weird way of updating is required
-                            # by JAX
-                            b = b.at[..., 0].set(o[..., 0])
-                        else:
-                            b = b.at[..., i].set(o[..., i])
-                        if l[0] < tol:
-                            converged[i] = 1
-                new_best.append(b)
-            best_fac.factors = new_best
+            if step % checkpoint_freq == 0:
+                # update best factorization
+                curr_loss = ab.to_numpy(loss(opt_fac(), target, sum_vec=False))
+                better = np.flatnonzero(curr_loss < best_loss)
+                best_loss = np.minimum(best_loss, curr_loss)
+                for b, o in zip(best_factors, opt_fac.factors):
+                    b[..., better] = o[..., better]
 
-            if stop_by == 'first':
-                if np.any(converged):
-                    pbar.update(max_steps - step)
-                    break
-            elif isinstance(stop_by, int):
-                if np.count_nonzero(converged) >= stop_by:
-                    pbar.update(max_steps - step)
-                    break
-            else:
-                if stop_by is not None:
-                    raise RuntimeError(
-                        f'Invalid argument value for stop_by: {stop_by}'
-                    )
-    pbar.close()
+                converged |= np.where(curr_loss < tol, True, False)
+                if stop_by == 'first':
+                    if np.any(converged):
+                        break
+                elif isinstance(stop_by, int):
+                    if np.count_nonzero(converged) >= stop_by:
+                        break
+                else:
+                    if stop_by is not None:
+                        raise RuntimeError(
+                            f'Invalid argument value for stop_by: {stop_by}'
+                        )
 
+    best_fac = Factorization.from_tsrex(tsrex_vec, dtype=dtype)
+    best_fac.factors = [ab.tensor(x) for x in best_factors]
     if returns == 'best':
         return view(best_fac, tsrex, np.argmin(best_loss))
     elif isinstance(returns, int):
