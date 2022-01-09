@@ -107,7 +107,7 @@ class EinopVectorizer(_VectorizerBase):
     as_payload = TranscribeInterpreter.as_payload
 
     def __init__(self, vec_index: P.index, append: bool = True):
-        self.vec_index = dataclasses.replace(vec_index, bound=True)
+        self.vec_index = dataclasses.replace(vec_index, bound=False)
         self.append = append
 
     def tensor(self, abstract: AbstractTensor, **kwargs):
@@ -121,9 +121,12 @@ class EinopVectorizer(_VectorizerBase):
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
         pairwise: str, outidx: Optional[P.indices], live_indices, **kwargs
     ):
-
-        indices = [P.index(i, bound=False, kron=False) for i in live_indices
-                   if i != self.vec_index.item]
+        if outidx is not None:
+            live_indices = [i.item for i in outidx.items]
+        indices = [
+            P.index(i, bound=False, kron=False) for i in live_indices
+            if i != self.vec_index.item
+        ]
         if self.append:
             return P.indices([*indices, self.vec_index])
         else:
