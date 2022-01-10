@@ -92,10 +92,10 @@ def factorize(
                 'funfact.loss.'
             )
     try:
-        loss(target, target, append=append, **kwargs)
+        loss(target, target, **kwargs)
     except Exception as e:
         raise AssertionError(
-            f'The given loss function does not accept three arguments:\n{e}'
+            f'The given loss function does not accept two arguments:\n{e}'
         )
 
     if isinstance(optimizer, str):
@@ -117,7 +117,8 @@ def factorize(
             'Invalid optimization algorithm:\n{e}'
         )
 
-    loss_and_grad = ab.loss_and_grad(loss, opt_fac, target, append=append)
+    loss_and_grad = ab.loss_and_grad(loss, opt_fac, target,
+                                     vectorized_along_last=append)
 
     # bookkeeping
     best_factors = [np.zeros_like(ab.to_numpy(x)) for x in opt_fac.factors]
@@ -132,7 +133,7 @@ def factorize(
             if step % checkpoint_freq == 0:
                 # update best factorization
                 curr_loss = ab.to_numpy(loss(opt_fac(), target, sum_vec=False,
-                                             append=append))
+                                             vectorized_along_last=append))
                 better = np.flatnonzero(curr_loss < best_loss)
                 best_loss = np.minimum(best_loss, curr_loss)
                 for b, o in zip(best_factors, opt_fac.factors):

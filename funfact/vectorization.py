@@ -52,7 +52,8 @@ def view(fac, tsrex_scalar, instance: int, append: bool = True):
         instance (int):
             Index along the vectorization dimension.
         append (bool):
-            Appended or prepended vectorization dimension.
+            Indicates whether the vectorization dimension was appended
+            or prepended.
 
     Returns:
         Factorization:

@@ -12,14 +12,32 @@ class Loss(ABC):
         pass
 
     def __call__(self, model, target, reduction='mean', sum_vec=True,
-                 append=True, **kwargs):
+                 vectorized_along_last=True, **kwargs):
+        '''Evaluate the loss function.
+
+        Args:
+            model  (tensor): (vectorized) model data.
+            target (tensor): target data.
+            reduction:
+                If 'mean', the mean of the elementwise loss is returned.
+                If 'sum', the sum over the elementwise loss is returned.
+            sum_vec (bool): If True, the loss is summed over the vectorizing
+                dimension and a single loss value is returned. If False, the
+                loss of every model instance is returned in an array.
+            vectorized_along_last (bool): If True, the model is vectorized
+                along the last dimension. If False, the model is assumed along
+                the first dimension.
+        '''
         if target.ndim == model.ndim - 1:  # vectorized model
-            model_shape = model.shape[:-1] if append else model.shape[1:]
+            model_shape = model.shape[:-1] if vectorized_along_last else \
+                          model.shape[1:]
             if model_shape != target.shape:
                 raise ValueError(f'Target shape {target.shape} and model '
                                  f'shape {model_shape} mismatch.')
-            data_axis = tuple(i if append else i+1 for i in range(target.ndim))
-            target = target[..., None] if append else target[None, ...]
+            data_axis = tuple(i if vectorized_along_last else i+1
+                              for i in range(target.ndim))
+            target = target[..., None] if vectorized_along_last else \
+                target[None, ...]
         elif target.ndim == model.ndim:  # non-vectorized model
             data_axis = tuple(i for i in range(target.ndim))
             if model.shape != target.shape:
