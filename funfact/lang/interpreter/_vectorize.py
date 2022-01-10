@@ -48,7 +48,8 @@ class LeafVectorizer(_VectorizerBase):
 
     as_payload = TranscribeInterpreter.as_payload
 
-    def __init__(self, replicas: int, vec_index: P.index, append: bool = True):
+    def __init__(self, replicas: int, vec_index: P.index,
+                 append: bool = False):
         self.replicas = replicas
         self.vec_index = dataclasses.replace(vec_index, bound=True)
         self.append = append
