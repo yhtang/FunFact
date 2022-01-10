@@ -49,7 +49,7 @@ class Primitives:
         same index.'''
 
     @primitive(precedence=0)
-    def indices(items: Tuple[AbstractIndex]):
+    def indices(items: Tuple[index]):
         '''a tuple of indices'''
 
     @primitive(precedence=1)

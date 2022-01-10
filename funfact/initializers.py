@@ -14,7 +14,7 @@ class Zeros:
         self.dtype = dtype or ab.float32
 
     def __call__(self, shape):
-        return ab.zeros(shape, self.dtype)
+        return ab.zeros(shape, dtype=self.dtype)
 
 
 class Ones:
@@ -27,7 +27,7 @@ class Ones:
         self.dtype = dtype or ab.float32
 
     def __call__(self, shape):
-        return ab.ones(shape, self.dtype)
+        return ab.ones(shape, dtype=self.dtype)
 
 
 class Eye:
@@ -65,11 +65,11 @@ class Normal:
         self.std = std
         self.dtype = dtype or ab.float32
         if truncation is True:
-            self.truncation = 2.0 * std
+            self.truncation = ab.tensor(2.0 * std, dtype=self.dtype)
         elif truncation is False:
-            self.truncation = 0
+            self.truncation = ab.tensor(0.0, dtype=self.dtype)
         else:
-            self.truncation = float(truncation) * std
+            self.truncation = ab.tensor(truncation * std, dtype=self.dtype)
 
     def __call__(self, shape):
         n = ab.normal(0.0, self.std, as_tuple(shape), dtype=self.dtype)
