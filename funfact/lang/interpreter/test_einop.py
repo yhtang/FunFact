@@ -10,6 +10,8 @@ from ._einop import _einop
     ((), (3, 2), ',ab->ab'),  # left elementwise multiplication
     ((), (), ',->'),  # scalar multiplication
     ((3, 2), (3, 2), 'ab,ab->ab'),  # matrix elementwise multiplication
+    ((10,), (10,), 'i,i'),  # vector dot product
+    ((10, 3), (3, 10), 'ij,jk'),  # matrix inner product
 ])
 def test_einsum(case):
     tol = 20 * ab.finfo(ab.float32).eps

@@ -5,6 +5,7 @@
 import re
 import numpy as np
 from funfact.backend import active_backend as ab
+from funfact.util.set import ordered_symmdiff
 
 
 def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
@@ -30,11 +31,11 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
         Name of the pairwise operator
     '''
     # parse input spec string
-    out = re.fullmatch(r'(\w*),(\w*)->(\w*)(\|(\w*))?', spec)
+    out = re.fullmatch(r'(\w*),(\w*)(->(\w*))?(\|(\w*))?', spec)
     lhs_spec = list(out.group(1))
     rhs_spec = list(out.group(2))
-    out_spec = list(out.group(3))
-    kron_spec = list(out.group(5) or [])
+    out_spec = list(out.group(4) or ordered_symmdiff(lhs_spec, rhs_spec))
+    kron_spec = list(out.group(6) or [])
 
     # reorder lhs and rhs in alphabetical order
     if lhs_spec:
