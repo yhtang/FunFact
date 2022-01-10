@@ -92,10 +92,10 @@ def factorize(
                 'funfact.loss.'
             )
     try:
-        loss(target, target, **kwargs)
+        loss(target, target, append=append, **kwargs)
     except Exception as e:
         raise AssertionError(
-            f'The given loss function does not accept two arguments:\n{e}'
+            f'The given loss function does not accept three arguments:\n{e}'
         )
 
     if isinstance(optimizer, str):
@@ -117,7 +117,7 @@ def factorize(
             'Invalid optimization algorithm:\n{e}'
         )
 
-    loss_and_grad = ab.loss_and_grad(loss, opt_fac, target)
+    loss_and_grad = ab.loss_and_grad(loss, opt_fac, target, append=append)
 
     # bookkeeping
     best_factors = [np.zeros_like(ab.to_numpy(x)) for x in opt_fac.factors]
@@ -131,11 +131,15 @@ def factorize(
 
             if step % checkpoint_freq == 0:
                 # update best factorization
-                curr_loss = ab.to_numpy(loss(opt_fac(), target, sum_vec=False))
+                curr_loss = ab.to_numpy(loss(opt_fac(), target, sum_vec=False,
+                                             append=append))
                 better = np.flatnonzero(curr_loss < best_loss)
                 best_loss = np.minimum(best_loss, curr_loss)
                 for b, o in zip(best_factors, opt_fac.factors):
-                    b[..., better] = o[..., better]
+                    if append:
+                        b[..., better] = o[..., better]
+                    else:
+                        b[better, ...] = o[better, ...]
 
                 converged |= np.where(curr_loss < tol, True, False)
                 if stop_by == 'first':
@@ -153,10 +157,11 @@ def factorize(
     best_fac = Factorization.from_tsrex(tsrex_vec, dtype=dtype)
     best_fac.factors = [ab.tensor(x) for x in best_factors]
     if returns == 'best':
-        return view(best_fac, tsrex, np.argmin(best_loss))
+        return view(best_fac, tsrex, np.argmin(best_loss), append)
     elif isinstance(returns, int):
         return [
-            view(best_fac, tsrex, i) for i in np.argsort(best_loss)[:returns]
+            view(best_fac, tsrex, i, append) for i in
+            np.argsort(best_loss)[:returns]
         ]
     elif returns == 'all':
         return best_fac

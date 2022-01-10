@@ -41,7 +41,7 @@ def vectorize(tsrex, n, append: bool = True):
                  | EinopVectorizer(i, append)
 
 
-def view(fac, tsrex_scalar, instance: int):
+def view(fac, tsrex_scalar, instance: int, append: bool = True):
     '''Obtain a zero-copy instance from a vectorized factorization model.
 
     Args:
@@ -51,17 +51,21 @@ def view(fac, tsrex_scalar, instance: int):
             The original, un-vectorized tensor expression.
         instance (int):
             Index along the vectorization dimension.
+        append (bool):
+            Appended or prepended vectorization dimension.
 
     Returns:
         Factorization:
             A factorization model.
     '''
-    if instance >= fac.shape[-1]:
+    nvec = fac.shape[-1] if append else fac.shape[0]
+    if instance >= nvec:
         raise IndexError(
-            f'Only {fac.shape[-1]} vector instances exist, '
+            f'Only {nvec} vector instances exist, '
             f'index {instance} out of range.'
         )
     fac_scalar = Factorization(tsrex_scalar)
+    instance = [..., instance] if append else [instance, ...]
     for i, f in enumerate(fac.all_factors):
-        fac_scalar.all_factors[i] = f[..., instance]
+        fac_scalar.all_factors[i] = f[tuple(instance)]
     return fac_scalar

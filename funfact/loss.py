@@ -12,14 +12,15 @@ class Loss(ABC):
         pass
 
     def __call__(self, model, target, reduction='mean', sum_vec=True,
-                 **kwargs):
-        if target.ndim == model.ndim - 1:
-            if model.shape[:-1] != target.shape:
-                raise ValueError(f'Target shape {target.shape} and '
-                                 f'model shape {model.shape[:-1]} mismatch.')
-            data_axis = tuple(i for i in range(target.ndim))
-            target = target[..., None]
-        elif target.ndim == model.ndim:
+                 append=True, **kwargs):
+        if target.ndim == model.ndim - 1:  # vectorized model
+            model_shape = model.shape[:-1] if append else model.shape[1:]
+            if model_shape != target.shape:
+                raise ValueError(f'Target shape {target.shape} and model '
+                                 f'shape {model_shape} mismatch.')
+            data_axis = tuple(i if append else i+1 for i in range(target.ndim))
+            target = target[..., None] if append else target[None, ...]
+        elif target.ndim == model.ndim:  # non-vectorized model
             data_axis = tuple(i for i in range(target.ndim))
             if model.shape != target.shape:
                 raise ValueError(f'Target shape {target.shape} and '

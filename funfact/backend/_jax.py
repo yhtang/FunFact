@@ -41,10 +41,10 @@ class JAXBackend(metaclass=BackendMeta):
         return jrn.uniform(subkey, shape, dtype, minval=low, maxval=high)
 
     @staticmethod
-    def loss_and_grad(loss_fn, example_model, example_target):
+    def loss_and_grad(loss_fn, example_model, example_target, **kwargs):
         loss_and_grad_fn = jax.jit(
             jax.value_and_grad(
-                lambda model, target: loss_fn(model(), target)
+                lambda model, target: loss_fn(model(), target, **kwargs)
             )
         )
 
