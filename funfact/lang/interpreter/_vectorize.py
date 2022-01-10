@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import dataclasses
 from typing import Optional
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
@@ -49,7 +50,7 @@ class LeafVectorizer(_VectorizerBase):
 
     def __init__(self, replicas: int, vec_index: P.index, append: bool = True):
         self.replicas = replicas
-        self.vec_index = vec_index
+        self.vec_index = dataclasses.replace(vec_index, bound=True)
         self.append = append
 
     def __call__(self, node, parent=None):
@@ -60,13 +61,11 @@ class LeafVectorizer(_VectorizerBase):
                 P.index(AbstractIndex(), bound=False, kron=False)
                 for _ in range(3)
             ]
-            node = P.ein(
+            node = P.binary(
                 P.index_notation(node.lhs, P.indices((i, j))),
                 P.index_notation(node.rhs, P.indices((j, k))),
                 precedence=node.precedence,
-                reduction='sum',
-                pairwise='multiply',
-                outidx=None
+                oper='multiply'
             )
 
         elif isinstance(node, P.kron):
@@ -75,13 +74,11 @@ class LeafVectorizer(_VectorizerBase):
                 P.index(AbstractIndex(), bound=False, kron=True)
                 for _ in range(2)
             ]
-            node = P.ein(
+            node = P.binary(
                 P.index_notation(node.lhs, P.indices((i, j))),
                 P.index_notation(node.rhs, P.indices((i, j))),
                 precedence=node.precedence,
-                reduction='sum',
-                pairwise='multiply',
-                outidx=None
+                oper='multiply'
             )
 
         node = super().__call__(node, parent)
@@ -110,7 +107,7 @@ class EinopVectorizer(_VectorizerBase):
     as_payload = TranscribeInterpreter.as_payload
 
     def __init__(self, vec_index: P.index, append: bool = True):
-        self.vec_index = vec_index
+        self.vec_index = dataclasses.replace(vec_index, bound=False)
         self.append = append
 
     def tensor(self, abstract: AbstractTensor, **kwargs):
@@ -124,9 +121,12 @@ class EinopVectorizer(_VectorizerBase):
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
         pairwise: str, outidx: Optional[P.indices], live_indices, **kwargs
     ):
-
-        indices = [P.index(i, bound=False, kron=False) for i in live_indices
-                   if i != self.vec_index.item]
+        if outidx is not None:
+            live_indices = [i.item for i in outidx.items]
+        indices = [
+            P.index(i, bound=False, kron=False) for i in live_indices
+            if i != self.vec_index.item
+        ]
         if self.append:
             return P.indices([*indices, self.vec_index])
         else:

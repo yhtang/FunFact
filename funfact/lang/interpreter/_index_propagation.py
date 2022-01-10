@@ -162,7 +162,7 @@ class IndexAnalyzer(TranscribeInterpreter):
             return implied_survival, lone_keep, kron
         else:
             explicit_survival = outidx.live_indices
-            explicit_kron = outidx.kron_indices
+            explicit_kron = ordered_union(kron, outidx.kron_indices)
             for i in keep:
                 if i not in explicit_survival:
                     raise SyntaxError(

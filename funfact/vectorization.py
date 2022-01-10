@@ -36,9 +36,9 @@ def vectorize(tsrex, n, append: bool = True):
         TsrEx:
             A vectorized tensor expression.
     '''
-    i = index().root
-    return tsrex | LeafVectorizer(n, i, append) | IndexAnalyzer() \
-                 | EinopVectorizer(i, append)
+    i = index()
+    return tsrex | LeafVectorizer(n, i.root, append) | IndexAnalyzer() \
+                 | EinopVectorizer(i.root, append)
 
 
 def view(fac, tsrex_scalar, instance: int):
