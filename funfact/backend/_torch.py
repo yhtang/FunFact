@@ -42,7 +42,7 @@ class PyTorchBackend(metaclass=BackendMeta):
     def uniform(cls, low, high, shape, dtype=torch.float32):
         with torch.no_grad():
             return torch.rand(
-                *shape, dtype=dtype, generator=cls._gen
+                shape, dtype=dtype, generator=cls._gen
             ) * (high - low) + low
 
     @classmethod
