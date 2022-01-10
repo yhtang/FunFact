@@ -12,7 +12,7 @@ class Loss(ABC):
         pass
 
     def __call__(self, model, target, reduction='mean', sum_vec=True,
-                 vectorized_along_last=True, **kwargs):
+                 vectorized_along_last=False, **kwargs):
         '''Evaluate the loss function.
 
         Args:

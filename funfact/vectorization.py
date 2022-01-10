@@ -9,7 +9,7 @@ from funfact.lang.interpreter import (
 from funfact.model import Factorization
 
 
-def vectorize(tsrex, n, append: bool = True):
+def vectorize(tsrex, n, append: bool = False):
     ''''Vectorize' a tensor expression by extending its dimensionality by one.
     Each slice along the vectorization dimension of a factorization model
     represents an independent realization of the original tensor expression.
@@ -41,7 +41,7 @@ def vectorize(tsrex, n, append: bool = True):
                  | EinopVectorizer(i, append)
 
 
-def view(fac, tsrex_scalar, instance: int, append: bool = True):
+def view(fac, tsrex_scalar, instance: int, append: bool = False):
     '''Obtain a zero-copy instance from a vectorized factorization model.
 
     Args:

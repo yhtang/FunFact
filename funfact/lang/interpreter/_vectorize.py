@@ -47,7 +47,8 @@ class LeafVectorizer(_VectorizerBase):
 
     as_payload = TranscribeInterpreter.as_payload
 
-    def __init__(self, replicas: int, vec_index: P.index, append: bool = True):
+    def __init__(self, replicas: int, vec_index: P.index,
+                 append: bool = False):
         self.replicas = replicas
         self.vec_index = vec_index
         self.append = append
@@ -109,7 +110,7 @@ class EinopVectorizer(_VectorizerBase):
 
     as_payload = TranscribeInterpreter.as_payload
 
-    def __init__(self, vec_index: P.index, append: bool = True):
+    def __init__(self, vec_index: P.index, append: bool = False):
         self.vec_index = vec_index
         self.append = append
 
