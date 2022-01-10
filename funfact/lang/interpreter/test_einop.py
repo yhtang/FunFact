@@ -1,40 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pytest
+import pytest  # noqa: F401
 from funfact.backend import active_backend as ab
 from ._einop import _einop
 
 
-def test_einop():
+@pytest.mark.parametrize('case', [
+    ((3, 2), (), 'ab,->ab'),  # right elementwise multiplication
+    ((), (3, 2), ',ab->ab'),  # left elementwise multiplication
+    ((), (), ',->'),  # scalar multiplication
+    ((3, 2), (3, 2), 'ab,ab->ab'),  # matrix elementwise multiplication
+])
+def test_einsum(case):
     tol = 20 * ab.finfo(ab.float32).eps
 
-    # right elementwise multiplication
-    lhs = ab.normal(0.0, 1.0, (3, 2))
-    rhs = ab.normal(0.0, 1.0, (1,))
-    spec = 'ab,->ab|'
+    lhs_shape, rhs_shape, spec = case
+    lhs = ab.normal(0.0, 1.0, lhs_shape)
+    rhs = ab.normal(0.0, 1.0, rhs_shape)
+    truth = ab.einsum(spec, lhs, rhs)
     res = _einop(spec, lhs, rhs, 'sum', 'multiply')
-    assert(res.shape == lhs.shape)
-    assert ab.allclose(res, lhs * rhs, tol)
-
-    # left elementwise multiplication
-    lhs = ab.normal(0.0, 1.0, (1,))
-    rhs = ab.normal(0.0, 1.0, (3, 2))
-    spec = ',ab->ab|'
-    res = _einop(spec, lhs, rhs, 'sum', 'multiply')
-    assert(res.shape == rhs.shape)
-    assert ab.allclose(res, lhs * rhs, tol)
-
-    # scalar multiplication
-    lhs = ab.normal(0.0, 1.0, (1,))
-    rhs = ab.normal(0.0, 1.0, (1,))
-    spec = ',->|'
-    res = _einop(spec, lhs, rhs, 'sum', 'multiply')
-    assert ab.allclose(res, lhs * rhs, tol)
-
-    # matrix elementwise multiplication
-    lhs = ab.normal(0.0, 1.0, (3, 2))
-    rhs = ab.normal(0.0, 1.0, (3, 2))
-    spec = 'ab,ab->ab|'
-    res = _einop(spec, lhs, rhs, 'sum', 'multiply')
-    assert(res.shape == lhs.shape)
-    assert ab.allclose(res, lhs * rhs, tol)
+    assert truth.shape == res.shape
+    assert ab.allclose(truth, res, tol)

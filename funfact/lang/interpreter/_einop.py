@@ -30,11 +30,11 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
         Name of the pairwise operator
     '''
     # parse input spec string
-    out = re.fullmatch(r'(\w*),(\w*)->(\w*)\|(\w*)', spec)
+    out = re.fullmatch(r'(\w*),(\w*)->(\w*)(\|(\w*))?', spec)
     lhs_spec = list(out.group(1))
     rhs_spec = list(out.group(2))
     out_spec = list(out.group(3))
-    kron_spec = list(out.group(4))
+    kron_spec = list(out.group(5) or [])
 
     # reorder lhs and rhs in alphabetical order
     if lhs_spec:
