@@ -154,7 +154,7 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         _anon_registry_lock = multiprocessing.Lock()
 
     def __init__(self, *size, symbol=None, initializer=None, optimizable=True,
-                 penalty=None):
+                 prefer=None):
         super().__init__()
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):
@@ -166,11 +166,11 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         self.symbol = self.TensorSymbol(symbol or self.uuid)
         self.initializer = initializer
         self.optimizable = optimizable
-        self._penalty = penalty
+        self.prefer = prefer
 
     def vectorize(self, n, append):
         '''Extend dimensionality by one.'''
-        # TODO: vectorize penalty.
+        # TODO: vectorize preference.
         shape = (*self._shape, n) if append else (n, *self._shape)
         if self.initializer is None:
             initializer = self.initializer

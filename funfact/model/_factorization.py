@@ -137,10 +137,10 @@ class Factorization:
     @property
     def penalty(self):
         '''The penalty of the result tensor.'''
-        _tsrex = self.tsrex | PenaltyEvaluator()
-        _factors = list(dfs_filter(lambda n: n.name == 'tensor' and
-                                   n.abstract.optimizable, _tsrex.root))
-        return [f.penalty for f in _factors]
+        tsrex = self.tsrex | PenaltyEvaluator()
+        factors = list(dfs_filter(lambda n: n.name == 'tensor' and
+                                  n.abstract.optimizable, tsrex.root))
+        return [f.penalty for f in factors]
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''

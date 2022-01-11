@@ -14,8 +14,8 @@ class PenaltyEvaluator(TranscribeInterpreter):
 
     @TranscribeInterpreter.as_payload('penalty')
     def tensor(self, abstract, data, **kwargs):
-        if abstract._penalty:
-            return abstract._penalty(data)
+        if abstract.prefer:
+            return abstract.prefer(data)
         else:
             return ab.tensor(0.0)
 
