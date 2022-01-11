@@ -10,7 +10,7 @@ class LeafInitializer(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    def __init__(self, dtype):
+    def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32
         super().__init__()
 

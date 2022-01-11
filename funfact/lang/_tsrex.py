@@ -415,7 +415,7 @@ def indices(spec):
         raise RuntimeError(f'Cannot create indices from {spec}.')
 
 
-def tensor(*spec, initializer=None, optimizable=None):
+def tensor(*spec, initializer=None, optimizable=None, penalty=None):
     '''Construct an abstract tensor using `spec`.
 
     Args:
@@ -443,6 +443,10 @@ def tensor(*spec, initializer=None, optimizable=None):
 
             The default behavior can be overriden by user input.
 
+        penalty (callable):
+            Penalty term on tensor to enforce constraints. Only enforced if
+            optimizable is set to True or defaults to True.
+
     Returns:
         TsrEx: A tensor expression representing an abstract tensor object.
     '''
@@ -453,6 +457,7 @@ def tensor(*spec, initializer=None, optimizable=None):
         size = initializer.shape
         if optimizable is None:
             optimizable = False
+            penalty = None
     elif len(spec) == 1 and ab.is_tensor(spec[0]):
         # concrete tensor only
         symbol = None
@@ -460,6 +465,7 @@ def tensor(*spec, initializer=None, optimizable=None):
         size = initializer.shape
         if optimizable is None:
             optimizable = False
+            penalty = None
     elif len(spec) >= 1 and isinstance(spec[0], str):
         # name + size
         symbol, *size = spec
@@ -482,7 +488,7 @@ def tensor(*spec, initializer=None, optimizable=None):
         P.tensor(
             AbstractTensor(
                 *size, symbol=symbol, initializer=initializer,
-                optimizable=optimizable
+                optimizable=optimizable, penalty=penalty
             )
         )
     )

@@ -11,6 +11,7 @@ from ._elementwise import ElementwiseEvaluator
 from ._slicing_propagation import SlicingPropagator
 from ._shape import ShapeAnalyzer
 from ._vectorize import LeafVectorizer, EinopVectorizer
+from ._penalty import PenaltyEvaluator
 
 
 __all__ = [
@@ -28,4 +29,5 @@ __all__ = [
     'ShapeAnalyzer',
     'LeafVectorizer',
     'EinopVectorizer',
+    'PenaltyEvaluator',
 ]

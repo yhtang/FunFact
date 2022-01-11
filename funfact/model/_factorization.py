@@ -8,7 +8,8 @@ from funfact.lang.interpreter import (
     IndexAnalyzer,
     ElementwiseEvaluator,
     SlicingPropagator,
-    ShapeAnalyzer
+    ShapeAnalyzer,
+    PenaltyEvaluator
 )
 
 
@@ -132,6 +133,14 @@ class Factorization:
     def ndim(self):
         '''The dimensionality of the result tensor.'''
         return self.tsrex.ndim
+
+    @property
+    def penalty(self):
+        '''The penalty of the result tensor.'''
+        _tsrex = self.tsrex | PenaltyEvaluator()
+        _factors = list(dfs_filter(lambda n: n.name == 'tensor' and
+                                   n.abstract.optimizable, _tsrex.root))
+        return [f.penalty for f in _factors]
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''
