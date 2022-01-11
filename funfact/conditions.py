@@ -82,7 +82,7 @@ class Unitary(_MatrixCondition):
 
     def _condition(self, data):
         return ab.subtract(
-            ab.matmul(data, ab.conjugate(ab.transpose(data))),
+            ab.matmul(data, ab.conj(ab.transpose(data, (1, 0)))),
             ab.eye(data.shape[0])
         )
 
@@ -99,7 +99,7 @@ class NonNegative(_Condition):
 
     def _condition(self, data):
         negative = data[data < 0.0]
-        return negative if ab.any(negative) else 0.0
+        return negative if ab.any(negative) else ab.tensor([0.0])
 
 
 def vmap(condition, append: bool = True):
