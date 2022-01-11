@@ -148,6 +148,7 @@ def stack(initializer, append: bool = True):
     '''Stacks initializers for the purpose of vectorization.
 
     Args:
+        initializer (callable): non-vectorized initializer.
         append (bool):
             If True, the last index of shape is considered the vectorizing
             index. If False, the first index of shape tuple is considered
