@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
 import numpy as np
-from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from ._base import _as_payload, TranscribeInterpreter
 
 
 class ShapeAnalyzer(TranscribeInterpreter):
@@ -12,7 +12,7 @@ class ShapeAnalyzer(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = TranscribeInterpreter.as_payload('shape')
+    as_payload = _as_payload('shape')
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
@@ -45,6 +45,13 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return x.shape
 
     @as_payload
+    def _binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
+    ):
+        return NotImplementedError()
+
+    @as_payload
     def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
         if len(lhs.shape) != 2:
             raise SyntaxError(
@@ -73,7 +80,7 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return tuple(np.multiply(lhs.shape, rhs.shape))
 
     @as_payload
-    def binary(
+    def elem(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs
     ):

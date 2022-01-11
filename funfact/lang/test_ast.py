@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pytest
-from ._ast import _ASNode, _AST, Primitives
+from ._ast import _ASNode, primitive, _AST
 
 
 def test_make_primitive():
 
     # create new primitive
-    @Primitives.primitive(precedence=1)
+    @primitive(precedence=1)
     def prim(arg1, arg2):
         pass
 
@@ -40,7 +40,7 @@ def test_make_primitive():
 
 def test_make_primitive_dynamic_precedence():
     # per-node precedence
-    @Primitives.primitive()
+    @primitive()
     def prim_dynamic_pred(precedence, arg1, arg2):
         pass
 

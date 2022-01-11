@@ -36,6 +36,35 @@ def _deep_apply_batch(f, *values):
         return head
 
 
+def _as_payload(*k):
+    if len(k) == 1:
+        def wrapper(f):
+            def wrapped_f(*args, **kwargs):
+                return k[0], f(*args, **kwargs)
+            return wrapped_f
+        return wrapper
+    else:
+        def wrapper(f):
+            def wrapped_f(*args, **kwargs):
+                return dict(zip(k, f(*args, **kwargs)))
+            return wrapped_f
+        return wrapper
+
+
+def _emplace(node, payload):
+    if isinstance(payload, dict):
+        node.__dict__.update(**payload)
+    elif isinstance(payload, list):
+        for key, value in payload:
+            setattr(node, key, value)
+    elif isinstance(payload, tuple) and len(payload) == 2:
+        setattr(node, *payload)
+    elif payload is None:
+        pass
+    else:
+        raise TypeError(f'Unrecognizable type for payload {payload}')
+
+
 class ROOFInterpreter(ABC):
     '''A ROOF (Read-Only On-the-Fly) interpreter traverses an AST for one pass
     and produces the final outcome without altering the AST. Intermediates are
@@ -82,8 +111,14 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def binary(
-        self, lhs: Any, rhs: Any, precedence: int, pairwise: str, **payload
+    def _binary(
+        self, lhs: Any, rhs: Any, precedence: int, oper: str, **payload
+    ):
+        pass
+
+    @abstractmethod
+    def elem(
+        self, lhs: Any, rhs: Any, precedence: int, oper: str, **payload
     ):
         pass
 
@@ -119,35 +154,6 @@ class TranscribeInterpreter(ABC):
         POST = 1
 
     _traversal_order: TraversalOrder
-
-    @staticmethod
-    def as_payload(*k):
-        if len(k) == 1:
-            def wrapper(f):
-                def wrapped_f(*args, **kwargs):
-                    return k[0], f(*args, **kwargs)
-                return wrapped_f
-            return wrapper
-        else:
-            def wrapper(f):
-                def wrapped_f(*args, **kwargs):
-                    return dict(zip(k, f(*args, **kwargs)))
-                return wrapped_f
-            return wrapper
-
-    @staticmethod
-    def emplace(node, payload):
-        if isinstance(payload, dict):
-            node.__dict__.update(**payload)
-        elif isinstance(payload, list):
-            for key, value in payload:
-                setattr(node, key, value)
-        elif isinstance(payload, tuple) and len(payload) == 2:
-            setattr(node, *payload)
-        elif payload is None:
-            pass
-        else:
-            raise TypeError(f'Unrecognizable type for payload {payload}')
 
     @abstractmethod
     def literal(self, value: LiteralValue, **payload):
@@ -188,8 +194,15 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, pairwise: str,
+    def _binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **payload
+    ):
+        pass
+
+    @abstractmethod
+    def elem(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **payload
     ):
         pass
@@ -211,7 +224,7 @@ class TranscribeInterpreter(ABC):
 
         def _do_node():
             payload = rule(**node.fields)
-            self.emplace(node, payload)
+            _emplace(node, payload)
 
         def _do_children():
             for name, value in node.fields_fixed.items():

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from funfact.backend import active_backend as ab
 from funfact.initializers import Normal
-from ._base import TranscribeInterpreter
+from ._base import _as_payload, TranscribeInterpreter
 
 
 class LeafInitializer(TranscribeInterpreter):
@@ -17,7 +17,7 @@ class LeafInitializer(TranscribeInterpreter):
     def literal(self, value, **kwargs):
         return []
 
-    @TranscribeInterpreter.as_payload('data')
+    @_as_payload('data')
     def tensor(self, abstract, **kwargs):
         initializer, optimizable, shape = (
             abstract.initializer, abstract.optimizable, abstract.shape
@@ -53,13 +53,16 @@ class LeafInitializer(TranscribeInterpreter):
     def neg(self, x, **kwargs):
         return []
 
+    def _binary(self, lhs, rhs, precedence, oper, **kwargs):
+        return []
+
     def matmul(self, lhs, rhs, **kwargs):
         return []
 
     def kron(self, lhs, rhs, **kwargs):
         return []
 
-    def binary(self, lhs, rhs, precedence, oper, **kwargs):
+    def elem(self, lhs, rhs, precedence, oper, **kwargs):
         return []
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):

@@ -55,13 +55,16 @@ class LatexRenderer(ROOFInterpreter):
     def neg(self, x, **kwargs):
         return fr'-{x}'
 
+    def _binary(self, lhs, rhs, precedence, oper, **kwargs):
+        return fr'{{{lhs}}} {_omap[oper]} {{{rhs}}}'
+
     def matmul(self, lhs, rhs, **kwargs):
         return fr'{{{lhs}}} {{{rhs}}}'
 
     def kron(self, lhs, rhs, **kwargs):
         return fr'{{{lhs}}} \otimes {{{rhs}}}'
 
-    def binary(self, lhs, rhs, precedence, oper, **kwargs):
+    def elem(self, lhs, rhs, precedence, oper, **kwargs):
         return fr'{{{lhs}}} {_omap[oper]} {{{rhs}}}'
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):

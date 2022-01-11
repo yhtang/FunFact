@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
-from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from ._base import _as_payload, TranscribeInterpreter
 
 
 class IndexMap:
@@ -30,7 +30,7 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = TranscribeInterpreter.as_payload('einspec')
+    as_payload = _as_payload('einspec')
 
     def literal(self, value: LiteralValue, **kwargs):
         return []
@@ -61,7 +61,13 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     def kron(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
         return []
 
-    def binary(
+    def _binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
+    ):
+        raise NotImplementedError()
+
+    def elem(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs
     ):

@@ -34,13 +34,16 @@ class Evaluator(ROOFInterpreter):
     def neg(self, x, **kwargs):
         return -x
 
+    def _binary(self, lhs, rhs, precedence, oper, **kwargs):
+        return getattr(ab, oper)(lhs, rhs)
+
     def matmul(self, lhs, rhs, **kwargs):
         return lhs @ rhs
 
     def kron(self, lhs, rhs, **kwargs):
         return ab.kron(lhs, rhs)
 
-    def binary(self, lhs, rhs, precedence, oper, **kwargs):
+    def elem(self, lhs, rhs, precedence, oper, **kwargs):
         return getattr(ab, oper)(lhs, rhs)
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, einspec,

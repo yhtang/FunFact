@@ -2,7 +2,12 @@
 # -*- coding: utf-8 -*-
 import itertools as it
 from typing import Optional
-from ._base import dfs_filter, TranscribeInterpreter
+from ._base import (
+    _as_payload,
+    _emplace,
+    dfs_filter,
+    TranscribeInterpreter
+)
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
@@ -15,7 +20,7 @@ class IndexAnalyzer(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = TranscribeInterpreter.as_payload(
+    as_payload = _as_payload(
         'live_indices', 'keep_indices', 'kron_indices'
     )
 
@@ -23,17 +28,22 @@ class IndexAnalyzer(TranscribeInterpreter):
 
         node = super().__call__(node, parent)
 
-        if isinstance(node, P.binary):
+        if isinstance(node, P._binary):
             '''Replace by einop if both operands are indexed.'''
             if node.lhs.live_indices and node.rhs.live_indices:
                 node = P.ein(
                     node.lhs, node.rhs, precedence=node.precedence,
                     reduction='sum', pairwise=node.oper, outidx=None
                 )
-                TranscribeInterpreter.emplace(
-                    node,
-                    getattr(self, node.name)(**node.fields)
+            else:
+                node = P.elem(
+                    node.lhs, node.rhs, precedence=node.precedence,
+                    oper=node.oper
                 )
+            _emplace(
+                node,
+                getattr(self, node.name)(**node.fields)
+            )
 
         if isinstance(node, P.index_notation) and node.indexless.live_indices:
             '''Triggers renaming of free indices:
@@ -115,7 +125,15 @@ class IndexAnalyzer(TranscribeInterpreter):
         return [], [], []
 
     @as_payload
-    def binary(
+    def _binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+        **kwargs
+    ):
+        return [], [], []
+        # raise NotImplementedError()
+
+    @as_payload
+    def elem(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs
     ):

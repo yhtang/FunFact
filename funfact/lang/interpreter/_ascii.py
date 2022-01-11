@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from ._base import TranscribeInterpreter
+from ._base import _as_payload, TranscribeInterpreter
 
 
 class ASCIIRenderer(TranscribeInterpreter):
@@ -8,7 +8,7 @@ class ASCIIRenderer(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = TranscribeInterpreter.as_payload('ascii')
+    as_payload = _as_payload('ascii')
 
     @as_payload
     def literal(self, value, **kwargs):
@@ -52,7 +52,11 @@ class ASCIIRenderer(TranscribeInterpreter):
         return ''
 
     @as_payload
-    def binary(self, lhs, rhs, precedence, oper, **kwargs):
+    def _binary(self, lhs, rhs, precedence, oper, **kwargs):
+        return f'{oper}'
+
+    @as_payload
+    def elem(self, lhs, rhs, precedence, oper, **kwargs):
         return f'{oper}'
 
     @as_payload

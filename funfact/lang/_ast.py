@@ -11,28 +11,29 @@ class _ASNode:
     pass
 
 
-class Primitives:
+def primitive(precedence=None):
+    def make_primitive(f):
+        args = inspect.getfullargspec(f).args
+        p = make_dataclass(
+            f.__name__,
+            args,
+            bases=(_ASNode,)
+        )
+        p.name = property(lambda self: f.__name__)
+        if precedence is not None:
+            p.precedence = property(lambda self: precedence)
+        p.fields = property(lambda self: self.__dict__)
+        p.fields_fixed = property(lambda self: {
+            k: v for k, v in self.__dict__.items() if k in args
+        })
+        p.fields_payload = property(lambda self: {
+            k: v for k, v in self.__dict__.items() if k not in args
+        })
+        return p
+    return make_primitive
 
-    def primitive(precedence=None):
-        def make_primitive(f):
-            args = inspect.getfullargspec(f).args
-            p = make_dataclass(
-                f.__name__,
-                args,
-                bases=(_ASNode,)
-            )
-            p.name = property(lambda self: f.__name__)
-            if precedence is not None:
-                p.precedence = property(lambda self: precedence)
-            p.fields = property(lambda self: self.__dict__)
-            p.fields_fixed = property(lambda self: {
-                k: v for k, v in self.__dict__.items() if k in args
-            })
-            p.fields_payload = property(lambda self: {
-                k: v for k, v in self.__dict__.items() if k not in args
-            })
-            return p
-        return make_primitive
+
+class Primitives:
 
     @primitive(precedence=0)
     def literal(value: LiteralValue):
@@ -66,6 +67,11 @@ class Primitives:
     def neg(x: _ASNode):
         '''elementwise negation'''
 
+    @primitive(precedence=None)
+    def _binary(lhs: _ASNode, rhs: _ASNode, precedence: int, oper: str):
+        '''generic binary operations, to be interpreted as either elementwise
+        or Einstein based on index/indexless status.'''
+
     @primitive(precedence=5)
     def matmul(lhs: _ASNode, rhs: _ASNode):
         '''indexless matrix multiplication'''
@@ -75,9 +81,8 @@ class Primitives:
         '''indexless Kronecker product'''
 
     @primitive(precedence=None)
-    def binary(lhs: _ASNode, rhs: _ASNode, precedence: int, oper: str):
-        '''generic binary operations, to be interpreted as either elementwise
-        or Einstein based on index/indexless status.'''
+    def elem(lhs: _ASNode, rhs: _ASNode, precedence: int, oper: str):
+        '''Elementwise binary operations between tensors.'''
 
     @primitive(precedence=None)
     def ein(

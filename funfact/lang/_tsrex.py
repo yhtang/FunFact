@@ -311,7 +311,7 @@ def _matmul(lhs: _ASNode, rhs: _ASNode):
 
 @_dispatch
 def _binary(lhs: _ASNode, rhs: _ASNode, precedence, oper):
-    return P.binary(lhs, rhs, precedence, oper)
+    return P._binary(lhs, rhs, precedence, oper)
 
 
 @_dispatch
@@ -339,12 +339,6 @@ def _iter(node: P.index):
 @_dispatch
 def _getitem(node: _ASNode, indices):  # noqa: F811
     '''create index notation'''
-    # for new in indices_new:
-    #                 if not isinstance(new, P.index):
-    #                     raise SyntaxError(
-    #                         'Indices to a tensor expression must be '
-    #                         'abstract indices.'
-    #                     )
     return P.index_notation(
         node,
         P.indices(tuple([i.root for i in as_tuple(indices or [])]))
