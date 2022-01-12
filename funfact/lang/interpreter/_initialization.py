@@ -14,6 +14,12 @@ class LeafInitializer(TranscribeInterpreter):
         self.dtype = dtype or ab.float32
         super().__init__()
 
+    def abstract_index_notation(self, tensor, indices, **kwargs):
+        raise NotImplementedError()
+
+    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
+        raise NotImplementedError()
+
     def literal(self, value, **kwargs):
         return []
 
@@ -44,25 +50,13 @@ class LeafInitializer(TranscribeInterpreter):
     def indices(self, items, **kwargs):
         return []
 
-    def index_notation(self, indexless, indices, **kwargs):
+    def indexed_tensor(self, tensor, indices, **kwargs):
         return []
 
     def call(self, f, x, **kwargs):
         return []
 
     def neg(self, x, **kwargs):
-        return []
-
-    def _binary(self, lhs, rhs, precedence, oper, **kwargs):
-        return []
-
-    def matmul(self, lhs, rhs, **kwargs):
-        return []
-
-    def kron(self, lhs, rhs, **kwargs):
-        return []
-
-    def elem(self, lhs, rhs, precedence, oper, **kwargs):
         return []
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):

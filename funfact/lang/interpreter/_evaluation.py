@@ -13,6 +13,12 @@ class Evaluator(ROOFInterpreter):
     def _binary_operator(reduction, pairwise, lhs, rhs, spec):
         return _einop(spec, lhs, rhs, reduction, pairwise)
 
+    def abstract_index_notation(self, tensor, indices, **kwargs):
+        raise NotImplementedError()
+
+    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
+        raise NotImplementedError()
+
     def literal(self, value, **kwargs):
         return ab.tensor(value.raw)
 
@@ -25,26 +31,14 @@ class Evaluator(ROOFInterpreter):
     def indices(self, items, **kwargs):
         return None
 
-    def index_notation(self, indexless, indices, **kwargs):
-        return indexless
+    def indexed_tensor(self, tensor, indices, **kwargs):
+        return tensor
 
     def call(self, f, x, **kwargs):
         return getattr(ab, f)(x)
 
     def neg(self, x, **kwargs):
         return -x
-
-    def _binary(self, lhs, rhs, precedence, oper, **kwargs):
-        return getattr(ab, oper)(lhs, rhs)
-
-    def matmul(self, lhs, rhs, **kwargs):
-        return lhs @ rhs
-
-    def kron(self, lhs, rhs, **kwargs):
-        return ab.kron(lhs, rhs)
-
-    def elem(self, lhs, rhs, precedence, oper, **kwargs):
-        return getattr(ab, oper)(lhs, rhs)
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, einspec,
             **kwargs):

@@ -28,56 +28,59 @@ class IndexAnalyzer(TranscribeInterpreter):
 
         node = super().__call__(node, parent)
 
-        if isinstance(node, P._binary):
+        if isinstance(node, P.abstract_binary):
             '''Replace by einop if both operands are indexed.'''
             if node.lhs.live_indices and node.rhs.live_indices:
                 node = P.ein(
                     node.lhs, node.rhs, precedence=node.precedence,
-                    reduction='sum', pairwise=node.oper, outidx=None
+                    reduction='sum', pairwise=node.operator, outidx=None
                 )
             elif isinstance(node.lhs, P.literal) is not isinstance(node.rhs, P.literal):
                 '''If one operand is a literal, treat as einop '''
                 node = P.ein(
                     node.lhs, node.rhs, precedence=node.precedence,
-                    reduction='sum', pairwise=node.oper, outidx=None
+                    reduction='sum', pairwise=node.operator, outidx=None
                 )
             else:
-                node = P.elem(
+                node = P.ein(
                     node.lhs, node.rhs, precedence=node.precedence,
-                    oper=node.oper
+                    reduction='sum', pairwise=node.operator, outidx=None
                 )
             _emplace(
                 node,
                 getattr(self, node.name)(**node.fields)
             )
 
-        if isinstance(node, P.index_notation) and node.indexless.live_indices:
-            '''Triggers renaming of free indices:
-            for new, old in zip(node.indices, node.live_indices):
-                dfs_replace(old, new)
-            '''
-            live_new = [i.item for i in node.indices.items]
-            live_old = node.indexless.live_indices
+        if isinstance(node, P.abstract_index_notation):
+            if node.tensor.live_indices:
+                '''Triggers renaming of free indices:
+                for new, old in zip(node.indices, node.live_indices):
+                    dfs_replace(old, new)
+                '''
+                live_new = [i.item for i in node.indices.items]
+                live_old = node.tensor.live_indices
 
-            if len(live_new) != len(live_old):
-                raise SyntaxError(
-                    f'Incorrect number of indices. '
-                    f'Expects {len(live_old)}, '
-                    f'got {len(live_new)}.'
-                )
+                if len(live_new) != len(live_old):
+                    raise SyntaxError(
+                        f'Incorrect number of indices. '
+                        f'Expects {len(live_old)}, '
+                        f'got {len(live_new)}.'
+                    )
 
-            index_map = dict(zip(live_old, live_new))
-            # If a 'new' live index is already used as a dummy one,
-            # replace the dummy usage with an anonymous index to avoid
-            # conflict.
-            node = node.indexless
-            for n in dfs_filter(lambda n: n.name == 'index', node):
-                i = n.item
-                if i not in live_old and i in live_new:
-                    index_map[i] = AbstractIndex()
+                index_map = dict(zip(live_old, live_new))
+                # If a 'new' live index is already used as a dummy one,
+                # replace the dummy usage with an anonymous index to avoid
+                # conflict.
+                node = node.tensor
+                for n in dfs_filter(lambda n: n.name == 'index', node):
+                    i = n.item
+                    if i not in live_old and i in live_new:
+                        index_map[i] = AbstractIndex()
 
-            for n in dfs_filter(lambda n: n.name == 'index', node):
-                n.item = index_map.get(n.item, n.item)
+                for n in dfs_filter(lambda n: n.name == 'index', node):
+                    n.item = index_map.get(n.item, n.item)
+            else:
+                node = P.indexed_tensor(node.tensor, node.indices)
 
             node = super().__call__(node, parent)  # rebuild live indices
 
@@ -87,6 +90,21 @@ class IndexAnalyzer(TranscribeInterpreter):
             node = node.src
 
         return node
+
+    @as_payload
+    def abstract_binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **kwargs
+    ):
+        # raise NotImplementedError()
+        return [], [], []
+
+    @as_payload
+    def abstract_index_notation(
+        self, tensor: P.Numeric, indices: P.indices, **kwargs
+    ):
+        # raise NotImplementedError()
+        return indices.live_indices, indices.keep_indices, indices.kron_indices
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
@@ -109,8 +127,8 @@ class IndexAnalyzer(TranscribeInterpreter):
         )
 
     @as_payload
-    def index_notation(
-        self, indexless: P.Numeric, indices: P.indices, **kwargs
+    def indexed_tensor(
+        self, tensor: P.Numeric, indices: P.indices, **kwargs
     ):
         return indices.live_indices, indices.keep_indices, indices.kron_indices
 
@@ -121,29 +139,6 @@ class IndexAnalyzer(TranscribeInterpreter):
     @as_payload
     def neg(self, x: P.Numeric, **kwargs):
         return x.live_indices, x.keep_indices, x.kron_indices
-
-    @as_payload
-    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
-        return [], [], []
-
-    @as_payload
-    def kron(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
-        return [], [], []
-
-    @as_payload
-    def _binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
-        **kwargs
-    ):
-        return [], [], []
-        # raise NotImplementedError()
-
-    @as_payload
-    def elem(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
-        **kwargs
-    ):
-        return [], [], []
 
     @as_payload
     def ein(

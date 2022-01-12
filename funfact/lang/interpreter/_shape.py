@@ -14,6 +14,17 @@ class ShapeAnalyzer(TranscribeInterpreter):
 
     as_payload = _as_payload('shape')
 
+    def abstract_index_notation(
+        self, tensor: P.Numeric, indices: P.indices,  **kwargs
+    ):
+        raise NotImplementedError()
+
+    def abstract_binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **kwargs
+    ):
+        raise NotImplementedError()
+
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
         return ()
@@ -31,10 +42,10 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return None
 
     @as_payload
-    def index_notation(
-        self, indexless: P.Numeric, indices: P.indices,  **kwargs
+    def indexed_tensor(
+        self, tensor: P.Numeric, indices: P.indices,  **kwargs
     ):
-        return indexless.shape
+        return tensor.shape
 
     @as_payload
     def call(self, f: str, x: P.Tensorial, **kwargs):
@@ -43,54 +54,6 @@ class ShapeAnalyzer(TranscribeInterpreter):
     @as_payload
     def neg(self, x: P.Numeric, **kwargs):
         return x.shape
-
-    @as_payload
-    def _binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
-        **kwargs
-    ):
-        return NotImplementedError()
-
-    @as_payload
-    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
-        if len(lhs.shape) != 2:
-            raise SyntaxError(
-                'Only matrices (2D tensors) supports multiplication '
-                f'using `@`. Left-hand side operand has shape {lhs.shape}.'
-            )
-        if len(rhs.shape) != 2:
-            raise SyntaxError(
-                'Only matrices (2D tensors) supports multiplication '
-                f'using `@`. Right-hand side operand has shape {rhs.shape}.'
-            )
-        if lhs.shape[1] != rhs.shape[0]:
-            raise SyntaxError(
-                f'Dimensions of matrices {lhs.shape} and {rhs.shape} '
-                'not compatible for multiplication using `@`.'
-            )
-        return (lhs.shape[0], rhs.shape[1])
-
-    @as_payload
-    def kron(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
-        if len(lhs.shape) != len(rhs.shape):
-            raise SyntaxError(
-                'Kronecker product only possible between matrices of same '
-                f'dimensionality. Got {len(lhs.shape)} and {len(rhs.shape)}.'
-            )
-        return tuple(np.multiply(lhs.shape, rhs.shape))
-
-    @as_payload
-    def elem(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
-        **kwargs
-    ):
-        try:
-            return tuple(np.broadcast_shapes(lhs.shape, rhs.shape))
-        except ValueError:
-            raise SyntaxError(
-                'Binary operations require tensors of compatible shape. '
-                f'Got {lhs.shape} and {rhs.shape}.'
-            )
 
     @as_payload
     def ein(

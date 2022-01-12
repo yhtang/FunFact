@@ -4,11 +4,15 @@ from ._base import ROOFInterpreter
 
 
 _omap = dict(
+    negative='-',
+    conj=r'\operatorname{conj}',
     add='+',
     subtract='-',
     multiply=r'\times',
     divide='/',
     float_power='^',
+    matmul='',
+    kron=r'\otimes',
     min=r'\min',
     max=r'\max',
     log_sum_exp='LSE',
@@ -28,6 +32,12 @@ class LatexRenderer(ROOFInterpreter):
         else:
             return value
 
+    def abstract_index_notation(self, tensor, indices, **kwargs):
+        return fr'''{{{tensor}}}_{{{indices}}}'''
+
+    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
+        return fr'{{{lhs}}} {_omap[operator]} {{{rhs}}}'
+
     def literal(self, value, **kwargs):
         return value._repr_tex_()
 
@@ -46,26 +56,14 @@ class LatexRenderer(ROOFInterpreter):
     def indices(self, items, **kwargs):
         return ''.join(items)
 
-    def index_notation(self, indexless, indices, **kwargs):
-        return fr'''{{{indexless}}}_{{{indices}}}'''
+    def indexed_tensor(self, tensor, indices, **kwargs):
+        return fr'''{{{tensor}}}_{{{indices}}}'''
 
     def call(self, f, x, **kwargs):
         return fr'\operatorname{{{f}}}{{{x}}}'
 
     def neg(self, x, **kwargs):
         return fr'-{x}'
-
-    def _binary(self, lhs, rhs, precedence, oper, **kwargs):
-        return fr'{{{lhs}}} {_omap[oper]} {{{rhs}}}'
-
-    def matmul(self, lhs, rhs, **kwargs):
-        return fr'{{{lhs}}} {{{rhs}}}'
-
-    def kron(self, lhs, rhs, **kwargs):
-        return fr'{{{lhs}}} \otimes {{{rhs}}}'
-
-    def elem(self, lhs, rhs, precedence, oper, **kwargs):
-        return fr'{{{lhs}}} {_omap[oper]} {{{rhs}}}'
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         if reduction == 'sum':

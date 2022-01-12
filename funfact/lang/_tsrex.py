@@ -222,7 +222,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __matmul__(self, rhs):
-        return _matmul(_as_node(self), _as_node(rhs))
+        return _binary(_as_node(self), _as_node(rhs), 5, 'matmul')
 
     @as_tsrex
     def __truediv__(self, rhs):
@@ -234,7 +234,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __and__(self, rhs):
-        return _kron(_as_node(self), _as_node(rhs))
+        return _binary(_as_node(self), _as_node(rhs), 5, 'kron')
 
     @as_tsrex
     def __radd__(self, lhs):
@@ -250,7 +250,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __rmatmul__(self, lhs):
-        return _matmul(_as_node(lhs), _as_node(self))
+        return _binary(_as_node(lhs), _as_node(self), 5, 'matmul')
 
     @as_tsrex
     def __rtruediv__(self, lhs):
@@ -262,7 +262,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __rand__(self, lhs):
-        return _kron(_as_node(lhs), _as_node(self))
+        return _binary(_as_node(lhs), _as_node(self), 5, 'kron')
 
     @as_tsrex
     def __getitem__(self, indices):
@@ -305,18 +305,8 @@ _dispatch = Dispatcher()
 
 
 @_dispatch
-def _matmul(lhs: _ASNode, rhs: _ASNode):
-    return P.matmul(lhs, rhs)
-
-
-@_dispatch
-def _binary(lhs: _ASNode, rhs: _ASNode, precedence, oper):
-    return P._binary(lhs, rhs, precedence, oper)
-
-
-@_dispatch
-def _kron(lhs: _ASNode, rhs: _ASNode):
-    return P.kron(lhs, rhs)
+def _binary(lhs: _ASNode, rhs: _ASNode, precedence, operator):
+    return P.abstract_binary(lhs, rhs, precedence, operator)
 
 
 @_dispatch
@@ -339,7 +329,7 @@ def _iter(node: P.index):
 @_dispatch
 def _getitem(node: _ASNode, indices):  # noqa: F811
     '''create index notation'''
-    return P.index_notation(
+    return P.abstract_index_notation(
         node,
         P.indices(tuple([i.root for i in as_tuple(indices or [])]))
     )

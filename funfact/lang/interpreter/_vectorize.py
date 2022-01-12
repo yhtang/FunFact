@@ -27,41 +27,52 @@ class Vectorizer(TranscribeInterpreter):
         else:
             return (self.vec_index, *indices)
 
-    def __call__(self, node, parent=None):
+    # def __call__(self, node, parent=None):
 
-        if isinstance(node, P.matmul):
-            '''Replace by einop.'''
-            i, j, k = [
-                P.index(AbstractIndex(), bound=False, kron=False)
-                for _ in range(3)
-            ]
-            node = P.ein(
-                P.index_notation(node.lhs, P.indices((i, j))),
-                P.index_notation(node.rhs, P.indices((j, k))),
-                precedence=node.precedence,
-                reduction='sum',
-                pairwise='multiply',
-                outidx=None,
-            )
+    #     if isinstance(node, P.abstract_binary):
+    #         '''Replace by einop.'''
+    #         i, j, k = [
+    #             P.index(AbstractIndex(), bound=False, kron=False)
+    #             for _ in range(3)
+    #         ]
+    #         node = P.ein(
+    #             P.index_notation(node.lhs, P.indices((i, j))),
+    #             P.index_notation(node.rhs, P.indices((j, k))),
+    #             precedence=node.precedence,
+    #             reduction='sum',
+    #             pairwise='multiply',
+    #             outidx=None,
+    #         )
 
-        elif isinstance(node, P.kron):
-            '''Replace by einop.'''
-            i, j = [
-                P.index(AbstractIndex(), bound=False, kron=True)
-                for _ in range(2)
-            ]
-            node = P.ein(
-                P.index_notation(node.lhs, P.indices((i, j))),
-                P.index_notation(node.rhs, P.indices((i, j))),
-                precedence=node.precedence,
-                reduction='sum',
-                pairwise='multiply',
-                outidx=None,
-            )
+    #     elif isinstance(node, P.kron):
+    #         '''Replace by einop.'''
+    #         i, j = [
+    #             P.index(AbstractIndex(), bound=False, kron=True)
+    #             for _ in range(2)
+    #         ]
+    #         node = P.ein(
+    #             P.index_notation(node.lhs, P.indices((i, j))),
+    #             P.index_notation(node.rhs, P.indices((i, j))),
+    #             precedence=node.precedence,
+    #             reduction='sum',
+    #             pairwise='multiply',
+    #             outidx=None,
+    #         )
 
-        node = super().__call__(_index_analyzer(node, parent), parent)
+    #     node = super().__call__(_index_analyzer(node, parent), parent)
 
-        return node
+    #     return node
+
+    def abstract_index_notation(
+        self, tensor: P.Numeric, indices: P.indices, **kwargs
+    ):
+        raise NotImplementedError()
+
+    def abstract_binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **kwargs
+    ):
+        raise NotImplementedError()
 
     def literal(self, value: LiteralValue, **kwargs):
         return []
@@ -79,8 +90,8 @@ class Vectorizer(TranscribeInterpreter):
             return (*items, self.vec_index)
         return (self.vec_index, *items)
 
-    def index_notation(
-        self, indexless: P.Numeric, indices: P.indices, **kwargs
+    def indexed_tensor(
+        self, tensor: P.Numeric, indices: P.indices, **kwargs
     ):
         return []
 
@@ -88,24 +99,6 @@ class Vectorizer(TranscribeInterpreter):
         return []
 
     def neg(self, x: P.Numeric, **kwargs):
-        return []
-
-    def _binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
-        **kwargs
-    ):
-        return []
-
-    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
-        return []
-
-    def kron(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
-        return []
-
-    def elem(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
-        **kwargs
-    ):
         return []
 
     @_as_payload('outidx')
