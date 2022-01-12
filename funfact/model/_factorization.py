@@ -11,6 +11,7 @@ from funfact.lang.interpreter import (
     ShapeAnalyzer,
     PenaltyEvaluator
 )
+from funfact import active_backend as ab
 
 
 class Factorization:
@@ -134,13 +135,13 @@ class Factorization:
         '''The dimensionality of the result tensor.'''
         return self.tsrex.ndim
 
-    @property
-    def penalty(self):
+    def penalty(self, sum_leafs: bool = True, sum_vec=None):
         '''The penalty of the result tensor.'''
-        tsrex = self.tsrex | PenaltyEvaluator()
+        tsrex = self.tsrex | PenaltyEvaluator(sum_vec)
         factors = list(dfs_filter(lambda n: n.name == 'tensor' and
                                   n.abstract.optimizable, tsrex.root))
-        return [f.penalty for f in factors]
+        penalties = ab.stack([f.penalty for f in factors], 0)
+        return ab.sum(penalties, 0) if sum_leafs else penalties
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''

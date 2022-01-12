@@ -9,13 +9,16 @@ class PenaltyEvaluator(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
+    def __init__(self, sum_vec: bool = True):
+        self.sum_vec = sum_vec
+
     def literal(self, value, **kwargs):
         return []
 
     @TranscribeInterpreter.as_payload('penalty')
     def tensor(self, abstract, data, **kwargs):
         if abstract.prefer:
-            return abstract.prefer(data)
+            return abstract.prefer(data, self.sum_vec)
         else:
             return ab.tensor(0.0)
 

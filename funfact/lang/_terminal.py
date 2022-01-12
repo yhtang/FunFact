@@ -6,6 +6,7 @@ import re
 import numbers
 import uuid
 from funfact.initializers import stack
+from funfact.conditions import vmap, NoCondition
 
 
 class Symbol:
@@ -154,7 +155,7 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         _anon_registry_lock = multiprocessing.Lock()
 
     def __init__(self, *size, symbol=None, initializer=None, optimizable=True,
-                 prefer=None):
+                 prefer=NoCondition()):
         super().__init__()
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):
@@ -170,7 +171,6 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
 
     def vectorize(self, n, append):
         '''Extend dimensionality by one.'''
-        # TODO: vectorize preference.
         shape = (*self._shape, n) if append else (n, *self._shape)
         if self.initializer is None:
             initializer = self.initializer
@@ -179,8 +179,10 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         else:
             initializer = self.initializer[..., None] if append else \
                           self.initializer[None, ...]
+        prefer = vmap(self.prefer, append) if self.prefer else None
         return type(self)(
-            *shape, initializer=initializer, optimizable=self.optimizable
+            *shape, initializer=initializer, optimizable=self.optimizable,
+            prefer=prefer
         )
 
     @property

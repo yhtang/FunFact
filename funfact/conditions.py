@@ -49,7 +49,7 @@ class _Condition(ABC):
     def _condition(self, data):
         pass
 
-    def __call__(self, data):
+    def __call__(self, data, sum_vec=None):
         '''Evaluate condition on leaf tensor.
 
         Args:
@@ -63,7 +63,7 @@ class _Condition(ABC):
 class _MatrixCondition(_Condition):
     '''Base class for all conditions only to be evaluated for matrices.'''
 
-    def __call__(self, data):
+    def __call__(self, data, sum_vec=None):
         if data.ndim > 2:
             raise ValueError('Penalty can only be evaluated for matrices, '
                              f'got tensor with shape {data.shape}.')
@@ -102,6 +102,13 @@ class NonNegative(_Condition):
         return negative if ab.any(negative) else ab.tensor([0.0])
 
 
+class NoCondition(_Condition):
+    '''No condition enforced.'''
+
+    def _condition(self, data):
+        return ab.tensor(0.0)
+
+
 def vmap(condition, append: bool = True):
     '''Vectorizes a condtion.
 
@@ -112,13 +119,23 @@ def vmap(condition, append: bool = True):
             index. If False, the first index of shape tuple is considered
             the vectorizing index.
     '''
-    def wrapper(data):
+    def wrapper(data, sum_vec: bool = True):
+        '''Vectorized condition
+
+        Args:
+            data (tensor): vectorized tensor leaf.
+            sum_vec (bool):
+                If True, the conditions are summed over the vectorizing
+                dimension. If False, the conditions per instance in the
+                vectorized model are returned.
+        '''
         shape = data.shape
         nvec = shape[-1] if append else shape[0]
 
         def _get_instance(i):
             return data[..., i] if append else data[i, ...]
 
-        return ab.mean(ab.tensor([condition(_get_instance(i)) for i in
-                       range(nvec)]))
+        conditions = ab.tensor([condition(_get_instance(i)) for i in
+                                range(nvec)])
+        return ab.sum(conditions) if sum_vec else conditions
     return wrapper

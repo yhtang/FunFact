@@ -18,6 +18,7 @@ from .interpreter import (
     EinsteinSpecGenerator
 )
 from ._terminal import LiteralValue, AbstractIndex, AbstractTensor
+from funfact.conditions import NoCondition
 
 
 class ASCIITreeFactory:
@@ -415,7 +416,7 @@ def indices(spec):
         raise RuntimeError(f'Cannot create indices from {spec}.')
 
 
-def tensor(*spec, initializer=None, optimizable=None, prefer=None):
+def tensor(*spec, initializer=None, optimizable=None, prefer=NoCondition()):
     '''Construct an abstract tensor using `spec`.
 
     Args:
