@@ -35,6 +35,12 @@ class IndexAnalyzer(TranscribeInterpreter):
                     node.lhs, node.rhs, precedence=node.precedence,
                     reduction='sum', pairwise=node.oper, outidx=None
                 )
+            elif isinstance(node.lhs, P.literal) is not isinstance(node.rhs, P.literal):
+                '''If one operand is a literal, treat as einop '''
+                node = P.ein(
+                    node.lhs, node.rhs, precedence=node.precedence,
+                    reduction='sum', pairwise=node.oper, outidx=None
+                )
             else:
                 node = P.elem(
                     node.lhs, node.rhs, precedence=node.precedence,
@@ -137,16 +143,7 @@ class IndexAnalyzer(TranscribeInterpreter):
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
         **kwargs
     ):
-        '''If one operand is a literal, preserve the indexness; otherwise,
-        treat the result as indexless '''
-        if isinstance(lhs, P.literal) is not isinstance(rhs, P.literal):
-            return (
-                lhs.live_indices or rhs.live_indices,
-                lhs.keep_indices or rhs.keep_indices,
-                lhs.kron_indices or rhs.kron_indices
-            )
-        else:
-            return [], [], []
+        return [], [], []
 
     @as_payload
     def ein(

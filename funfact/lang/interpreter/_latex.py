@@ -74,9 +74,10 @@ class LatexRenderer(ROOFInterpreter):
             op = r'\underset{{{}:{}}}{{\star}}'.format(
                 _omap[reduction], _omap[pairwise]
             )
-        body = fr'{{{lhs}}} {op} {{{rhs}}}'
-        suffix = fr'\rightarrow_{{{outidx}}}' if outidx is not None else ''
-        return body + suffix
+        tex = fr'{{{lhs}}} {op} {{{rhs}}}'
+        if outidx is not None:
+            tex = fr'({tex})\rightarrow_{{{outidx}}}'
+        return tex
 
     def tran(self, src, indices, **kwargs):
         return fr'{{{src}}}\rightarrow_{{{indices}}}'
