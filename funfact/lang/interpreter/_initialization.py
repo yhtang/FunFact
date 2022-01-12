@@ -18,9 +18,9 @@ class LeafInitializer(TranscribeInterpreter):
         return []
 
     @_as_payload('data')
-    def tensor(self, abstract, **kwargs):
+    def tensor(self, decl, **kwargs):
         initializer, optimizable, shape = (
-            abstract.initializer, abstract.optimizable, abstract.shape
+            decl.initializer, decl.optimizable, decl.shape
         )
         if initializer is None:
             initializer = Normal(dtype=self.dtype)

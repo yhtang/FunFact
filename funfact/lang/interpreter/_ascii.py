@@ -15,8 +15,8 @@ class ASCIIRenderer(TranscribeInterpreter):
         return str(value)
 
     @as_payload
-    def tensor(self, abstract, **kwargs):
-        return str(abstract.symbol)
+    def tensor(self, decl, **kwargs):
+        return str(decl.symbol)
 
     @as_payload
     def index(self, item, bound, kron, **kwargs):

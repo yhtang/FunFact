@@ -69,9 +69,9 @@ class Vectorizer(TranscribeInterpreter):
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
         return []
 
-    @_as_payload('abstract')
-    def tensor(self, abstract: AbstractTensor, **kwargs):
-        return abstract.vectorize(self.replicas, self.append)
+    @_as_payload('decl')
+    def tensor(self, decl: AbstractTensor, **kwargs):
+        return decl.vectorize(self.replicas, self.append)
 
     @_as_payload('items')
     def indices(self, items: AbstractIndex, **kwargs):

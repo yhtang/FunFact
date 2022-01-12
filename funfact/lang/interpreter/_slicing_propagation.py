@@ -24,7 +24,7 @@ class SlicingPropagator(TranscribeInterpreter):
     def literal(self, value: LiteralValue, **kwargs):
         pass
 
-    def tensor(self, abstract: AbstractTensor, **kwargs):
+    def tensor(self, decl: AbstractTensor, **kwargs):
         pass
 
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):

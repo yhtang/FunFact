@@ -77,7 +77,7 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def tensor(self, abstract: AbstractTensor, **payload):
+    def tensor(self, decl: AbstractTensor, **payload):
         pass
 
     @abstractmethod
@@ -160,7 +160,7 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def tensor(self, abstract: AbstractTensor, **payload):
+    def tensor(self, decl: AbstractTensor, **payload):
         pass
 
     @abstractmethod

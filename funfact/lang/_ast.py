@@ -40,7 +40,7 @@ class Primitives:
         '''a literal value'''
 
     @primitive(precedence=0)
-    def tensor(abstract: AbstractTensor):
+    def tensor(decl: AbstractTensor):
         '''an abstract tensor'''
 
     @primitive(precedence=0)

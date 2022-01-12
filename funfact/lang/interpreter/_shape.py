@@ -19,8 +19,8 @@ class ShapeAnalyzer(TranscribeInterpreter):
         return ()
 
     @as_payload
-    def tensor(self, abstract: AbstractTensor, **kwargs):
-        return abstract.shape
+    def tensor(self, decl: AbstractTensor, **kwargs):
+        return decl.shape
 
     @as_payload
     def index(self, item: AbstractIndex, bound: bool, **kwargs):

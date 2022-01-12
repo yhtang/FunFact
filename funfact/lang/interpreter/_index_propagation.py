@@ -93,7 +93,7 @@ class IndexAnalyzer(TranscribeInterpreter):
         return [], [], []
 
     @as_payload
-    def tensor(self, abstract: AbstractTensor, **kwargs):
+    def tensor(self, decl: AbstractTensor, **kwargs):
         return [], [], []
 
     @as_payload

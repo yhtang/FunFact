@@ -31,8 +31,8 @@ class LatexRenderer(ROOFInterpreter):
     def literal(self, value, **kwargs):
         return value._repr_tex_()
 
-    def tensor(self, abstract, **kwargs):
-        return abstract._repr_tex_()
+    def tensor(self, decl, **kwargs):
+        return decl._repr_tex_()
 
     def index(self, item, bound, kron, **kwargs):
         if bound:

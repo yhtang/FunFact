@@ -35,7 +35,7 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     def literal(self, value: LiteralValue, **kwargs):
         return []
 
-    def tensor(self, abstract: AbstractTensor, **kwargs):
+    def tensor(self, decl: AbstractTensor, **kwargs):
         return []
 
     def index(self, item: AbstractIndex, bound: bool, **kwargs):

@@ -11,12 +11,12 @@ class SyntaxValidator:
         pass
 
     def tensor(self, node: _ASNode, parent: _ASNode):
-        abst = node.abstract
-        ini = node.abstract.initializer
+        decl = node.decl
+        ini = node.decl.initializer
         if ab.is_tensor(ini):
-            if ini.shape != abst.shape:
+            if ini.shape != decl.shape:
                 raise SyntaxError(
-                    f'The shape {abst.shape} of tensor {abst} does not match '
+                    f'The shape {decl.shape} of tensor {decl} does not match '
                     f'its concrete-tensor initializer of {ini.shape}.'
                 )
 

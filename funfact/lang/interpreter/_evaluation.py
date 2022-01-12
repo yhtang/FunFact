@@ -16,7 +16,7 @@ class Evaluator(ROOFInterpreter):
     def literal(self, value, **kwargs):
         return ab.tensor(value.raw)
 
-    def tensor(self, abstract, data, **kwargs):
+    def tensor(self, decl, data, **kwargs):
         return data
 
     def index(self, item, bound, kron, **kwargs):
