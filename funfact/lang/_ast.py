@@ -35,6 +35,20 @@ def primitive(precedence=None):
 
 class Primitives:
 
+    @primitive(precedence=1)
+    def abstract_index_notation(tensor: _ASNode, indices: _ASNode):
+        '''indexing a raw tensor or tensor expression: tensor[indices...].
+        To be interpreted either as tensor indexing or index renaming depending
+        on the type of the addressee.'''
+
+    @primitive(precedence=None)
+    def abstract_binary(
+        lhs: _ASNode, rhs: _ASNode, precedence: int, operator: str
+    ):
+        '''generic binary operations, to be interpreted as  matmul, kron,
+        elementwise, or Einstein based on index/indexless status and the
+        operator being used.'''
+
     @primitive(precedence=0)
     def literal(value: LiteralValue):
         '''a literal value'''
@@ -54,10 +68,8 @@ class Primitives:
         '''a tuple of indices'''
 
     @primitive(precedence=1)
-    def index_notation(indexless: _ASNode, indices: _ASNode):
-        '''indexing a raw tensor or indexless expression: expr[indices...].
-        To be interpreted either as tensor indexing or index renaming depending
-        on the type of the addressee.'''
+    def indexed_tensor(tensor: _ASNode, indices: _ASNode):
+        '''indexing a raw tensor or indexless expression: expr[indices...]'''
 
     @primitive(precedence=2)
     def call(f: str, x: _ASNode):
@@ -66,23 +78,6 @@ class Primitives:
     @primitive(precedence=4)
     def neg(x: _ASNode):
         '''elementwise negation'''
-
-    @primitive(precedence=None)
-    def _binary(lhs: _ASNode, rhs: _ASNode, precedence: int, oper: str):
-        '''generic binary operations, to be interpreted as either elementwise
-        or Einstein based on index/indexless status.'''
-
-    @primitive(precedence=5)
-    def matmul(lhs: _ASNode, rhs: _ASNode):
-        '''indexless matrix multiplication'''
-
-    @primitive(precedence=5)
-    def kron(lhs: _ASNode, rhs: _ASNode):
-        '''indexless Kronecker product'''
-
-    @primitive(precedence=None)
-    def elem(lhs: _ASNode, rhs: _ASNode, precedence: int, oper: str):
-        '''Elementwise binary operations between tensors.'''
 
     @primitive(precedence=None)
     def ein(
@@ -96,7 +91,7 @@ class Primitives:
         '''transposition/axis reordering'''
 
     Tensorial = Union[
-        index_notation, call, pow, neg, ein
+        indexed_tensor, call, neg, ein
     ]
     Numeric = Union[Tensorial, Real]
 

@@ -73,6 +73,18 @@ class ROOFInterpreter(ABC):
     by another transcribe interpreter.'''
 
     @abstractmethod
+    def abstract_index_notation(
+        self, tensor: Any, indices: Iterable[Any], **payload
+    ):
+        pass
+
+    @abstractmethod
+    def abstract_binary(
+        self, lhs: Any, rhs: Any, precedence: int, operator: str, **payload
+    ):
+        pass
+
+    @abstractmethod
     def literal(self, value: LiteralValue, **payload):
         pass
 
@@ -89,8 +101,8 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index_notation(
-        self, indexless: Any, indices: Iterable[Any], **payload
+    def indexed_tensor(
+        self, tensor: Any, indices: Iterable[Any], **payload
     ):
         pass
 
@@ -100,26 +112,6 @@ class ROOFInterpreter(ABC):
 
     @abstractmethod
     def neg(self, x: Any, **payload):
-        pass
-
-    @abstractmethod
-    def matmul(self, lhs: Any, rhs: Any, **payload):
-        pass
-
-    @abstractmethod
-    def kron(self, lhs: Any, rhs: Any):
-        pass
-
-    @abstractmethod
-    def _binary(
-        self, lhs: Any, rhs: Any, precedence: int, oper: str, **payload
-    ):
-        pass
-
-    @abstractmethod
-    def elem(
-        self, lhs: Any, rhs: Any, precedence: int, oper: str, **payload
-    ):
         pass
 
     @abstractmethod
@@ -156,6 +148,19 @@ class TranscribeInterpreter(ABC):
     _traversal_order: TraversalOrder
 
     @abstractmethod
+    def abstract_index_notation(
+        self, tensor: P.Numeric, indices: P.indices, **payload
+    ):
+        pass
+
+    @abstractmethod
+    def abstract_binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **payload
+    ):
+        pass
+
+    @abstractmethod
     def literal(self, value: LiteralValue, **payload):
         pass
 
@@ -172,8 +177,8 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index_notation(
-        self, indexless: P.Numeric, indices: P.indices, **payload
+    def indexed_tensor(
+        self, tensor: P.Numeric, indices: P.indices, **payload
     ):
         pass
 
@@ -183,28 +188,6 @@ class TranscribeInterpreter(ABC):
 
     @abstractmethod
     def neg(self, x: P.Numeric, **payload):
-        pass
-
-    @abstractmethod
-    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **payload):
-        pass
-
-    @abstractmethod
-    def kron(self, lhs: P.Numeric, rhs: P.Numeric):
-        pass
-
-    @abstractmethod
-    def _binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
-        **payload
-    ):
-        pass
-
-    @abstractmethod
-    def elem(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
-        **payload
-    ):
         pass
 
     @abstractmethod
