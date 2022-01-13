@@ -140,8 +140,24 @@ class Factorization:
         tsrex = self.tsrex | PenaltyEvaluator(sum_vec)
         factors = list(dfs_filter(lambda n: n.name == 'tensor' and
                                   n.abstract.optimizable, tsrex.root))
-        penalties = ab.stack([f.penalty for f in factors], 0)
-        return ab.sum(penalties, 0) if sum_leafs else penalties
+        # penalties = ab.stack([f.penalty for f in factors], 0)
+        # return ab.sum(penalties, 0) if sum_leafs else penalties
+        # '''
+        print(f'sum_leafs: {sum_leafs}, sum_vec: {sum_vec}')
+        if sum_vec:
+            summed = 0.0
+            for f in factors:
+                summed += f.penalty
+        else:
+            C = [f.penalty for f in factors]
+            summed = [sum(x) for x in zip(*C)]
+            #sum = factors[0].penalty
+            #for f in factors[1:]:
+            #    sum += f.penalty
+            #print(sum)
+        return summed
+        # '''
+        # TODO: avoid stack? either return list or sum in a loop?
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''

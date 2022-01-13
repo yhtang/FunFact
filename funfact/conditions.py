@@ -64,7 +64,7 @@ class _MatrixCondition(_Condition):
     '''Base class for all conditions only to be evaluated for matrices.'''
 
     def __call__(self, data, sum_vec=None):
-        if data.ndim > 2:
+        if data.ndim != 2:
             raise ValueError('Penalty can only be evaluated for matrices, '
                              f'got tensor with shape {data.shape}.')
         return super().__call__(data)
@@ -81,6 +81,7 @@ class Unitary(_MatrixCondition):
     '''Checks a unitary condition.'''
 
     def _condition(self, data):
+        # print(data)
         return ab.subtract(
             ab.matmul(data, ab.conj(ab.transpose(data, (1, 0)))),
             ab.eye(data.shape[0])
@@ -99,14 +100,14 @@ class NonNegative(_Condition):
 
     def _condition(self, data):
         negative = data[data < 0.0]
-        return negative if ab.any(negative) else ab.tensor([0.0])
+        return negative if ab.any(negative) else 0.0
 
 
 class NoCondition(_Condition):
     '''No condition enforced.'''
 
     def _condition(self, data):
-        return ab.tensor(0.0)
+        return 0.0
 
 
 def vmap(condition, append: bool = True):
@@ -135,7 +136,17 @@ def vmap(condition, append: bool = True):
         def _get_instance(i):
             return data[..., i] if append else data[i, ...]
 
-        conditions = ab.tensor([condition(_get_instance(i)) for i in
-                                range(nvec)])
-        return ab.sum(conditions) if sum_vec else conditions
+        #conditions = ab.tensor([condition(_get_instance(i)) for i in
+        #                        range(nvec)], optimizable=True)
+        # return ab.sum(conditions) if sum_vec else conditions
+        # '''
+        conditions = [condition(_get_instance(i)) for i in range(nvec)]
+        if sum_vec:
+            sum = 0.0
+            for c in conditions:
+                sum += c
+            return sum
+        else:
+            return conditions
+        # '''
     return wrapper

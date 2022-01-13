@@ -20,7 +20,7 @@ class PenaltyEvaluator(TranscribeInterpreter):
         if abstract.prefer:
             return abstract.prefer(data, self.sum_vec)
         else:
-            return ab.tensor(0.0)
+            return 0.0
 
     def index(self, item, bound, kron, **kwargs):
         return []
