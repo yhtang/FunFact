@@ -67,3 +67,6 @@ class LeafInitializer(TranscribeInterpreter):
 
     def tran(self, src, indices, **kwargs):
         return []
+
+    def abstract_dest(self, src, indices, **kwargs):
+        raise NotImplementedError()

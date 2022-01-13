@@ -94,7 +94,13 @@ class Primitives:
 
     @primitive(precedence=9)
     def tran(src: _ASNode, indices: _ASNode):
-        '''transposition/axis reordering'''
+        '''transpose the tensor by permuting the axes.'''
+
+    @primitive(precedence=9)
+    def abstract_dest(src: _ASNode, indices: indices):
+        '''generic destination index designation; maybe translated either
+        into transposition/axis permutation, or specify the output indices
+        of Einstein operations'''
 
     Tensorial = Union[
         indexed_tensor, call, neg, ein

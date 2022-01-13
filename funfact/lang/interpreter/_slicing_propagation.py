@@ -89,3 +89,6 @@ class SlicingPropagator(TranscribeInterpreter):
         src.slices = [
             slices[src.live_indices.index(i)] for i in indices.live_indices
         ]
+
+    def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
+        raise NotImplementedError()

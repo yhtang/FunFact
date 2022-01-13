@@ -121,3 +121,6 @@ class Vectorizer(TranscribeInterpreter):
 
     def tran(self, src: P.Numeric, indices: P.indices, **kwargs):
         return []
+
+    def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
+        raise NotImplementedError()

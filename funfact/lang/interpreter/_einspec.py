@@ -87,3 +87,7 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     def tran(self, src: P.Numeric, indices: P.indices, live_indices, **kwargs):
         map = IndexMap()
         return f'{map(src.live_indices)}->{map(live_indices)}'
+
+    @as_payload
+    def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
+        raise NotImplementedError()

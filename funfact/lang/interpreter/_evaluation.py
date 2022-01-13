@@ -50,3 +50,6 @@ class Evaluator(ROOFInterpreter):
     def tran(self, src, indices, einspec, **kwargs):
         in_spec, out_spec = einspec.split('->')
         return ab.transpose(src, [in_spec.index(i) for i in out_spec])
+
+    def abstract_dest(self, src, indices, **kwargs):
+        raise NotImplementedError()

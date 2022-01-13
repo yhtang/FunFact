@@ -63,3 +63,7 @@ class ASCIIRenderer(TranscribeInterpreter):
     @as_payload
     def tran(self, src, indices, **kwargs):
         return f'-> [{indices.ascii}]'
+
+    @as_payload
+    def abstract_dest(self, src, indices, **kwargs):
+        return f'-> [{indices.ascii}]'

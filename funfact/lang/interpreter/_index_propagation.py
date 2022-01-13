@@ -217,12 +217,6 @@ class IndexAnalyzer(RewritingTranscriber):
         dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
         dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
 
-        print('lhs', lhs)
-        print('dict_lhs', dict_lhs)
-
-        print('rhs', rhs)
-        print('dict_rhs', dict_rhs)
-
         for i in lhs.live_indices:
             if i in rhs.live_indices and i not in kron_indices:
                 if dict_lhs[i] != dict_rhs[i]:
@@ -259,3 +253,11 @@ class IndexAnalyzer(RewritingTranscriber):
             tuple(src.shape[src.live_indices.index(i)]
                   for i in indices.live_indices)
         )
+
+    def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
+        if isinstance(src, P.ein):
+            '''override the `>>` behavior for einop nodes'''
+            src.outidx = indices
+            return src
+        else:
+            return P.tran(src, indices)

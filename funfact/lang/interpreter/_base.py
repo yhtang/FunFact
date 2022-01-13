@@ -115,6 +115,11 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
+    def elem(self, lhs: Any, rhs: Any, precedence: int, operator: str,
+             **payload):
+        pass
+
+    @abstractmethod
     def ein(self, lhs: Any, rhs: Any, precedence: int, reduction: str,
             pairwise: str, outidx: Any, **payload):
         pass
@@ -191,6 +196,13 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
+    def elem(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **payload
+    ):
+        pass
+
+    @abstractmethod
     def ein(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
         pairwise: str, outidx: Optional[P.indices], **payload
@@ -236,18 +248,19 @@ class RewritingTranscriber(TranscribeInterpreter):
 
     def _print(self, *args):
         # from funfact.util.debugtool import __LINE__
-        import os
-        from inspect import currentframe, getframeinfo
-        print(
-            '%24s' % os.path.basename(
-                os.path.normpath(
-                    getframeinfo(currentframe().f_back).filename
-                )
-            ),
-            '%4d' % getframeinfo(currentframe().f_back).lineno,
-            self.indent[-1],
-            *args
-        )
+        # import os
+        # from inspect import currentframe, getframeinfo
+        # print(
+        #     '%24s' % os.path.basename(
+        #         os.path.normpath(
+        #             getframeinfo(currentframe().f_back).filename
+        #         )
+        #     ),
+        #     '%4d' % getframeinfo(currentframe().f_back).lineno,
+        #     self.indent[-1],
+        #     *args
+        # )
+        pass
 
     def __call__(self, node, parent=None, depth=float('inf')):
 

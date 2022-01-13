@@ -335,9 +335,11 @@ def _getitem(node: _ASNode, indices):  # noqa: F811
 
 @_dispatch
 def _rshift(node: _ASNode, indices):  # noqa: F811
-    '''transpose the axes by permuting the live indices into target indices.'''
-    return P.tran(node,
-                  P.indices(tuple([i.root for i in as_tuple(indices)])))
+    '''transpose or einsum output specification'''
+    return P.abstract_dest(
+        node,
+        P.indices(tuple([i.root for i in as_tuple(indices)]))
+    )
 
 
 def index(symbol=None):

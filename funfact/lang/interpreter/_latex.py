@@ -82,3 +82,6 @@ class LatexRenderer(ROOFInterpreter):
 
     def tran(self, src, indices, **kwargs):
         return fr'{{{src}}}\rightarrow_{{{indices}}}'
+
+    def abstract_dest(self, src, indices, **kwargs):
+        return fr'{{{src}}}\rightarrow_{{{indices}}}'
