@@ -201,12 +201,14 @@ class TranscribeInterpreter(ABC):
     def tran(self, src: P.Numeric, indices: P.indices):
         pass
 
+    def _eval(self, node):
+        return getattr(self, node.name)(**node.fields)
+
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)
-        rule = getattr(self, node.name)
 
         def _do_node():
-            payload = rule(**node.fields)
+            payload = self._eval(node)
             _emplace(node, payload)
 
         def _do_children():
@@ -219,6 +221,72 @@ class TranscribeInterpreter(ABC):
         elif self._traversal_order == self.TraversalOrder.POST:
             _do_children()
             _do_node()
+        return node
+
+    def __ror__(self, tsrex: _AST):
+        return type(tsrex)(self(tsrex.root))
+
+
+class RewritingTranscriber(TranscribeInterpreter):
+    '''A rewriting transcriber may either rewrite the payloads of a node, or
+    replace the entire node alltogether.'''
+
+    def __init__(self):
+        self.indent = []
+
+    def _print(self, *args):
+        # from funfact.util.debugtool import __LINE__
+        import os
+        from inspect import currentframe, getframeinfo
+        print(
+            '%24s' % os.path.basename(
+                os.path.normpath(
+                    getframeinfo(currentframe().f_back).filename
+                )
+            ),
+            '%4d' % getframeinfo(currentframe().f_back).lineno,
+            self.indent[-1],
+            *args
+        )
+
+    def __call__(self, node, parent=None, depth=float('inf')):
+
+        if self.indent:
+            self.indent.append(self.indent[-1] + '  ')
+        else:
+            self.indent.append('')
+
+        node = copy.copy(node)
+
+        if depth > 0:
+            # do children
+            for name, value in node.fields_fixed.items():
+                setattr(
+                    node, name, _deep_apply(self, value, node, depth - 1)
+                )
+
+        # iterative rewriting
+        while True:
+            self._print('evaluating', node.name, 'depth = ', depth)
+
+            value = self._eval(node)
+
+            self._print('got', value)
+
+            if not isinstance(value, _ASNode):
+                break
+
+            self._print()
+
+            # node = self(value, parent, depth)
+            node = value
+
+            self._print()
+
+        _emplace(node, value)
+
+        self.indent.pop()
+
         return node
 
     def __ror__(self, tsrex: _AST):
