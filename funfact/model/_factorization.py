@@ -136,28 +136,19 @@ class Factorization:
         return self.tsrex.ndim
 
     def penalty(self, sum_leafs: bool = True, sum_vec=None):
-        '''The penalty of the result tensor.'''
+        '''The penalty of the result tensor.
+
+        Args:
+            sum_leafs (bool): sum the penalties over the leafs of the model.
+            sum_vec (bool): sum the penalties over the vectorization dimension.
+        '''
         tsrex = self.tsrex | PenaltyEvaluator(sum_vec)
         factors = list(dfs_filter(lambda n: n.name == 'tensor' and
                                   n.abstract.optimizable, tsrex.root))
-        # penalties = ab.stack([f.penalty for f in factors], 0)
-        # return ab.sum(penalties, 0) if sum_leafs else penalties
-        # '''
-        print(f'sum_leafs: {sum_leafs}, sum_vec: {sum_vec}')
-        if sum_vec:
-            summed = 0.0
-            for f in factors:
-                summed += f.penalty
-        else:
-            C = [f.penalty for f in factors]
-            summed = [sum(x) for x in zip(*C)]
-            #sum = factors[0].penalty
-            #for f in factors[1:]:
-            #    sum += f.penalty
-            #print(sum)
-        return summed
-        # '''
-        # TODO: avoid stack? either return list or sum in a loop?
+        penalties = ab.stack([f.penalty for f in factors],
+                             0 if sum_vec else -1)
+        return ab.sum(penalties, 0 if sum_vec else -1) if sum_leafs else \
+            penalties
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from ._base import TranscribeInterpreter
-from funfact.backend import active_backend as ab
 
 
 class PenaltyEvaluator(TranscribeInterpreter):

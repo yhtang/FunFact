@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import enum
 import numpy as np
 import tqdm
 import funfact.optim
@@ -122,22 +121,6 @@ def factorize(
 
     def loss_and_penalty(model, target, sum_vec=True, **kwargs):
         if penalty_weight > 0:
-            losses = loss(model(), target, sum_vec=sum_vec, **kwargs)
-            penalties = model.penalty(sum_leafs=True, sum_vec=sum_vec)
-            if sum_vec is False:
-                penalties = ab.stack(penalties)
-                #print(f'losses: {losses}')
-                #print(f'penalties: {penalties}')
-                #loss_plus_penalty = ab.tensor(len(penalties))
-                #for i, p in enumerate(penalties):
-                #    loss_plus_penalty[i] = (losses[i] + penalty_weight * p)
-                #print(f'loss_plus_penalty: {loss_plus_penalty}')
-                #return ab.stack(loss_plus_penalty)
-            #else:
-            return losses + penalty_weight * penalties
-                
-                # print(f'loss: {loss(model(), target, sum_vec=sum_vec, **kwargs)}')
-                # print(f'penalty: {model.penalty(sum_leafs=True, sum_vec=sum_vec)}')
             return loss(model(), target, sum_vec=sum_vec, **kwargs) + \
                    penalty_weight * model.penalty(sum_leafs=True,
                                                   sum_vec=sum_vec)

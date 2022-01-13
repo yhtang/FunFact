@@ -81,7 +81,6 @@ class Unitary(_MatrixCondition):
     '''Checks a unitary condition.'''
 
     def _condition(self, data):
-        # print(data)
         return ab.subtract(
             ab.matmul(data, ab.conj(ab.transpose(data, (1, 0)))),
             ab.eye(data.shape[0])
@@ -107,7 +106,7 @@ class NoCondition(_Condition):
     '''No condition enforced.'''
 
     def _condition(self, data):
-        return 0.0
+        return ab.tensor(0.0, optimizable=True)
 
 
 def vmap(condition, append: bool = True):
@@ -136,17 +135,7 @@ def vmap(condition, append: bool = True):
         def _get_instance(i):
             return data[..., i] if append else data[i, ...]
 
-        #conditions = ab.tensor([condition(_get_instance(i)) for i in
-        #                        range(nvec)], optimizable=True)
-        # return ab.sum(conditions) if sum_vec else conditions
-        # '''
-        conditions = [condition(_get_instance(i)) for i in range(nvec)]
-        if sum_vec:
-            sum = 0.0
-            for c in conditions:
-                sum += c
-            return sum
-        else:
-            return conditions
-        # '''
+        conditions = ab.stack([condition(_get_instance(i)) for i in
+                               range(nvec)], 0)
+        return ab.sum(conditions) if sum_vec else conditions
     return wrapper
