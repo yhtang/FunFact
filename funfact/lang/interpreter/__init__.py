@@ -4,7 +4,7 @@ from ._ascii import ASCIIRenderer
 from ._base import dfs, dfs_filter, PayloadMerger
 from ._evaluation import Evaluator
 from ._einspec import EinsteinSpecGenerator
-from ._index_propagation import IndexAnalyzer
+from ._compile import Compiler
 from ._initialization import LeafInitializer
 from ._latex import LatexRenderer
 from ._elementwise import ElementwiseEvaluator
@@ -19,7 +19,7 @@ __all__ = [
     'ASCIIRenderer',
     'Evaluator',
     'EinsteinSpecGenerator',
-    'IndexAnalyzer',
+    'Compiler',
     'LeafInitializer',
     'LatexRenderer',
     'PayloadMerger',

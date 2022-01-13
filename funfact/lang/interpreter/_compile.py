@@ -13,7 +13,7 @@ from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
 
-class IndexAnalyzer(RewritingTranscriber):
+class Compiler(RewritingTranscriber):
     '''Analyzes which of the indices survive in a tensor operations and does
     AST rewrite to replace certain operations with specialized Einstein
     operations and index renaming operations.'''

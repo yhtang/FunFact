@@ -5,7 +5,7 @@ from funfact.lang.interpreter import (
     EinsteinSpecGenerator,
     Evaluator,
     LeafInitializer,
-    IndexAnalyzer,
+    Compiler,
     ElementwiseEvaluator,
     SlicingPropagator,
 )
@@ -35,7 +35,7 @@ class Factorization:
 
     def __init__(self, tsrex, **extra_attributes):
         self._tsrex = (tsrex
-                       | IndexAnalyzer()
+                       | Compiler()
                        | EinsteinSpecGenerator())
         self.__dict__.update(**extra_attributes)
 

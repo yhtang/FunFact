@@ -5,10 +5,6 @@ from typing import Optional
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 from ._base import _as_payload, TranscribeInterpreter
-from ._index_propagation import IndexAnalyzer
-
-
-_index_analyzer = IndexAnalyzer()
 
 
 class Vectorizer(TranscribeInterpreter):
@@ -26,42 +22,6 @@ class Vectorizer(TranscribeInterpreter):
             return (*indices, self.vec_index)
         else:
             return (self.vec_index, *indices)
-
-    # def __call__(self, node, parent=None):
-
-    #     if isinstance(node, P.abstract_binary):
-    #         '''Replace by einop.'''
-    #         i, j, k = [
-    #             P.index(AbstractIndex(), bound=False, kron=False)
-    #             for _ in range(3)
-    #         ]
-    #         node = P.ein(
-    #             P.index_notation(node.lhs, P.indices((i, j))),
-    #             P.index_notation(node.rhs, P.indices((j, k))),
-    #             precedence=node.precedence,
-    #             reduction='sum',
-    #             pairwise='multiply',
-    #             outidx=None,
-    #         )
-
-    #     elif isinstance(node, P.kron):
-    #         '''Replace by einop.'''
-    #         i, j = [
-    #             P.index(AbstractIndex(), bound=False, kron=True)
-    #             for _ in range(2)
-    #         ]
-    #         node = P.ein(
-    #             P.index_notation(node.lhs, P.indices((i, j))),
-    #             P.index_notation(node.rhs, P.indices((i, j))),
-    #             precedence=node.precedence,
-    #             reduction='sum',
-    #             pairwise='multiply',
-    #             outidx=None,
-    #         )
-
-    #     node = super().__call__(_index_analyzer(node, parent), parent)
-
-    #     return node
 
     def abstract_index_notation(
         self, tensor: P.Numeric, indices: P.indices, **kwargs
