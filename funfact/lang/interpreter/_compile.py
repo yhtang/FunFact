@@ -10,7 +10,14 @@ from ._base import (
 )
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.util.iterable import as_namedtuple
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
+
+
+def _add_attr(node, **kwargs):
+    for key, val in kwargs.items():
+        setattr(node, key, val)
+    return node
 
 
 class Compiler(RewritingTranscriber):
@@ -25,6 +32,8 @@ class Compiler(RewritingTranscriber):
     def abstract_index_notation(
         self, tensor: P.Numeric, indices: P.indices, **kwargs
     ):
+        _0 = lambda node: self(node, depth=0)  # noqa: E731
+        _X = lambda node: self(node)           # noqa: E731
         if tensor.indexed:
             '''triggers renaming of free indices:
                 for new, old in zip(indices, live_indices):
@@ -52,58 +61,68 @@ class Compiler(RewritingTranscriber):
             for n in dfs_filter(lambda n: n.name == 'index', tensor):
                 n.item = index_map.get(n.item, n.item)
 
-            return self(tensor)
+            return _X(tensor)  # recursively rebuild all live indices
         else:
-            '''creates index notation'''
-            return self(P.indexed_tensor(tensor, indices), depth=0)
+            # only rebuild own indices
+            return _add_attr(
+                _0(P.indexed_tensor(tensor, indices)),
+                indexed=True
+            )
 
     def abstract_binary(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
         indexed: bool, **kwargs
     ):
-        def _0(node):
-            return self(node, depth=0)
-
-        def _X(node):
-            return self(node)
-
         '''Replace by einop if both operands are indexed.'''
+        _0 = lambda node: self(node, depth=0)  # noqa: E731
+        _X = lambda node: self(node)           # noqa: E731
         if operator == 'matmul':
             i, j, k = [
                 P.index(AbstractIndex(), bound=False, kron=False)
                 for _ in range(3)
             ]
-            return P.ein(
-                _0(P.abstract_index_notation(lhs, _X(P.indices([i, j])))),
-                _0(P.abstract_index_notation(rhs, _X(P.indices([j, k])))),
-                precedence=precedence,
-                reduction='sum',
-                pairwise='multiply',
-                outidx=None
+            return _add_attr(
+                P.ein(
+                    _0(P.abstract_index_notation(lhs, _X(P.indices([i, j])))),
+                    _0(P.abstract_index_notation(rhs, _X(P.indices([j, k])))),
+                    precedence=precedence,
+                    reduction='sum',
+                    pairwise='multiply',
+                    outidx=None
+                ),
+                indexed=indexed
             )
         elif operator == 'kron':
             i, j = [
                 P.index(AbstractIndex(), bound=False, kron=True)
                 for _ in range(2)
             ]
-            return P.ein(
-                _0(P.abstract_index_notation(lhs, _X(P.indices([i, j])))),
-                _0(P.abstract_index_notation(rhs, _X(P.indices([i, j])))),
-                precedence=precedence,
-                reduction='sum',
-                pairwise='multiply',
-                outidx=None
+            return _add_attr(
+                P.ein(
+                    _0(P.abstract_index_notation(lhs, _X(P.indices([i, j])))),
+                    _0(P.abstract_index_notation(rhs, _X(P.indices([i, j])))),
+                    precedence=precedence,
+                    reduction='sum',
+                    pairwise='multiply',
+                    outidx=None
+                ),
+                indexed=indexed
             )
         elif indexed:
-            return P.ein(
-                lhs, rhs,
-                precedence=precedence,
-                reduction='sum',
-                pairwise=operator,
-                outidx=None
+            return _add_attr(
+                P.ein(
+                    lhs, rhs,
+                    precedence=precedence,
+                    reduction='sum',
+                    pairwise=operator,
+                    outidx=None
+                ),
+                indexed=indexed
             )
         else:
-            return P.elem(lhs, rhs, precedence, operator)
+            return _add_attr(
+                P.elem(lhs, rhs, precedence, operator), indexed=indexed
+            )
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
@@ -181,14 +200,24 @@ class Compiler(RewritingTranscriber):
               ╚════════════╝
         '''
         # indices marked as keep on either side should stay
-        live = ordered_union(lhs.live_indices, rhs.live_indices)
-        keep = ordered_union(lhs.keep_indices, rhs.keep_indices)
-        kron = ordered_union(lhs.kron_indices, rhs.kron_indices)
+        src_live = as_namedtuple(
+            'src_live', lhs=lhs.live_indices or [], rhs=rhs.live_indices or []
+        )
+        src_keep = as_namedtuple(
+            'src_keep', lhs=lhs.keep_indices or [], rhs=rhs.keep_indices or []
+        )
+        src_kron = as_namedtuple(
+            'src_kron', lhs=lhs.kron_indices or [], rhs=rhs.kron_indices or []
+        )
+
+        live = ordered_union(src_live.lhs, src_live.rhs)
+        keep = ordered_union(src_keep.lhs, src_keep.rhs)
+        kron = ordered_union(src_kron.lhs, src_kron.rhs)
         if outidx is None:
-            free_l = ordered_setminus(lhs.live_indices, rhs.live_indices)
-            free_r = ordered_setminus(rhs.live_indices, lhs.live_indices)
+            free_l = ordered_setminus(src_live.lhs, src_live.rhs)
+            free_r = ordered_setminus(src_live.rhs, src_live.lhs)
             free = ordered_union(free_l, free_r)
-            repeated = ordered_intersect(lhs.live_indices, rhs.live_indices)
+            repeated = ordered_intersect(src_live.lhs, src_live.rhs)
             bound = ordered_setminus(keep, free)
             lone_keep = ordered_setminus(keep, repeated)
             implied_survival = free_l + bound + free_r
@@ -214,11 +243,11 @@ class Compiler(RewritingTranscriber):
                 explicit_survival, [], explicit_kron
             )
 
-        dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
-        dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
+        dict_lhs = dict(zip(src_live.lhs, lhs.shape))
+        dict_rhs = dict(zip(src_live.rhs, rhs.shape))
 
-        for i in lhs.live_indices:
-            if i in rhs.live_indices and i not in kron_indices:
+        for i in src_live.lhs:
+            if i in src_live.rhs and i not in kron_indices:
                 if dict_lhs[i] != dict_rhs[i]:
                     raise SyntaxError(
                         f'Dimension of elementwise index {i} on left-hand side'
@@ -228,12 +257,12 @@ class Compiler(RewritingTranscriber):
 
         shape = []
         for i in live_indices:
-            if i in lhs.live_indices and i in rhs.live_indices:
+            if i in src_live.lhs and i in src_live.rhs:
                 if i in kron_indices:
                     shape.append(dict_lhs[i]*dict_rhs[i])
                 else:
                     shape.append(dict_lhs[i])
-            elif i in lhs.live_indices:
+            elif i in src_live.lhs:
                 shape.append(dict_lhs[i])
             else:
                 shape.append(dict_rhs[i])

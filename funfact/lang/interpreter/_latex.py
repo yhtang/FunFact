@@ -4,6 +4,7 @@ from ._base import ROOFInterpreter
 
 
 _omap = dict(
+    sum=r'\sum',
     negative='-',
     conj=r'\operatorname{conj}',
     add='+',

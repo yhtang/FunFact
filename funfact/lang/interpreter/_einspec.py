@@ -19,7 +19,7 @@ class IndexMap:
 
     def __call__(self, ids):
         try:
-            return ''.join([self._map(i) for i in ids])
+            return ''.join([self._map(i) for i in ids or []])
         except TypeError:
             return self._map(ids)
 
