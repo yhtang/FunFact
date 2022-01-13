@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 from funfact.lang.interpreter import (
     dfs_filter,
+    Compiler,
     EinsteinSpecGenerator,
     Evaluator,
+    IndexnessAnalyzer,
     LeafInitializer,
-    Compiler,
     ElementwiseEvaluator,
     SlicingPropagator,
 )
@@ -35,6 +36,7 @@ class Factorization:
 
     def __init__(self, tsrex, **extra_attributes):
         self._tsrex = (tsrex
+                       | IndexnessAnalyzer()
                        | Compiler()
                        | EinsteinSpecGenerator())
         self.__dict__.update(**extra_attributes)

@@ -12,9 +12,10 @@ from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
     ASCIIRenderer,
-    LatexRenderer,
     Compiler,
-    EinsteinSpecGenerator
+    EinsteinSpecGenerator,
+    IndexnessAnalyzer,
+    LatexRenderer,
 )
 from ._terminal import LiteralValue, AbstractIndex, AbstractTensor
 
@@ -93,9 +94,9 @@ class _BaseEx(_AST):
 
     _latex_intr = LatexRenderer()
     _asciitree_factory = ASCIITreeFactory()
-    _einspec_generator = EinsteinSpecGenerator()
     _compiler = Compiler()
-    # _shape_analyzer = ShapeAnalyzer()
+    _einspec_generator = EinsteinSpecGenerator()
+    _indexness_analyzer = IndexnessAnalyzer()
 
     @functools.lru_cache()
     def _repr_html_(self):
@@ -149,7 +150,10 @@ class _BaseEx(_AST):
     @property
     @functools.lru_cache()
     def _static_analyzed(self):
-        return self._einspec_generator(self._compiler(self.root))
+        return (self |
+                self._indexness_analyzer |
+                self._compiler |
+                self._einspec_generator).root
 
     @property
     def shape(self):

@@ -6,7 +6,7 @@ import numpy as np
 from ._base import (
     _as_payload,
     dfs_filter,
-    RewritingTranscriber
+    RewritingTranscriber,
 )
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
@@ -25,7 +25,7 @@ class Compiler(RewritingTranscriber):
     def abstract_index_notation(
         self, tensor: P.Numeric, indices: P.indices, **kwargs
     ):
-        if tensor.live_indices:
+        if tensor.indexed:
             '''triggers renaming of free indices:
                 for new, old in zip(indices, live_indices):
                     dfs_replace(old, new)
@@ -59,7 +59,7 @@ class Compiler(RewritingTranscriber):
 
     def abstract_binary(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
-        **kwargs
+        indexed: bool, **kwargs
     ):
         def _0(node):
             return self(node, depth=0)
@@ -94,7 +94,7 @@ class Compiler(RewritingTranscriber):
                 pairwise='multiply',
                 outidx=None
             )
-        elif lhs.live_indices is not None and rhs.live_indices is not None:
+        elif indexed:
             return P.ein(
                 lhs, rhs,
                 precedence=precedence,
