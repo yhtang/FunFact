@@ -6,6 +6,7 @@ from .conditions import (
     Unitary,
     Diagonal,
     NonNegative,
+    NoCondition,
     vmap
 )
 import numpy as np
@@ -16,11 +17,11 @@ from funfact.backend import active_backend as ab
     UpperTriangular,
     Unitary,
     Diagonal,
-    NonNegative
+    NonNegative,
+    NoCondition
 ])
 def test_generic(cond):
     tol = 20 * np.finfo(np.float32).eps
-
     # with default arguments
     condition = cond()
     tensor = ab.tensor(np.eye(6, 8))

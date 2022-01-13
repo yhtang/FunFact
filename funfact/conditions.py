@@ -99,14 +99,15 @@ class NonNegative(_Condition):
 
     def _condition(self, data):
         negative = data[data < 0.0]
-        return negative if ab.any(negative) else 0.0
+        return negative if ab.any(negative) else \
+            ab.tensor(0.0)
 
 
 class NoCondition(_Condition):
     '''No condition enforced.'''
 
     def _condition(self, data):
-        return ab.tensor(0.0, optimizable=True)
+        return ab.tensor(0.0)
 
 
 def vmap(condition, append: bool = True):
