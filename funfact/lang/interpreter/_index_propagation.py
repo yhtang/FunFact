@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import itertools as it
 from typing import Optional
+import numpy as np
 from ._base import (
     _as_payload,
-    _emplace,
     dfs_filter,
     RewritingTranscriber
 )
@@ -61,41 +61,49 @@ class IndexAnalyzer(RewritingTranscriber):
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
         **kwargs
     ):
+        def _0(node):
+            return self(node, depth=0)
+
+        def _X(node):
+            return self(node)
+
         '''Replace by einop if both operands are indexed.'''
         if operator == 'matmul':
-            node = P.ein(
-                P.indexed_tensor(lhs, )
+            i, j, k = [
+                P.index(AbstractIndex(), bound=False, kron=False)
+                for _ in range(3)
+            ]
+            return P.ein(
+                _0(P.abstract_index_notation(lhs, _X(P.indices([i, j])))),
+                _0(P.abstract_index_notation(rhs, _X(P.indices([j, k])))),
+                precedence=precedence,
+                reduction='sum',
+                pairwise='multiply',
+                outidx=None
             )
-
-        # elif operator == 'kron':
-
-        # elif node.lhs.live_indices and node.rhs.live_indices:
-        #     node = P.ein(
-        #         node.lhs, node.rhs, precedence=node.precedence,
-        #         reduction='sum', pairwise=node.operator, outidx=None
-        #     )
-        # elif isinstance(node.lhs, P.literal) is not isinstance(node.rhs, P.literal):
-        #     '''If one operand is a literal, treat as einop '''
-        #     node = P.ein(
-        #         node.lhs, node.rhs, precedence=node.precedence,
-        #         reduction='sum', pairwise=node.operator, outidx=None
-        #     )
-        # else:
-        #     node = P.ein(
-        #         node.lhs, node.rhs, precedence=node.precedence,
-        #         reduction='sum', pairwise=node.operator, outidx=None
-        #     )
-        node = P.ein(
-            lhs, rhs, precedence=precedence, reduction='sum',
-            pairwise=operator, outidx=None
-        )
-
-        _emplace(
-            node,
-            getattr(self, node.name)(**node.fields)
-        )
-
-        return node
+        elif operator == 'kron':
+            i, j = [
+                P.index(AbstractIndex(), bound=False, kron=True)
+                for _ in range(2)
+            ]
+            return P.ein(
+                _0(P.abstract_index_notation(lhs, _X(P.indices([i, j])))),
+                _0(P.abstract_index_notation(rhs, _X(P.indices([i, j])))),
+                precedence=precedence,
+                reduction='sum',
+                pairwise='multiply',
+                outidx=None
+            )
+        elif lhs.live_indices is not None and rhs.live_indices is not None:
+            return P.ein(
+                lhs, rhs,
+                precedence=precedence,
+                reduction='sum',
+                pairwise=operator,
+                outidx=None
+            )
+        else:
+            return P.elem(lhs, rhs, precedence, operator)
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
@@ -141,6 +149,19 @@ class IndexAnalyzer(RewritingTranscriber):
     @as_payload
     def neg(self, x: P.Numeric, **kwargs):
         return x.live_indices, x.keep_indices, x.kron_indices, x.shape
+
+    @as_payload
+    def elem(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **kwargs
+    ):
+        try:
+            return None, None, None, np.broadcast_shapes(lhs.shape, rhs.shape)
+        except RuntimeError:
+            raise ValueError(
+                f'Cannot perform elementwise operations on '
+                f'tensors of incompatible shape {lhs.shape} and {rhs.shape}.'
+            )
 
     @as_payload
     def ein(
@@ -195,6 +216,12 @@ class IndexAnalyzer(RewritingTranscriber):
 
         dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
         dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
+
+        print('lhs', lhs)
+        print('dict_lhs', dict_lhs)
+
+        print('rhs', rhs)
+        print('dict_rhs', dict_rhs)
 
         for i in lhs.live_indices:
             if i in rhs.live_indices and i not in kron_indices:

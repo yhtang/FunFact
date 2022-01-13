@@ -80,6 +80,12 @@ class Primitives:
         '''elementwise negation'''
 
     @primitive(precedence=None)
+    def elem(
+        lhs: _ASNode, rhs: _ASNode, precedence: int, operator: str
+    ):
+        '''indexless elementwise operations between tensors'''
+
+    @primitive(precedence=None)
     def ein(
         lhs: _ASNode, rhs: _ASNode, precedence: int,
         reduction: str, pairwise: str, outidx: Optional[_ASNode]

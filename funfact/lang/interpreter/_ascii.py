@@ -52,6 +52,10 @@ class ASCIIRenderer(TranscribeInterpreter):
         return ''
 
     @as_payload
+    def elem(self, lhs, rhs, precedence, operator, **kwargs):
+        return operator
+
+    @as_payload
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         suffix = f' -> {outidx.ascii}' if outidx is not None else ''
         return f'{reduction}:{pairwise}' + suffix

@@ -101,6 +101,12 @@ class Vectorizer(TranscribeInterpreter):
     def neg(self, x: P.Numeric, **kwargs):
         return []
 
+    def elem(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **kwargs
+    ):
+        return []
+
     @_as_payload('outidx')
     def ein(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,

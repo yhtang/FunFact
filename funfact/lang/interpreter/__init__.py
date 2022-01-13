@@ -9,7 +9,7 @@ from ._initialization import LeafInitializer
 from ._latex import LatexRenderer
 from ._elementwise import ElementwiseEvaluator
 from ._slicing_propagation import SlicingPropagator
-from ._shape import ShapeAnalyzer
+# from ._shape import ShapeAnalyzer
 from ._vectorize import Vectorizer
 
 
@@ -25,6 +25,6 @@ __all__ = [
     'PayloadMerger',
     'ElementwiseEvaluator',
     'SlicingPropagator',
-    'ShapeAnalyzer',
+    # 'ShapeAnalyzer',
     'Vectorizer',
 ]

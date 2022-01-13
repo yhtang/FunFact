@@ -55,6 +55,13 @@ class SlicingPropagator(TranscribeInterpreter):
     def neg(self, x: P.Numeric, slices, **kwargs):
         x.slices = slices
 
+    def elem(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        slices, **kwargs
+    ):
+        lhs.slices = slices
+        rhs.slices = slices
+
     def ein(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
         pairwise: str, outidx: Optional[P.indices], slices, live_indices,

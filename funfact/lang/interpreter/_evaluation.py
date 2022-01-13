@@ -40,6 +40,9 @@ class Evaluator(ROOFInterpreter):
     def neg(self, x, **kwargs):
         return -x
 
+    def elem(self, lhs, rhs, precedence, operator, **kwargs):
+        return getattr(ab, operator)(lhs, rhs)
+
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, einspec,
             **kwargs):
         return self._binary_operator(reduction, pairwise, lhs, rhs, einspec)

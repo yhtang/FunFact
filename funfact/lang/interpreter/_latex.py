@@ -8,7 +8,7 @@ _omap = dict(
     conj=r'\operatorname{conj}',
     add='+',
     subtract='-',
-    multiply=r'\times',
+    multiply=r'',
     divide='/',
     float_power='^',
     matmul='',
@@ -64,6 +64,9 @@ class LatexRenderer(ROOFInterpreter):
 
     def neg(self, x, **kwargs):
         return fr'-{x}'
+
+    def elem(self, lhs, rhs, precedence, operator, **kwargs):
+        return fr'{{{lhs}}} {_omap[operator]} {{{rhs}}}'
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         if reduction == 'sum':

@@ -67,6 +67,13 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
         return []
 
     @as_payload
+    def elem(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **kwargs
+    ):
+        return []
+
+    @as_payload
     def ein(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
         pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,

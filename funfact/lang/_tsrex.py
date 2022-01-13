@@ -14,7 +14,7 @@ from .interpreter import (
     ASCIIRenderer,
     LatexRenderer,
     IndexAnalyzer,
-    ShapeAnalyzer,
+    # ShapeAnalyzer,
     EinsteinSpecGenerator
 )
 from ._terminal import LiteralValue, AbstractIndex, AbstractTensor
@@ -96,7 +96,7 @@ class _BaseEx(_AST):
     _asciitree_factory = ASCIITreeFactory()
     _einspec_generator = EinsteinSpecGenerator()
     _index_propagator = IndexAnalyzer()
-    _shape_analyzer = ShapeAnalyzer()
+    # _shape_analyzer = ShapeAnalyzer()
 
     @functools.lru_cache()
     def _repr_html_(self):
@@ -150,9 +150,7 @@ class _BaseEx(_AST):
     @property
     @functools.lru_cache()
     def _static_analyzed(self):
-        return self._einspec_generator(
-            self._shape_analyzer(self._index_propagator(self.root))
-        )
+        return self._einspec_generator(self._index_propagator(self.root))
 
     @property
     def shape(self):

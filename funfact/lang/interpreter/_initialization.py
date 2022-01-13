@@ -59,6 +59,9 @@ class LeafInitializer(TranscribeInterpreter):
     def neg(self, x, **kwargs):
         return []
 
+    def elem(self, lhs, rhs, precedence, operator, **kwargs):
+        return []
+
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         return []
 
