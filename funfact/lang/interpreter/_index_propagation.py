@@ -19,7 +19,7 @@ class IndexAnalyzer(RewritingTranscriber):
     operations and index renaming operations.'''
 
     as_payload = _as_payload(
-        'live_indices', 'keep_indices', 'kron_indices'
+        'live_indices', 'keep_indices', 'kron_indices', 'shape'
     )
 
     def abstract_index_notation(
@@ -99,37 +99,48 @@ class IndexAnalyzer(RewritingTranscriber):
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
-        return [], [], []
+        return None, None, None, ()
 
     @as_payload
     def tensor(self, decl: AbstractTensor, **kwargs):
-        return [], [], []
+        return None, None, None, decl.shape
 
     @as_payload
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
-        return [item], [item] if bound or kron else [], [item] if kron else []
+        return (
+            [item],
+            [item] if bound or kron else [],
+            [item] if kron else [],
+            None
+        )
 
     @as_payload
     def indices(self, items: AbstractIndex, **kwargs):
         return (
             list(it.chain.from_iterable([i.live_indices for i in items])),
             list(it.chain.from_iterable([i.keep_indices for i in items])),
-            list(it.chain.from_iterable([i.kron_indices for i in items]))
+            list(it.chain.from_iterable([i.kron_indices for i in items])),
+            None
         )
 
     @as_payload
     def indexed_tensor(
         self, tensor: P.Numeric, indices: P.indices, **kwargs
     ):
-        return indices.live_indices, indices.keep_indices, indices.kron_indices
+        return (
+            indices.live_indices,
+            indices.keep_indices,
+            indices.kron_indices,
+            tensor.shape
+        )
 
     @as_payload
     def call(self, f: str, x: P.Tensorial, **kwargs):
-        return x.live_indices, x.keep_indices, x.kron_indices
+        return x.live_indices, x.keep_indices, x.kron_indices, x.shape
 
     @as_payload
     def neg(self, x: P.Numeric, **kwargs):
-        return x.live_indices, x.keep_indices, x.kron_indices
+        return x.live_indices, x.keep_indices, x.kron_indices, x.shape
 
     @as_payload
     def ein(
@@ -160,7 +171,9 @@ class IndexAnalyzer(RewritingTranscriber):
             bound = ordered_setminus(keep, free)
             lone_keep = ordered_setminus(keep, repeated)
             implied_survival = free_l + bound + free_r
-            return implied_survival, lone_keep, kron
+            live_indices, keep_indices, kron_indices = (
+                implied_survival, lone_keep, kron
+            )
         else:
             explicit_survival = outidx.live_indices
             explicit_kron = ordered_union(kron, outidx.kron_indices)
@@ -176,7 +189,35 @@ class IndexAnalyzer(RewritingTranscriber):
                         f'Explicitly specified index {i} does not'
                         f'existing in the operand indices list {live}.'
                     )
-            return explicit_survival, [], explicit_kron
+            live_indices, keep_indices, kron_indices = (
+                explicit_survival, [], explicit_kron
+            )
+
+        dict_lhs = dict(zip(lhs.live_indices, lhs.shape))
+        dict_rhs = dict(zip(rhs.live_indices, rhs.shape))
+
+        for i in lhs.live_indices:
+            if i in rhs.live_indices and i not in kron_indices:
+                if dict_lhs[i] != dict_rhs[i]:
+                    raise SyntaxError(
+                        f'Dimension of elementwise index {i} on left-hand side'
+                        f' ({dict_lhs[i]}) does not match dimension of '
+                        f'right-hand side ({dict_rhs[i]}).'
+                    )
+
+        shape = []
+        for i in live_indices:
+            if i in lhs.live_indices and i in rhs.live_indices:
+                if i in kron_indices:
+                    shape.append(dict_lhs[i]*dict_rhs[i])
+                else:
+                    shape.append(dict_lhs[i])
+            elif i in lhs.live_indices:
+                shape.append(dict_lhs[i])
+            else:
+                shape.append(dict_rhs[i])
+
+        return live_indices, keep_indices, kron_indices, tuple(shape)
 
     @as_payload
     def tran(self, src: P.Numeric, indices: P.indices, **kwargs):
@@ -184,4 +225,10 @@ class IndexAnalyzer(RewritingTranscriber):
         #     '''override the `>>` behavior for einop nodes'''
         #     node.src.outidx = node.indices
         #     node = node.src
-        return indices.live_indices, indices.keep_indices, indices.kron_indices
+        return (
+            indices.live_indices,
+            indices.keep_indices,
+            indices.kron_indices,
+            tuple(src.shape[src.live_indices.index(i)]
+                  for i in indices.live_indices)
+        )
