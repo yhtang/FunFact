@@ -82,5 +82,6 @@ class IndexnessAnalyzer(TranscribeInterpreter):
     def tran(self, src: P.Numeric, indices: P.indices, **kwargs):
         return indices is not None
 
+    @as_payload
     def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
         return True
