@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 from funfact.lang.interpreter import (
     dfs_filter,
+    Compiler,
     EinsteinSpecGenerator,
     Evaluator,
+    IndexnessAnalyzer,
     LeafInitializer,
-    IndexAnalyzer,
     ElementwiseEvaluator,
     SlicingPropagator,
-    ShapeAnalyzer
 )
 
 
@@ -36,9 +36,9 @@ class Factorization:
 
     def __init__(self, tsrex, **extra_attributes):
         self._tsrex = (tsrex
-                       | IndexAnalyzer()
-                       | EinsteinSpecGenerator()
-                       | ShapeAnalyzer())
+                       | IndexnessAnalyzer()
+                       | Compiler()
+                       | EinsteinSpecGenerator())
         self.__dict__.update(**extra_attributes)
 
     @classmethod
@@ -79,14 +79,14 @@ class Factorization:
         return self._NodeView(
             'data',
             list(dfs_filter(lambda n: n.name == 'tensor' and
-                            n.abstract.optimizable, self.tsrex.root))
+                            n.decl.optimizable, self.tsrex.root))
         )
 
     @factors.setter
     def factors(self, tensors):
         for i, n in enumerate(
             dfs_filter(lambda n: n.name == 'tensor' and
-                       n.abstract.optimizable, self.tsrex.root)
+                       n.decl.optimizable, self.tsrex.root)
         ):
             n.data = tensors[i]
 
@@ -194,7 +194,7 @@ class Factorization:
         elements.'''
         if isinstance(idx, str):
             for n in dfs_filter(
-                lambda n: n.name == 'tensor' and str(n.abstract.symbol) == idx,
+                lambda n: n.name == 'tensor' and str(n.decl.symbol) == idx,
                 self.tsrex.root
             ):
                 return n.data
@@ -205,7 +205,7 @@ class Factorization:
     def __setitem__(self, name, data):
         '''Implements attribute-based access of factor tensors.'''
         for n in dfs_filter(
-            lambda n: n.name == 'tensor' and str(n.abstract.symbol) == name,
+            lambda n: n.name == 'tensor' and str(n.decl.symbol) == name,
             self.tsrex.root
         ):
             return setattr(n, 'data', data)
@@ -219,7 +219,7 @@ class Factorization:
         def __repr__(self):
             return '<{attr} field{pl} of tensor{pl} {tensors}>'.format(
                 attr=repr(self.attribute),
-                tensors=', '.join([str(n.abstract) for n in self.nodes]),
+                tensors=', '.join([str(n.decl) for n in self.nodes]),
                 pl='s' if len(self.nodes) > 1 else ''
             )
 

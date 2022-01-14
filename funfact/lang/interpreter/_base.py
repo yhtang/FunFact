@@ -36,6 +36,35 @@ def _deep_apply_batch(f, *values):
         return head
 
 
+def _as_payload(*k):
+    if len(k) == 1:
+        def wrapper(f):
+            def wrapped_f(*args, **kwargs):
+                return k[0], f(*args, **kwargs)
+            return wrapped_f
+        return wrapper
+    else:
+        def wrapper(f):
+            def wrapped_f(*args, **kwargs):
+                return dict(zip(k, f(*args, **kwargs)))
+            return wrapped_f
+        return wrapper
+
+
+def _emplace(node, payload):
+    if isinstance(payload, dict):
+        node.__dict__.update(**payload)
+    elif isinstance(payload, list):
+        for key, value in payload:
+            setattr(node, key, value)
+    elif isinstance(payload, tuple) and len(payload) == 2:
+        setattr(node, *payload)
+    elif payload is None:
+        pass
+    else:
+        raise TypeError(f'Unrecognizable type for payload {payload}')
+
+
 class ROOFInterpreter(ABC):
     '''A ROOF (Read-Only On-the-Fly) interpreter traverses an AST for one pass
     and produces the final outcome without altering the AST. Intermediates are
@@ -44,11 +73,23 @@ class ROOFInterpreter(ABC):
     by another transcribe interpreter.'''
 
     @abstractmethod
+    def abstract_index_notation(
+        self, tensor: Any, indices: Iterable[Any], **payload
+    ):
+        pass
+
+    @abstractmethod
+    def abstract_binary(
+        self, lhs: Any, rhs: Any, precedence: int, operator: str, **payload
+    ):
+        pass
+
+    @abstractmethod
     def literal(self, value: LiteralValue, **payload):
         pass
 
     @abstractmethod
-    def tensor(self, abstract: AbstractTensor, **payload):
+    def tensor(self, decl: AbstractTensor, **payload):
         pass
 
     @abstractmethod
@@ -60,8 +101,8 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index_notation(
-        self, indexless: Any, indices: Iterable[Any], **payload
+    def indexed_tensor(
+        self, tensor: Any, indices: Iterable[Any], **payload
     ):
         pass
 
@@ -74,17 +115,8 @@ class ROOFInterpreter(ABC):
         pass
 
     @abstractmethod
-    def matmul(self, lhs: Any, rhs: Any, **payload):
-        pass
-
-    @abstractmethod
-    def kron(self, lhs: Any, rhs: Any):
-        pass
-
-    @abstractmethod
-    def binary(
-        self, lhs: Any, rhs: Any, precedence: int, pairwise: str, **payload
-    ):
+    def elem(self, lhs: Any, rhs: Any, precedence: int, operator: str,
+             **payload):
         pass
 
     @abstractmethod
@@ -120,41 +152,25 @@ class TranscribeInterpreter(ABC):
 
     _traversal_order: TraversalOrder
 
-    @staticmethod
-    def as_payload(*k):
-        if len(k) == 1:
-            def wrapper(f):
-                def wrapped_f(*args, **kwargs):
-                    return k[0], f(*args, **kwargs)
-                return wrapped_f
-            return wrapper
-        else:
-            def wrapper(f):
-                def wrapped_f(*args, **kwargs):
-                    return dict(zip(k, f(*args, **kwargs)))
-                return wrapped_f
-            return wrapper
+    @abstractmethod
+    def abstract_index_notation(
+        self, tensor: P.Numeric, indices: P.indices, **payload
+    ):
+        pass
 
-    @staticmethod
-    def emplace(node, payload):
-        if isinstance(payload, dict):
-            node.__dict__.update(**payload)
-        elif isinstance(payload, list):
-            for key, value in payload:
-                setattr(node, key, value)
-        elif isinstance(payload, tuple) and len(payload) == 2:
-            setattr(node, *payload)
-        elif payload is None:
-            pass
-        else:
-            raise TypeError(f'Unrecognizable type for payload {payload}')
+    @abstractmethod
+    def abstract_binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **payload
+    ):
+        pass
 
     @abstractmethod
     def literal(self, value: LiteralValue, **payload):
         pass
 
     @abstractmethod
-    def tensor(self, abstract: AbstractTensor, **payload):
+    def tensor(self, decl: AbstractTensor, **payload):
         pass
 
     @abstractmethod
@@ -166,8 +182,8 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def index_notation(
-        self, indexless: P.Numeric, indices: P.indices, **payload
+    def indexed_tensor(
+        self, tensor: P.Numeric, indices: P.indices, **payload
     ):
         pass
 
@@ -180,16 +196,8 @@ class TranscribeInterpreter(ABC):
         pass
 
     @abstractmethod
-    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **payload):
-        pass
-
-    @abstractmethod
-    def kron(self, lhs: P.Numeric, rhs: P.Numeric):
-        pass
-
-    @abstractmethod
-    def binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, pairwise: str,
+    def elem(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
         **payload
     ):
         pass
@@ -205,13 +213,15 @@ class TranscribeInterpreter(ABC):
     def tran(self, src: P.Numeric, indices: P.indices):
         pass
 
+    def _eval(self, node):
+        return getattr(self, node.name)(**node.fields)
+
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)
-        rule = getattr(self, node.name)
 
         def _do_node():
-            payload = rule(**node.fields)
-            self.emplace(node, payload)
+            payload = self._eval(node)
+            _emplace(node, payload)
 
         def _do_children():
             for name, value in node.fields_fixed.items():
@@ -223,6 +233,73 @@ class TranscribeInterpreter(ABC):
         elif self._traversal_order == self.TraversalOrder.POST:
             _do_children()
             _do_node()
+        return node
+
+    def __ror__(self, tsrex: _AST):
+        return type(tsrex)(self(tsrex.root))
+
+
+class RewritingTranscriber(TranscribeInterpreter):
+    '''A rewriting transcriber may either rewrite the payloads of a node, or
+    replace the entire node alltogether.'''
+
+    def __init__(self):
+        self.indent = []
+
+    def _print(self, *args):
+        # from funfact.util.debugtool import __LINE__
+        # import os
+        # from inspect import currentframe, getframeinfo
+        # print(
+        #     '%24s' % os.path.basename(
+        #         os.path.normpath(
+        #             getframeinfo(currentframe().f_back).filename
+        #         )
+        #     ),
+        #     '%4d' % getframeinfo(currentframe().f_back).lineno,
+        #     self.indent[-1],
+        #     *args
+        # )
+        pass
+
+    def __call__(self, node, parent=None, depth=float('inf')):
+
+        if self.indent:
+            self.indent.append(self.indent[-1] + '  ')
+        else:
+            self.indent.append('')
+
+        node = copy.copy(node)
+
+        if depth > 0:
+            # do children
+            for name, value in node.fields_fixed.items():
+                setattr(
+                    node, name, _deep_apply(self, value, node, depth - 1)
+                )
+
+        # iterative rewriting
+        while True:
+            self._print('evaluating', node.name, 'depth = ', depth)
+
+            value = self._eval(node)
+
+            self._print('got', value)
+
+            if not isinstance(value, _ASNode):
+                break
+
+            self._print()
+
+            # node = self(value, parent, depth)
+            node = value
+
+            self._print()
+
+        _emplace(node, value)
+
+        self.indent.pop()
+
         return node
 
     def __ror__(self, tsrex: _AST):
