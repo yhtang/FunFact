@@ -120,12 +120,12 @@ def factorize(
         )
 
     def loss_and_penalty(model, target, sum_vec=True, **kwargs):
+        loss_val = loss(model(), target, sum_vec=sum_vec, **kwargs)
         if penalty_weight > 0:
-            return loss(model(), target, sum_vec=sum_vec, **kwargs) + \
-                   penalty_weight * model.penalty(sum_leafs=True,
-                                                  sum_vec=sum_vec)
+            return loss_val + penalty_weight * \
+                   model.penalty(sum_leafs=True, sum_vec=sum_vec)
         else:
-            return loss(model(), target, sum_vec=sum_vec, **kwargs)
+            return loss_val
 
     loss_and_grad = ab.loss_and_grad(loss_and_penalty, opt_fac, target,
                                      vectorized_along_last=append)
@@ -145,8 +145,7 @@ def factorize(
                 curr_loss = ab.to_numpy(
                     loss_and_penalty(
                         opt_fac, target, sum_vec=False,
-                        vectorized_along_last=append,
-
+                        vectorized_along_last=append
                     )
                 )
                 better = np.flatnonzero(curr_loss < best_loss)

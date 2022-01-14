@@ -416,7 +416,7 @@ def indices(spec):
         raise RuntimeError(f'Cannot create indices from {spec}.')
 
 
-def tensor(*spec, initializer=None, optimizable=None, prefer=NoCondition()):
+def tensor(*spec, initializer=None, optimizable=None, prefer=None):
     '''Construct an abstract tensor using `spec`.
 
     Args:
@@ -445,8 +445,9 @@ def tensor(*spec, initializer=None, optimizable=None, prefer=NoCondition()):
             The default behavior can be overriden by user input.
 
         prefer (callable):
-            Condition evaluated on tensor as penalty term. Only evaluated if
-            optimizable is set to True or defaults to True.
+            Condition evaluated on tensor as a penalty term. Only considered if
+            optimizable is set to True or defaults to True, otherwise it is
+            ignored.
 
     Returns:
         TsrEx: A tensor expression representing an abstract tensor object.
@@ -458,7 +459,6 @@ def tensor(*spec, initializer=None, optimizable=None, prefer=NoCondition()):
         size = initializer.shape
         if optimizable is None:
             optimizable = False
-            prefer = None
     elif len(spec) == 1 and ab.is_tensor(spec[0]):
         # concrete tensor only
         symbol = None
@@ -466,7 +466,6 @@ def tensor(*spec, initializer=None, optimizable=None, prefer=NoCondition()):
         size = initializer.shape
         if optimizable is None:
             optimizable = False
-            prefer = None
     elif len(spec) >= 1 and isinstance(spec[0], str):
         # name + size
         symbol, *size = spec
@@ -484,6 +483,8 @@ def tensor(*spec, initializer=None, optimizable=None, prefer=NoCondition()):
             raise RuntimeError(
                 f'Tensor size must be positive integer, got {d} instead.'
             )
+    if optimizable and prefer is None:
+        prefer = NoCondition()
 
     return TsrEx(
         P.tensor(

@@ -6,7 +6,7 @@ import re
 import numbers
 import uuid
 from funfact.initializers import stack
-from funfact.conditions import vmap, NoCondition
+from funfact.conditions import vmap
 
 
 class Symbol:
@@ -144,10 +144,22 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
 
     Parameters
     ----------
-    size: int...
+    size: int...:
         A sequence of integers specifying the shape of the tensor.
         Can be either a variable number of arguments or an iterable like a list
         or tuple.
+
+    symbol (str):
+        An alphanumeric symbol representing the abstract tensor
+
+    initializer (callable):
+        Initialization distribution
+
+    optimizable (boolean):
+        True/False flag indicating of the abstract tensor can be optimized.
+
+    prefer (callable):
+        Condition evaluated as penalty on abstract tensor.
     '''
 
     class TensorSymbol(Symbol):
@@ -155,7 +167,7 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         _anon_registry_lock = multiprocessing.Lock()
 
     def __init__(self, *size, symbol=None, initializer=None, optimizable=True,
-                 prefer=NoCondition()):
+                 prefer=None):
         super().__init__()
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):
