@@ -12,7 +12,7 @@ from funfact.vectorization import vectorize, view
 def factorize(
     tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
     loss='mse_loss', nvec=1, append=False, stop_by='first', returns='best',
-    checkpoint_freq=50, dtype=None, **kwargs
+    checkpoint_freq=50, dtype=None, penalty_weight=1.0, **kwargs
 ):
     '''Factorize a target tensor using the given tensor expression. The
     solution is found by minimizing the loss function between the original and
@@ -62,6 +62,8 @@ def factorize(
             - If None, the same data type as the target tensor is used.
             - If concrete dtype (float32, float64, complex64, complex128),
             that data type is used.
+
+        penalty_weight (float) : weight of penalties relative to loss.
 
     Returns:
         *:
@@ -117,7 +119,15 @@ def factorize(
             'Invalid optimization algorithm:\n{e}'
         )
 
-    loss_and_grad = ab.loss_and_grad(loss, opt_fac, target,
+    def loss_and_penalty(model, target, sum_vec=True, **kwargs):
+        loss_val = loss(model(), target, sum_vec=sum_vec, **kwargs)
+        if penalty_weight > 0:
+            return loss_val + penalty_weight * \
+                   model.penalty(sum_leafs=True, sum_vec=sum_vec)
+        else:
+            return loss_val
+
+    loss_and_grad = ab.loss_and_grad(loss_and_penalty, opt_fac, target,
                                      vectorized_along_last=append)
 
     # bookkeeping
@@ -132,8 +142,12 @@ def factorize(
 
             if step % checkpoint_freq == 0:
                 # update best factorization
-                curr_loss = ab.to_numpy(loss(opt_fac(), target, sum_vec=False,
-                                             vectorized_along_last=append))
+                curr_loss = ab.to_numpy(
+                    loss_and_penalty(
+                        opt_fac, target, sum_vec=False,
+                        vectorized_along_last=append
+                    )
+                )
                 better = np.flatnonzero(curr_loss < best_loss)
                 best_loss = np.minimum(best_loss, curr_loss)
                 for b, o in zip(best_factors, opt_fac.factors):

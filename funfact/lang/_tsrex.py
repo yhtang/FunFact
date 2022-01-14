@@ -18,6 +18,7 @@ from .interpreter import (
     LatexRenderer,
 )
 from ._terminal import LiteralValue, AbstractIndex, AbstractTensor
+from funfact.conditions import NoCondition
 
 
 class ASCIITreeFactory:
@@ -402,7 +403,7 @@ def indices(spec):
         raise RuntimeError(f'Cannot create indices from {spec}.')
 
 
-def tensor(*spec, initializer=None, optimizable=None):
+def tensor(*spec, initializer=None, optimizable=None, prefer=None):
     '''Construct an abstract tensor using `spec`.
 
     Args:
@@ -429,6 +430,11 @@ def tensor(*spec, initializer=None, optimizable=None):
             by default
 
             The default behavior can be overriden by user input.
+
+        prefer (callable):
+            Condition evaluated on tensor as a penalty term. Only considered if
+            optimizable is set to True or defaults to True, otherwise it is
+            ignored.
 
     Returns:
         TsrEx: A tensor expression representing an abstract tensor object.
@@ -464,12 +470,14 @@ def tensor(*spec, initializer=None, optimizable=None):
             raise RuntimeError(
                 f'Tensor size must be positive integer, got {d} instead.'
             )
+    if optimizable and prefer is None:
+        prefer = NoCondition()
 
     return TsrEx(
         P.tensor(
             AbstractTensor(
                 *size, symbol=symbol, initializer=initializer,
-                optimizable=optimizable
+                optimizable=optimizable, prefer=prefer
             )
         )
     )

@@ -44,7 +44,7 @@ class JAXBackend(metaclass=BackendMeta):
     def loss_and_grad(loss_fn, example_model, example_target, **kwargs):
         loss_and_grad_fn = jax.jit(
             jax.value_and_grad(
-                lambda model, target: loss_fn(model(), target, **kwargs)
+                lambda model, target: loss_fn(model, target, **kwargs)
             )
         )
 

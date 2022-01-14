@@ -10,6 +10,7 @@ from funfact.lang.interpreter import (
     ElementwiseEvaluator,
     SlicingPropagator,
 )
+from funfact import active_backend as ab
 
 
 class Factorization:
@@ -132,6 +133,25 @@ class Factorization:
     def ndim(self):
         '''The dimensionality of the result tensor.'''
         return self.tsrex.ndim
+
+    def penalty(self, sum_leafs: bool = True, sum_vec=None):
+        '''The penalty of the result tensor.
+
+        Args:
+            sum_leafs (bool): sum the penalties over the leafs of the model.
+            sum_vec (bool): sum the penalties over the vectorization dimension.
+        '''
+
+        factors = list(dfs_filter(
+                lambda n: n.name == 'tensor' and n.decl.optimizable,
+                self.tsrex.root)
+        )
+        penalties = ab.stack(
+            [f.decl.prefer(f.data, sum_vec) for f in factors],
+            0 if sum_vec else -1
+        )
+        return ab.sum(penalties, 0 if sum_vec else -1) if sum_leafs else \
+            penalties
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''

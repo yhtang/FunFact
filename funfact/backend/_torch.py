@@ -67,7 +67,7 @@ class PyTorchBackend(metaclass=BackendMeta):
     @staticmethod
     def loss_and_grad(loss_fn, example_model, example_target, **kwargs):
         def wrapper(model, target):
-            loss = loss_fn(model(), target, **kwargs)
+            loss = loss_fn(model, target, **kwargs)
             gradients = torch.autograd.grad(loss, model)
             # gradients = [data.grad for data in model.factors]
             return loss, gradients

@@ -11,6 +11,7 @@ from .algorithm import factorize
 from .vectorization import vectorize, view
 from .context import is_grad_on, enable_grad
 from . import initializers
+from . import conditions
 
 
 __all__ = [
@@ -31,7 +32,8 @@ __all__ = [
     'view',
     'is_grad_on',
     'enable_grad',
-    'initializers'
+    'initializers',
+    'conditions'
 ]
 
 

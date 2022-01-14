@@ -27,4 +27,5 @@ __all__ = [
     'ElementwiseEvaluator',
     'SlicingPropagator',
     'Vectorizer',
+    'PenaltyEvaluator',
 ]

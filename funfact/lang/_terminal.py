@@ -6,6 +6,7 @@ import re
 import numbers
 import uuid
 from funfact.initializers import stack
+from funfact.conditions import vmap
 
 
 class Symbol:
@@ -143,17 +144,30 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
 
     Parameters
     ----------
-    size: int...
+    size: int...:
         A sequence of integers specifying the shape of the tensor.
         Can be either a variable number of arguments or an iterable like a list
         or tuple.
+
+    symbol (str):
+        An alphanumeric symbol representing the abstract tensor
+
+    initializer (callable):
+        Initialization distribution
+
+    optimizable (boolean):
+        True/False flag indicating of the abstract tensor can be optimized.
+
+    prefer (callable):
+        Condition evaluated as penalty on abstract tensor.
     '''
 
     class TensorSymbol(Symbol):
         _anon_registry = {}
         _anon_registry_lock = multiprocessing.Lock()
 
-    def __init__(self, *size, symbol=None, initializer=None, optimizable=True):
+    def __init__(self, *size, symbol=None, initializer=None, optimizable=True,
+                 prefer=None):
         super().__init__()
         for d, n in enumerate(size):
             if not (isinstance(n, numbers.Integral) and n > 0):
@@ -165,6 +179,7 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         self.symbol = self.TensorSymbol(symbol or self.uuid)
         self.initializer = initializer
         self.optimizable = optimizable
+        self.prefer = prefer
 
     def vectorize(self, n, append):
         '''Extend dimensionality by one.'''
@@ -176,8 +191,10 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         else:
             initializer = self.initializer[..., None] if append else \
                           self.initializer[None, ...]
+        prefer = vmap(self.prefer, append) if self.prefer else None
         return type(self)(
-            *shape, initializer=initializer, optimizable=self.optimizable
+            *shape, initializer=initializer, optimizable=self.optimizable,
+            prefer=prefer
         )
 
     @property
