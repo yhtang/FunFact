@@ -20,10 +20,10 @@ def test_vectorize_random(case):
     assert tsrex_vector.ndim == tsrex.ndim + 1
     assert tsrex_vector.shape[data_ax] == tsrex.shape
     assert tsrex_vector.shape[vec_ax] == nvec
-    assert tsrex_vector.root.lhs.indexless.decl.shape[data_ax] == a.shape
-    assert tsrex_vector.root.lhs.indexless.decl.shape[vec_ax] == nvec
-    assert tsrex_vector.root.rhs.indexless.decl.shape[data_ax] == b.shape
-    assert tsrex_vector.root.rhs.indexless.decl.shape[vec_ax] == nvec
+    assert tsrex_vector.root.lhs.tensor.decl.shape[data_ax] == a.shape
+    assert tsrex_vector.root.lhs.tensor.decl.shape[vec_ax] == nvec
+    assert tsrex_vector.root.rhs.tensor.decl.shape[data_ax] == b.shape
+    assert tsrex_vector.root.rhs.tensor.decl.shape[vec_ax] == nvec
 
     fac = Factorization.from_tsrex(tsrex_vector)
     assert fac.ndim == tsrex_vector.ndim
@@ -47,10 +47,10 @@ def test_vectorize_concrete(case):
     assert tsrex_vector.ndim == tsrex.ndim + 1
     assert tsrex_vector.shape[data_ax] == tsrex.shape
     assert tsrex_vector.shape[vec_ax] == nvec
-    assert tsrex_vector.root.lhs.indexless.decl.shape[data_ax] == a.shape
-    assert tsrex_vector.root.lhs.indexless.decl.shape[vec_ax] == nvec
-    assert tsrex_vector.root.rhs.indexless.decl.shape[data_ax] == b.shape
-    assert tsrex_vector.root.rhs.indexless.decl.shape[vec_ax] == nvec
+    assert tsrex_vector.root.lhs.tensor.decl.shape[data_ax] == a.shape
+    assert tsrex_vector.root.lhs.tensor.decl.shape[vec_ax] == nvec
+    assert tsrex_vector.root.rhs.tensor.decl.shape[data_ax] == b.shape
+    assert tsrex_vector.root.rhs.tensor.decl.shape[vec_ax] == nvec
 
     fac = Factorization.from_tsrex(tsrex_vector)
     assert fac.ndim == tsrex_vector.ndim

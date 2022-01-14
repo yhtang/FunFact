@@ -15,10 +15,10 @@ class LeafInitializer(TranscribeInterpreter):
         super().__init__()
 
     def abstract_index_notation(self, tensor, indices, **kwargs):
-        raise NotImplementedError()
+        return []
 
     def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
-        raise NotImplementedError()
+        return []
 
     def literal(self, value, **kwargs):
         return []
@@ -69,4 +69,4 @@ class LeafInitializer(TranscribeInterpreter):
         return []
 
     def abstract_dest(self, src, indices, **kwargs):
-        raise NotImplementedError()
+        return []
