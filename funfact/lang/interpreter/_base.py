@@ -243,62 +243,23 @@ class RewritingTranscriber(TranscribeInterpreter):
     '''A rewriting transcriber may either rewrite the payloads of a node, or
     replace the entire node alltogether.'''
 
-    def __init__(self):
-        self.indent = []
-
-    def _print(self, *args):
-        # from funfact.util.debugtool import __LINE__
-        # import os
-        # from inspect import currentframe, getframeinfo
-        # print(
-        #     '%24s' % os.path.basename(
-        #         os.path.normpath(
-        #             getframeinfo(currentframe().f_back).filename
-        #         )
-        #     ),
-        #     '%4d' % getframeinfo(currentframe().f_back).lineno,
-        #     self.indent[-1],
-        #     *args
-        # )
-        pass
-
     def __call__(self, node, parent=None, depth=float('inf')):
-
-        if self.indent:
-            self.indent.append(self.indent[-1] + '  ')
-        else:
-            self.indent.append('')
 
         node = copy.copy(node)
 
-        if depth > 0:
-            # do children
+        if depth > 0:  # do children
             for name, value in node.fields_fixed.items():
                 setattr(
                     node, name, _deep_apply(self, value, node, depth - 1)
                 )
 
-        # iterative rewriting
-        while True:
-            self._print('evaluating', node.name, 'depth = ', depth)
-
+        while True:  # iterative rewriting
             value = self._eval(node)
-
-            self._print('got', value)
-
             if not isinstance(value, _ASNode):
                 break
-
-            self._print()
-
-            # node = self(value, parent, depth)
             node = value
 
-            self._print()
-
         _emplace(node, value)
-
-        self.indent.pop()
 
         return node
 
