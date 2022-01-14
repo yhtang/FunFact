@@ -4,11 +4,16 @@ from ._base import ROOFInterpreter
 
 
 _omap = dict(
+    sum=r'\sum',
+    negative='-',
+    conj=r'\operatorname{conj}',
     add='+',
     subtract='-',
-    multiply=r'\times',
+    multiply=r'',
     divide='/',
     float_power='^',
+    matmul='',
+    kron=r'\otimes',
     min=r'\min',
     max=r'\max',
     log_sum_exp='LSE',
@@ -28,11 +33,17 @@ class LatexRenderer(ROOFInterpreter):
         else:
             return value
 
+    def abstract_index_notation(self, tensor, indices, **kwargs):
+        return fr'''{{{tensor}}}_{{{indices}}}'''
+
+    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
+        return fr'{{{lhs}}} {_omap[operator]} {{{rhs}}}'
+
     def literal(self, value, **kwargs):
         return value._repr_tex_()
 
-    def tensor(self, abstract, **kwargs):
-        return abstract._repr_tex_()
+    def tensor(self, decl, **kwargs):
+        return decl._repr_tex_()
 
     def index(self, item, bound, kron, **kwargs):
         if bound:
@@ -46,8 +57,8 @@ class LatexRenderer(ROOFInterpreter):
     def indices(self, items, **kwargs):
         return ''.join(items)
 
-    def index_notation(self, indexless, indices, **kwargs):
-        return fr'''{{{indexless}}}_{{{indices}}}'''
+    def indexed_tensor(self, tensor, indices, **kwargs):
+        return fr'''{{{tensor}}}_{{{indices}}}'''
 
     def call(self, f, x, **kwargs):
         return fr'\operatorname{{{f}}}{{{x}}}'
@@ -55,14 +66,8 @@ class LatexRenderer(ROOFInterpreter):
     def neg(self, x, **kwargs):
         return fr'-{x}'
 
-    def matmul(self, lhs, rhs, **kwargs):
-        return fr'{{{lhs}}} {{{rhs}}}'
-
-    def kron(self, lhs, rhs, **kwargs):
-        return fr'{{{lhs}}} \otimes {{{rhs}}}'
-
-    def binary(self, lhs, rhs, precedence, oper, **kwargs):
-        return fr'{{{lhs}}} {_omap[oper]} {{{rhs}}}'
+    def elem(self, lhs, rhs, precedence, operator, **kwargs):
+        return fr'{{{lhs}}} {_omap[operator]} {{{rhs}}}'
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         if reduction == 'sum':
@@ -71,9 +76,13 @@ class LatexRenderer(ROOFInterpreter):
             op = r'\underset{{{}:{}}}{{\star}}'.format(
                 _omap[reduction], _omap[pairwise]
             )
-        body = fr'{{{lhs}}} {op} {{{rhs}}}'
-        suffix = fr'\rightarrow_{{{outidx}}}' if outidx is not None else ''
-        return body + suffix
+        tex = fr'{{{lhs}}} {op} {{{rhs}}}'
+        if outidx is not None:
+            tex = fr'({tex})\rightarrow_{{{outidx}}}'
+        return tex
 
     def tran(self, src, indices, **kwargs):
+        return fr'{{{src}}}\rightarrow_{{{indices}}}'
+
+    def abstract_dest(self, src, indices, **kwargs):
         return fr'{{{src}}}\rightarrow_{{{indices}}}'

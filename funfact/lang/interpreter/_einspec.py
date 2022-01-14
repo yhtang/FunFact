@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
-from ._base import TranscribeInterpreter
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from ._base import _as_payload, TranscribeInterpreter
 
 
 class IndexMap:
@@ -19,7 +19,7 @@ class IndexMap:
 
     def __call__(self, ids):
         try:
-            return ''.join([self._map(i) for i in ids])
+            return ''.join([self._map(i) for i in ids or []])
         except TypeError:
             return self._map(ids)
 
@@ -30,12 +30,23 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = TranscribeInterpreter.as_payload('einspec')
+    as_payload = _as_payload('einspec')
+
+    def abstract_index_notation(
+        self, tensor: P.Tensorial, indices: P.indices,  **kwargs
+    ):
+        raise NotImplementedError()
+
+    def abstract_binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        **kwargs
+    ):
+        raise NotImplementedError()
 
     def literal(self, value: LiteralValue, **kwargs):
         return []
 
-    def tensor(self, abstract: AbstractTensor, **kwargs):
+    def tensor(self, decl: AbstractTensor, **kwargs):
         return []
 
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
@@ -44,8 +55,8 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     def indices(self, items: Tuple[P.index], **kwargs):
         return []
 
-    def index_notation(
-        self, indexless: P.Tensorial, indices: P.indices,  **kwargs
+    def indexed_tensor(
+        self, tensor: P.Tensorial, indices: P.indices,  **kwargs
     ):
         return []
 
@@ -55,14 +66,9 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     def neg(self, x: P.Numeric, **kwargs):
         return []
 
-    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
-        return []
-
-    def kron(self, lhs: P.Numeric, rhs: P.Numeric, **kwargs):
-        return []
-
-    def binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, oper: str,
+    @as_payload
+    def elem(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
         **kwargs
     ):
         return []
@@ -81,3 +87,7 @@ class EinsteinSpecGenerator(TranscribeInterpreter):
     def tran(self, src: P.Numeric, indices: P.indices, live_indices, **kwargs):
         map = IndexMap()
         return f'{map(src.live_indices)}->{map(live_indices)}'
+
+    @as_payload
+    def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
+        raise NotImplementedError()
