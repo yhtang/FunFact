@@ -143,11 +143,11 @@ class Factorization:
         '''
 
         factors = list(dfs_filter(
-                lambda n: n.name == 'tensor' and n.abstract.optimizable,
+                lambda n: n.name == 'tensor' and n.decl.optimizable,
                 self.tsrex.root)
         )
         penalties = ab.stack(
-            [f.abstract.prefer(f.data, sum_vec) for f in factors],
+            [f.decl.prefer(f.data, sum_vec) for f in factors],
             0 if sum_vec else -1
         )
         return ab.sum(penalties, 0 if sum_vec else -1) if sum_leafs else \
