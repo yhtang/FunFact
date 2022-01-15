@@ -19,7 +19,7 @@ their use with some examples.
     happens when a model created from the tensor expression is
     [evaluated](../eval).
 
-## Thee Types of Tensor Expressions
+## Three Types of Tensor Expressions
 
 ### Indexless Expressions
 
@@ -369,6 +369,9 @@ The following operations happen in `tsrex`:
 
 The result `tsrex` is thus an indexless $3 \times 4 \times 6$ tensor.
 
+!!! warning
+    TODO: add explanation about rules for hybrid expressions.
+
 ## Non-linearities
 
 FunFact tensor expressions can be enhanced by using non-linearities on
@@ -397,10 +400,11 @@ tsrex
 renders as:
 
 \[
-    a_{ijl} \times b_{jk}
+    \mathbf{a}_{ijl} \mathbf{b}_{jk}
 \]
 
-- **asciitree** representation of a tensor expression:
+- A **binary tree representation** of a tensor expression can be printed
+with the `.asciitree` method:
 ```py
 tsrex.asciitree
 ```
@@ -419,22 +423,26 @@ returns:
          ├── index: j 
          ╰── index: k 
 ```
-- **shape** of a tensor expression:
+- The **shape** of a tensor expression can be accessed with the `.shape`
+property:
 ```py
 tsrex.shape        # returns (5, 4, 3)
 ```
 
-- **dimensionality** of a tensor expression:
+- The **dimensionality** of a tensor expression can be accessed through the
+`.ndim` property:
 ```py
 tsrex.ndim        # returns 3
 ```
 
-- **Einsum**-like specification of the top level of the tensor expression:
+- An **einsum**-like specification string of the top level of the tensor 
+expression can be accessed through `.einspec`:
 ```py
 tsrex.einspec        # returns 'abc,bd->acd|'
 ```
 
-- **Surviving indices** of the tensor expression:
+- The **surviving indices** of the top level of the tensor expression can be
+accessed through `.live_indices`:
 ```py
 tsrex.live_indices 
 # returns [AbstractIndex(i), AbstractIndex(l), AbstractIndex(k)]
