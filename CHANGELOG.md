@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.9 (2022-01-15)
+
+- Redesigned hybrid expression backend.
+- Penalty terms for abstract tensors
+
 ## 0.8 (2022-01-07)
 
 - Allow hybrid indexless/Einstein expressions.
