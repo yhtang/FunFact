@@ -397,7 +397,7 @@ tsrex
 renders as:
 
 \[
-    a_{ijl} \times b_{jk}
+    \mathbf{a}_{ijl} \mathbf{b}_{jk}
 \]
 
 - **asciitree** representation of a tensor expression:
