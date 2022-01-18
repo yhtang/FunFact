@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import numpy as np
 from funfact.backend import active_backend as ab
 from funfact.initializers import Normal
 from ._base import _as_payload, TranscribeInterpreter
@@ -38,11 +39,17 @@ class LeafInitializer(TranscribeInterpreter):
         except TypeError:
             # If optimizable, slice for each instance must be independent.
             # Otherwise, slices can share a view into the original tensor.
-            f = ab.tile if optimizable else ab.broadcast_to
-            return ab.set_optimizable(
-                f(ab.tensor(initializer, dtype=self.dtype), shape),
-                optimizable=optimizable
-            )
+            ini = ab.tensor(initializer, dtype=self.dtype)
+            if np.any(np.remainder(shape, ini.shape) != 0):
+                raise ValueError(
+                    f'Concrete initializer of shape {ini.shape} cannot be '
+                    f'broadcasted to initialize tensor of shape {shape}.'
+                )
+            if optimizable:
+                ini = ab.tile(ini, [s // d for s, d in zip(shape, ini.shape)])
+            else:
+                ini = ab.broadcast_to(ini, shape)
+            return ab.set_optimizable(ini, optimizable=optimizable)
 
     def index(self, item, bound, kron, **kwargs):
         return []

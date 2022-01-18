@@ -32,12 +32,9 @@ setup(
     tests_require=['tox'],
     install_requires=[
         'numpy>=1.17',
-        'deap>=1.3',
-        'treelib>=1.6',
         'tqdm>=4.55',
         'dill>=0.3.3',
-        'matplotlib>=3.4',
-        'scipy>=1.7.1',
+        'matplotlib>=3.2',
         'asciitree>=0.3.3',
         'plum-dispatch>=1.5.8'
     ],
