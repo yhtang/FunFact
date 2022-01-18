@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.9.1 (2022-01-18)
+
+- Bug fixes.
+
 ## 0.9 (2022-01-15)
 
 - Redesigned hybrid expression backend.
