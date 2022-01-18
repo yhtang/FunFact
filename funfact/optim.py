@@ -11,7 +11,7 @@ class Optimizer(ABC):
 
     - *inherit* from `Optimizer`
     - implement two methods: an initializer `__init__` to set
-    the model and optimizer parameters, and a `step` method to take a step 
+    the model and optimizer parameters, and a `step` method to take a step
     based on the gradient.'''
 
     @abstractmethod
@@ -27,7 +27,7 @@ class Optimizer(ABC):
     @abstractmethod
     def step(self, grad):
         '''Take a step in the optimization process.
-        
+
         Args:
             grad (factors): gradiemts of the factors
         '''

@@ -10,7 +10,7 @@ class Loss(ABC):
     To add your own loss function:
 
     - *inherit* from `Loss`
-    - implement `_loss` method to perform the elementwise evaluation for your 
+    - implement `_loss` method to perform the elementwise evaluation for your
     loss function. The reduction is handled by the base class.
     '''
 
