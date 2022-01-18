@@ -5,10 +5,18 @@ from funfact.backend import active_backend as ab
 
 
 class Loss(ABC):
-    '''Base class for loss functions.'''
+    '''Base class for FunFact loss functions.
+
+    To add your own loss function:
+
+    - *inherit* from `Loss`
+    - implement `_loss` method to perform the elementwise evaluation for your 
+    loss function. The reduction is handled by the base class.
+    '''
 
     @abstractmethod
     def _loss(self, model, target):
+        '''Elementwise evaluation of loss.'''
         pass
 
     def __call__(self, model, target, reduction='mean', sum_vec=True,
@@ -16,7 +24,7 @@ class Loss(ABC):
         '''Evaluate the loss function.
 
         Args:
-            model  (tensor): (vectorized) model data.
+            model (tensor): (vectorized) model data.
             target (tensor): target data.
             reduction:
                 If 'mean', the mean of the elementwise loss is returned.
@@ -62,20 +70,21 @@ class Loss(ABC):
 
 
 class MSE(Loss):
-
+    '''Mean-Squared Error (MSE) loss.'''
     def _loss(self, model, target):
+        '''test'''
         # absolute value is for compatibility with complex data
         return ab.square(ab.abs(ab.subtract(model, target)))
 
 
 class L1(Loss):
-
+    '''L1 loss.'''
     def _loss(self, model, target):
         return ab.abs(ab.subtract(model, target))
 
 
 class KLDivergence(Loss):
-
+    '''KL Divergence loss.'''
     def _loss(self, model, target):
         return ab.multiply(target, ab.log(ab.divide(target, model)))
 
