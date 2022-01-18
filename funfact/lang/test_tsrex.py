@@ -246,19 +246,19 @@ from ._tsrex import (
 #         assert isinstance(u, TsrEx)
 #         assert u.ndim == 1
 #         assert u.shape == (n,)
-#         assert u.root.abstract.optimizable is False
+#         assert u.root.decl.optimizable is False
 
 #         v = tensor(np.eye(n))
 #         assert isinstance(v, TsrEx)
 #         assert v.ndim == 2
 #         assert v.shape == (n, n)
-#         assert v.root.abstract.optimizable is False
+#         assert v.root.decl.optimizable is False
 
 #         w = tensor(n)
 #         assert isinstance(w, TsrEx)
 #         assert w.ndim == 1
 #         assert w.shape == (n,)
-#         assert w.root.abstract.optimizable is True
+#         assert w.root.decl.optimizable is True
 
 
 # @pytest.mark.parametrize(
@@ -275,7 +275,7 @@ from ._tsrex import (
 #     assert isinstance(t, TsrEx)
 #     assert t.shape == (4, 3, 2)
 #     assert t.ndim == 3
-#     assert t.root.abstract.optimizable is True
+#     assert t.root.decl.optimizable is True
 
 
 # def test_tensor_0d():

@@ -11,6 +11,7 @@ from .algorithm import factorize
 from .vectorization import vectorize, view
 from .context import is_grad_on, enable_grad
 from . import initializers
+from . import conditions
 
 
 __all__ = [
@@ -31,11 +32,12 @@ __all__ = [
     'view',
     'is_grad_on',
     'enable_grad',
-    'initializers'
+    'initializers',
+    'conditions'
 ]
 
 
-__version__ = '0.8'
+__version__ = '0.9'
 __author__ = '''Yu-Hang "Maxin" Tang, Daan Camps, Elizaveta Rebrova'''
 __maintainer__ = 'Yu-Hang "Maxin" Tang'
 __email__ = 'Tang.Maxin@gmail.com'

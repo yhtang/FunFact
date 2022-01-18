@@ -12,12 +12,13 @@ from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
     ASCIIRenderer,
+    Compiler,
+    EinsteinSpecGenerator,
+    IndexnessAnalyzer,
     LatexRenderer,
-    IndexAnalyzer,
-    ShapeAnalyzer,
-    EinsteinSpecGenerator
 )
 from ._terminal import LiteralValue, AbstractIndex, AbstractTensor
+from funfact.conditions import NoCondition
 
 
 class ASCIITreeFactory:
@@ -94,9 +95,9 @@ class _BaseEx(_AST):
 
     _latex_intr = LatexRenderer()
     _asciitree_factory = ASCIITreeFactory()
+    _compiler = Compiler()
     _einspec_generator = EinsteinSpecGenerator()
-    _index_propagator = IndexAnalyzer()
-    _shape_analyzer = ShapeAnalyzer()
+    _indexness_analyzer = IndexnessAnalyzer()
 
     @functools.lru_cache()
     def _repr_html_(self):
@@ -150,9 +151,10 @@ class _BaseEx(_AST):
     @property
     @functools.lru_cache()
     def _static_analyzed(self):
-        return self._einspec_generator(
-            self._shape_analyzer(self._index_propagator(self.root))
-        )
+        return (self |
+                self._indexness_analyzer |
+                self._compiler |
+                self._einspec_generator).root
 
     @property
     def shape(self):
@@ -222,7 +224,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __matmul__(self, rhs):
-        return _matmul(_as_node(self), _as_node(rhs))
+        return _binary(_as_node(self), _as_node(rhs), 5, 'matmul')
 
     @as_tsrex
     def __truediv__(self, rhs):
@@ -234,7 +236,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __and__(self, rhs):
-        return _kron(_as_node(self), _as_node(rhs))
+        return _binary(_as_node(self), _as_node(rhs), 5, 'kron')
 
     @as_tsrex
     def __radd__(self, lhs):
@@ -250,7 +252,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __rmatmul__(self, lhs):
-        return _matmul(_as_node(lhs), _as_node(self))
+        return _binary(_as_node(lhs), _as_node(self), 5, 'matmul')
 
     @as_tsrex
     def __rtruediv__(self, lhs):
@@ -262,7 +264,7 @@ class SyntaxOverloadMixin:
 
     @as_tsrex
     def __rand__(self, lhs):
-        return _kron(_as_node(lhs), _as_node(self))
+        return _binary(_as_node(lhs), _as_node(self), 5, 'kron')
 
     @as_tsrex
     def __getitem__(self, indices):
@@ -305,18 +307,8 @@ _dispatch = Dispatcher()
 
 
 @_dispatch
-def _matmul(lhs: _ASNode, rhs: _ASNode):
-    return P.matmul(lhs, rhs)
-
-
-@_dispatch
-def _binary(lhs: _ASNode, rhs: _ASNode, precedence, oper):
-    return P.binary(lhs, rhs, precedence, oper)
-
-
-@_dispatch
-def _kron(lhs: _ASNode, rhs: _ASNode):
-    return P.kron(lhs, rhs)
+def _binary(lhs: _ASNode, rhs: _ASNode, precedence, operator):
+    return P.abstract_binary(lhs, rhs, precedence, operator)
 
 
 @_dispatch
@@ -339,13 +331,7 @@ def _iter(node: P.index):
 @_dispatch
 def _getitem(node: _ASNode, indices):  # noqa: F811
     '''create index notation'''
-    # for new in indices_new:
-    #                 if not isinstance(new, P.index):
-    #                     raise SyntaxError(
-    #                         'Indices to a tensor expression must be '
-    #                         'abstract indices.'
-    #                     )
-    return P.index_notation(
+    return P.abstract_index_notation(
         node,
         P.indices(tuple([i.root for i in as_tuple(indices or [])]))
     )
@@ -353,9 +339,11 @@ def _getitem(node: _ASNode, indices):  # noqa: F811
 
 @_dispatch
 def _rshift(node: _ASNode, indices):  # noqa: F811
-    '''transpose the axes by permuting the live indices into target indices.'''
-    return P.tran(node,
-                  P.indices(tuple([i.root for i in as_tuple(indices)])))
+    '''transpose or einsum output specification'''
+    return P.abstract_dest(
+        node,
+        P.indices(tuple([i.root for i in as_tuple(indices)]))
+    )
 
 
 def index(symbol=None):
@@ -415,7 +403,7 @@ def indices(spec):
         raise RuntimeError(f'Cannot create indices from {spec}.')
 
 
-def tensor(*spec, initializer=None, optimizable=None):
+def tensor(*spec, initializer=None, optimizable=None, prefer=None):
     '''Construct an abstract tensor using `spec`.
 
     Args:
@@ -442,6 +430,11 @@ def tensor(*spec, initializer=None, optimizable=None):
             by default
 
             The default behavior can be overriden by user input.
+
+        prefer (callable):
+            Condition evaluated on tensor as a penalty term. Only considered if
+            optimizable is set to True or defaults to True, otherwise it is
+            ignored.
 
     Returns:
         TsrEx: A tensor expression representing an abstract tensor object.
@@ -477,12 +470,14 @@ def tensor(*spec, initializer=None, optimizable=None):
             raise RuntimeError(
                 f'Tensor size must be positive integer, got {d} instead.'
             )
+    if optimizable and prefer is None:
+        prefer = NoCondition()
 
     return TsrEx(
         P.tensor(
             AbstractTensor(
                 *size, symbol=symbol, initializer=initializer,
-                optimizable=optimizable
+                optimizable=optimizable, prefer=prefer
             )
         )
     )
