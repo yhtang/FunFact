@@ -85,8 +85,7 @@ class Loss(ABC):
 class MSE(Loss):
     '''Mean-Squared Error (MSE) loss.'''
     def _loss(self, model, target):
-        '''test'''
-        # absolute value is for compatibility with complex data
+        # ab.abs: to handle both real and complex numbers
         return ab.square(ab.abs(ab.subtract(model, target)))
 
 
