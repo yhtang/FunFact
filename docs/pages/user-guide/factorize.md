@@ -105,20 +105,17 @@ a custom optimizer:
 
 ### Loss
 
-The loss function used in the optimization process can be changed as well as its
-(hyper) parameters. This adheres to the FunFact [Loss API](../../../api/loss/).
-The `optimizer_options` dictionary argument to the `factorize` will be forwarded as keyword arguments to initialize the loss function.
-FunFact currently offers native support for three loss functions and allows
-for a custom loss function:
+The loss function used in the optimization process can be changed as well as
+its (hyper) parameters. FunFact currently offers three loss functions:
 
-- `loss`: loss function:
-    * `'mse_loss'`: Mean-Squared Error (L2) loss.
-    * `'l1_loss'`: L1 loss.
-    * `'kldiv_loss'`: KL Divergence loss.
-    * `callable`: user provided optimizer that implements the [Loss 
-    API](../../../api/loss/).
+  * `'MSE'`: Mean-Squared Error (L2) loss.
+  * `'L1'`: L1 loss.
+  * `'KLDivergence'`: KL Divergence loss.
 
-The loss function can be further adjusted by the `penalty_weight` argument which
-is the scalar factor applied to all the penalty terms specified on the leaf
-tensors. If `penalty_weight=0.0`, it is not taken into account in the loss
+Custom loss function to be defined by implementing the [Loss
+API](../../../api/loss/).
+
+The loss function can be further adjusted by the `penalty_weight` argument
+which is the scalar factor applied to all the penalty terms specified on the
+leaf tensors. If `penalty_weight=0.0`, it is not taken into account in the loss
 function. The default value is `penalty_weight=1.0`.

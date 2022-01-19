@@ -11,8 +11,8 @@ from funfact.vectorization import vectorize, view
 
 def factorize(
     tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
-    loss='mse_loss', nvec=1, append=False, stop_by='first', returns='best',
-    checkpoint_freq=50, dtype=None, penalty_weight=1.0, loss_options={}
+    loss='MSE', nvec=1, append=False, stop_by='first', returns='best',
+    checkpoint_freq=50, dtype=None, penalty_weight=1.0
 ):
     '''Factorize a target tensor using the given tensor expression. The
     solution is found by minimizing the loss function between the original and
@@ -65,9 +65,6 @@ def factorize(
 
         penalty_weight (float) : Weight of penalties relative to loss.
 
-        loss_options (dict): Extra arguments to be passed to the loss
-            function.
-
     Returns:
         *:
             - If `returns == 'best'`, return a factorization object of type
@@ -96,11 +93,13 @@ def factorize(
                 f'The loss function \'{loss}\' does not exist in'
                 'funfact.loss.'
             )
+    if isinstance(loss, type):
+        loss = loss()
     try:
-        loss(target, target, **loss_options)
+        loss(target, target)
     except Exception as e:
         raise AssertionError(
-            f'The given loss function does not accept two arguments:\n{e}'
+            f'A loss function must accept two arguments:\n{e}'
         )
 
     if isinstance(optimizer, str):
@@ -116,7 +115,7 @@ def factorize(
     opt_fac = _Factorization.from_tsrex(tsrex_vec, dtype=dtype)
 
     try:
-        opt = optimizer(opt_fac.factors, lr=lr, **loss_options)
+        opt = optimizer(opt_fac.factors, lr=lr)
     except Exception:
         raise AssertionError(
             'Invalid optimization algorithm:\n{e}'

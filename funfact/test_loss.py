@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from re import L
 import pytest  # noqa: F401
 import numpy as np
 from .loss import (
-    Loss,
     MSE,
     L1,
     KLDivergence,
-    mse_loss,
-    l1_loss,
-    kldiv_loss
 )
 
 
@@ -115,12 +110,3 @@ def test_reduction(loss_cls):
     a = np.ones((3, 3))
     b = np.ones((3, 3)) * 2
     assert loss_sum(a, b) == loss_mean(a, b) * a.size
-
-
-@pytest.mark.parametrize('loss', [
-    mse_loss,
-    l1_loss,
-    kldiv_loss
-])
-def test_default_loss(loss):
-    assert isinstance(loss, Loss)
