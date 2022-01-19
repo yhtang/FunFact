@@ -63,7 +63,10 @@ def factorize(
             - If concrete dtype (float32, float64, complex64, complex128),
             that data type is used.
 
-        penalty_weight (float) : weight of penalties relative to loss.
+        penalty_weight (float) : Weight of penalties relative to loss.
+
+        optimizer_options (dict): Extra arguments to be passed to the loss
+            function.
 
     Returns:
         *:

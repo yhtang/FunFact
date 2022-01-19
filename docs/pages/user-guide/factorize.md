@@ -107,8 +107,7 @@ a custom optimizer:
 
 The loss function used in the optimization process can be changed as well as its
 (hyper) parameters. This adheres to the FunFact [Loss API](../../../api/loss/).
-All keyword arguments that are input to `factorize` are passed to the loss
-function.
+The `optimizer_options` dictionary argument to the `factorize` will be forwarded as keyword arguments to initialize the loss function.
 FunFact currently offers native support for three loss functions and allows
 for a custom loss function:
 
