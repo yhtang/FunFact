@@ -154,9 +154,19 @@ def stack(initializer, append: bool = True):
             index. If False, the first index of shape tuple is considered
             the vectorizing index.
     '''
-    def wrapper(shape):
-        nvec = shape[-1] if append else shape[0]
-        shape = shape[:-1] if append else shape[1:]
-        axis = -1 if append else 0
-        return ab.stack([initializer(shape) for i in range(nvec)], axis)
-    return wrapper
+    class StackedInitializer:
+        def __init__(self, dtype=None):
+            if isinstance(initializer, type):
+                self.initializer = initializer(dtype=dtype or ab.float32)
+            else:
+                self.initializer = initializer
+
+        def __call__(self, shape):
+            nvec = shape[-1] if append else shape[0]
+            shape = shape[:-1] if append else shape[1:]
+            axis = -1 if append else 0
+            return ab.stack(
+                [self.initializer(shape) for i in range(nvec)], axis
+            )
+
+    return StackedInitializer
