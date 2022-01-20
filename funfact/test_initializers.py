@@ -21,6 +21,7 @@ all_initializers = [
     VarianceScaling
 ]
 
+
 @pytest.mark.parametrize('init', all_initializers)
 def test_generic(init):
     initializer = init()
