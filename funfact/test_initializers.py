@@ -1,23 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pytest
+from funfact import active_backend as ab
 from .initializers import (
     Ones,
     Zeros,
     Eye,
     Normal,
     Uniform,
-    VarianceScaling
+    VarianceScaling,
+    stack
 )
 
 
-@pytest.mark.parametrize('init', [
+all_initializers = [
     Ones,
     Zeros,
     Normal,
     Uniform,
     VarianceScaling
-])
+]
+
+@pytest.mark.parametrize('init', all_initializers)
 def test_generic(init):
     initializer = init()
     tensor = initializer((2, 3, 4))
@@ -86,3 +90,21 @@ def test_variance_scaling():
 
     with pytest.raises(ValueError):
         initializer = VarianceScaling(distribution='nonexisting-distribution')
+
+
+@pytest.mark.parametrize('init', [Eye, Ones, Zeros, Eye(), Ones(), Zeros()])
+@pytest.mark.parametrize('append', [True, False])
+def test_stack(init, append):
+
+    base_initializer = init() if isinstance(init, type) else init
+    stacked_initializer = stack(init, append=append)()
+    stacked_tensor = stacked_initializer((2, 3, 4))
+    assert stacked_tensor.shape == (2, 3, 4)
+    if append is True:
+        base_tensor = base_initializer((2, 3))
+        for i in range(4):
+            assert ab.allclose(stacked_tensor[..., i], base_tensor)
+    else:
+        base_tensor = base_initializer((3, 4))
+        for i in range(2):
+            assert ab.allclose(stacked_tensor[i, ...], base_tensor)
