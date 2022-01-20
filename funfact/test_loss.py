@@ -22,6 +22,7 @@ def test_seminorms(loss_cls):
             b = ab.normal(0.0, 1.0, shape)
             assert loss(a, a) == pytest.approx(0, abs=1e-6)
             assert loss(b, b) == pytest.approx(0, abs=1e-6)
+            assert ab.allclose(loss(a, b), loss(b, a), atol=1e-6)
             assert loss(a, b) >= 0
             assert loss(b, a) >= 0
 
