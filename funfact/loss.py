@@ -7,11 +7,22 @@ from funfact.backend import active_backend as ab
 class Loss(ABC):
     '''Base class for FunFact loss functions.
 
-    To add your own loss function:
+    Steps to define a custom loss function:
 
-    - *inherit* from `Loss`
-    - implement `_loss` method to perform the elementwise evaluation for your
-    loss function. The reduction is handled by the base class.
+    1. *inherit* from `Loss`
+    2. implement `_loss` method to perform the elementwise evaluation for your
+    loss function. The reduction is handled by this base class.
+
+    Args:
+        reduction (str):
+            If 'mean', the mean of the elementwise loss is returned.
+            If 'sum', the sum over the elementwise loss is returned.
+        sum_vec (bool): If True, the loss is summed over the vectorizing
+            dimension and a single loss value is returned. If False, the
+            loss of every model instance is returned in an array.
+        vectorized_along_last (bool): If True, the model is vectorized
+            along the last dimension. If False, the model is assumed along
+            the first dimension.
     '''
 
     @abstractmethod
@@ -19,22 +30,29 @@ class Loss(ABC):
         '''Elementwise evaluation of loss.'''
         pass
 
-    def __call__(self, model, target, reduction='mean', sum_vec=True,
-                 vectorized_along_last=False, **kwargs):
+    def __init__(
+        self, reduction='mean'
+    ):
+        if reduction not in ['mean', 'sum']:
+            raise SyntaxError(
+                'The reduction operation should be either mean or sum, got '
+                f'{reduction} instead.'
+            )
+        self.reduction = reduction
+
+    def __call__(
+        self, model, target, sum_vec=True, vectorized_along_last=False
+    ):
         '''Evaluate the loss function.
 
         Args:
-            model (tensor): (vectorized) model data.
+            model (tensor): model data.
             target (tensor): target data.
-            reduction:
-                If 'mean', the mean of the elementwise loss is returned.
-                If 'sum', the sum over the elementwise loss is returned.
-            sum_vec (bool): If True, the loss is summed over the vectorizing
-                dimension and a single loss value is returned. If False, the
-                loss of every model instance is returned in an array.
-            vectorized_along_last (bool): If True, the model is vectorized
-                along the last dimension. If False, the model is assumed along
-                the first dimension.
+
+        Returns:
+            tensor:
+                The loss values as a scalar (non-vectorized data) or 1D vector
+                (vectorized data).
         '''
         if target.ndim == model.ndim - 1:  # vectorized model
             model_shape = model.shape[:-1] if vectorized_along_last else \
@@ -54,15 +72,10 @@ class Loss(ABC):
         else:
             raise ValueError(f'Target is {target.ndim} dimensional, while '
                              f'model is {model.ndim} dimensional.')
-        if reduction == 'mean':
+        if self.reduction == 'mean':
             _loss = (self._loss(model, target)).mean(axis=data_axis)
-        elif reduction == 'sum':
+        elif self.reduction == 'sum':
             _loss = ab.sum(self._loss(model, target), axis=data_axis)
-        else:
-            raise SyntaxError(
-                'The reduction operation should be either mean or sum, got '
-                f'{reduction} instead.'
-            )
         if sum_vec:
             return ab.sum(_loss)
         else:
@@ -72,8 +85,7 @@ class Loss(ABC):
 class MSE(Loss):
     '''Mean-Squared Error (MSE) loss.'''
     def _loss(self, model, target):
-        '''test'''
-        # absolute value is for compatibility with complex data
+        # ab.abs: to handle both real and complex numbers
         return ab.square(ab.abs(ab.subtract(model, target)))
 
 
@@ -87,8 +99,3 @@ class KLDivergence(Loss):
     '''KL Divergence loss.'''
     def _loss(self, model, target):
         return ab.multiply(target, ab.log(ab.divide(target, model)))
-
-
-mse_loss = MSE()
-l1_loss = L1()
-kldiv_loss = KLDivergence()
