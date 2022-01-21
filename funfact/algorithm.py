@@ -10,8 +10,8 @@ from funfact.vectorization import vectorize, view
 
 
 def factorize(
-    tsrex, target, lr=0.1, tol=1e-6, max_steps=10000, optimizer='Adam',
-    loss='MSE', nvec=1, append=False, stop_by='first', returns='best',
+    tsrex, target, optimizer='Adam', loss='MSE', lr=0.1, tol=1e-6,
+    max_steps=10000, nvec=1, append=False, stop_by='first', returns='best',
     checkpoint_freq=50, dtype=None, penalty_weight=1.0
 ):
     '''Factorize a target tensor using the given tensor expression. The
@@ -75,15 +75,34 @@ def factorize(
             that represents all the solutions.
     '''
 
+    tsrex_vec = vectorize(tsrex, nvec, append=append)
+
+    @ab.autograd_decorator
+    class _Factorization(Factorization, ab.AutoGradMixin):
+        pass
+
+    opt_fac = _Factorization.from_tsrex(tsrex_vec, dtype=dtype)
+
     if dtype is None:
         target = ab.tensor(target)
         dtype = target.dtype
     else:
         target = ab.tensor(target, dtype=dtype)
 
-    @ab.autograd_decorator
-    class _Factorization(Factorization, ab.AutoGradMixin):
-        pass
+    if isinstance(optimizer, str):
+        try:
+            optimizer = getattr(funfact.optim, optimizer)
+        except AttributeError:
+            raise AttributeError(
+                f'The optimizer \'{optimizer}\' does not exist in'
+                'funfact.optim.'
+            )
+    try:
+        opt = optimizer(opt_fac.factors, lr=lr)
+    except Exception:
+        raise AssertionError(
+            'Invalid optimization algorithm:\n{e}'
+        )
 
     if isinstance(loss, str):
         try:
@@ -100,25 +119,6 @@ def factorize(
     except Exception as e:
         raise AssertionError(
             f'A loss function must accept two arguments:\n{e}'
-        )
-
-    if isinstance(optimizer, str):
-        try:
-            optimizer = getattr(funfact.optim, optimizer)
-        except AttributeError:
-            raise AttributeError(
-                f'The optimizer \'{optimizer}\' does not exist in'
-                'funfact.optim.'
-            )
-
-    tsrex_vec = vectorize(tsrex, nvec, append=append)
-    opt_fac = _Factorization.from_tsrex(tsrex_vec, dtype=dtype)
-
-    try:
-        opt = optimizer(opt_fac.factors, lr=lr)
-    except Exception:
-        raise AssertionError(
-            'Invalid optimization algorithm:\n{e}'
         )
 
     def loss_and_penalty(model, target, sum_vec=True):
