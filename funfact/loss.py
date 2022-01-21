@@ -99,3 +99,8 @@ class KLDivergence(Loss):
     '''KL Divergence loss.'''
     def _loss(self, model, target):
         return ab.multiply(target, ab.log(ab.divide(target, model)))
+
+
+mse = MSE()
+l1 = L1()
+kl_divergence = KLDivergence()

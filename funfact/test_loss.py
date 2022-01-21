@@ -3,9 +3,13 @@
 import pytest  # noqa: F401
 from funfact import active_backend as ab
 from .loss import (
+    Loss,
     MSE,
     L1,
     KLDivergence,
+    mse,
+    l1,
+    kl_divergence,
 )
 
 
@@ -111,3 +115,12 @@ def test_reduction(loss_cls):
     a = ab.ones((3, 3))
     b = ab.ones((3, 3)) * 2
     assert loss_sum(a, b) == loss_mean(a, b) * len(a.ravel())
+
+
+@pytest.mark.parametrize('loss', [
+    mse,
+    l1,
+    kl_divergence,
+])
+def test_predefined(loss):
+    assert isinstance(loss, Loss)
