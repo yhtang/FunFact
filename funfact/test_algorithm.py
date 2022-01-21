@@ -104,7 +104,7 @@ def test_returns():
 
 def test_penalty_weight():
     fac = factorize(tensor(2), ab.ones(2), penalty_weight=1.0)
-    assert ab.allclose(fac(), ab.ones(2), atol=1e-4)
+    assert ab.allclose(fac(), ab.ones(2), atol=1e-3)
 
     fac = factorize(tensor(2), ab.ones(2), penalty_weight=0.0)
-    assert ab.allclose(fac(), ab.ones(2), atol=1e-4)
+    assert ab.allclose(fac(), ab.ones(2), atol=1e-3)
