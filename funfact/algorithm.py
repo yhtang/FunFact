@@ -77,11 +77,7 @@ def factorize(
 
     tsrex_vec = vectorize(tsrex, nvec, append=append)
 
-    @ab.autograd_decorator
-    class _Factorization(Factorization, ab.AutoGradMixin):
-        pass
-
-    opt_fac = _Factorization.from_tsrex(tsrex_vec, dtype=dtype)
+    fac = ab.add_autograd(Factorization).from_tsrex(tsrex_vec, dtype=dtype)
 
     if dtype is None:
         target = ab.tensor(target)
@@ -98,7 +94,7 @@ def factorize(
                 'funfact.optim.'
             )
     try:
-        opt = optimizer(opt_fac.factors, lr=lr)
+        opt = optimizer(fac.factors, lr=lr)
     except Exception:
         raise AssertionError(
             'Invalid optimization algorithm:\n{e}'
@@ -131,26 +127,26 @@ def factorize(
         else:
             return loss_val
 
-    loss_and_grad = ab.loss_and_grad(loss_and_penalty, opt_fac, target)
+    loss_and_grad = ab.loss_and_grad(loss_and_penalty, fac, target)
 
     # bookkeeping
-    best_factors = [np.zeros_like(ab.to_numpy(x)) for x in opt_fac.factors]
+    best_factors = [np.zeros_like(ab.to_numpy(x)) for x in fac.factors]
     best_loss = np.ones(nvec) * np.inf
     converged = np.zeros(nvec, dtype=np.bool_)
 
     for step in tqdm.trange(max_steps):
-        _, grad = loss_and_grad(opt_fac, target)
+        _, grad = loss_and_grad(fac, target)
         with ab.no_grad():
             opt.step(grad)
 
             if step % checkpoint_freq == 0:
                 # update best factorization
                 curr_loss = ab.to_numpy(
-                    loss_and_penalty(opt_fac, target, sum_vec=False)
+                    loss_and_penalty(fac, target, sum_vec=False)
                 )
                 better = np.flatnonzero(curr_loss < best_loss)
                 best_loss = np.minimum(best_loss, curr_loss)
-                for b, o in zip(best_factors, opt_fac.factors):
+                for b, o in zip(best_factors, fac.factors):
                     if append:
                         b[..., better] = o[..., better]
                     else:

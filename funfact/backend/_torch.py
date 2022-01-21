@@ -75,13 +75,17 @@ class PyTorchBackend(metaclass=BackendMeta):
         return torch.jit.trace(wrapper, (example_model, example_target))
         # TODO jit trace with Factorization class
 
-    def autograd_decorator(ob):
-        return ob
+    def add_autograd(cls):
 
-    class AutoGradMixin():
-        def __iter__(self):
-            for f in self.factors:
-                yield f
+        class AutoGradMixin():
+            def __iter__(self):
+                for f in self.factors:
+                    yield f
+
+        class cls_with_autograd(cls, AutoGradMixin):
+            pass
+
+        return cls_with_autograd
 
     @classmethod
     def set_optimizable(self, x: native_t, optimizable: bool):
