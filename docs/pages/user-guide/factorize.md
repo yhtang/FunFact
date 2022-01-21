@@ -54,10 +54,8 @@ The default is `first`.
 
 - `returns=...` specifies what output is returned:
     * `best`: only the best instance is returned as a factorization model
-    * `int n: nvec >= n >= 1`: the `n` best instances are returned as a list of
-    factorization models.
-    * `all`: all the instances are returned as a single *vectorized*
-    factorization model.
+    * `all` or int $n \in [1, \mathrm{nvec}]$: returns a list of all of or the best `n` instances
+    as a list of factorization models sorted in ascending order by loss.
 The default is `best`.
 
 - `apppend=...` is a boolean flag that indicates if the vectorization dimension
