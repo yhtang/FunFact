@@ -39,7 +39,7 @@ plugins:
       nav_file: SUMMARY.md
   - autorefs
   - mkdocs-jupyter:
-      include_source: True
+      include_source: False
   - mkdocstrings:
       watch:
         - funfact
@@ -90,9 +90,12 @@ nav:
         - "funfact.index": api/index.md
         - "funfact.indices": api/indices.md
         - "funfact.initializers": api/initializers.md
+        - "funfact.conditions": api/conditions.md
         - "funfact.TsrEx": api/tsrex.md
         - "funfact.Factorization": api/factorization.md
         - "funfact.factorize": api/factorize.md
+        - "funfact.Optimizer": api/optim.md
+        - "funfact.Loss": api/loss.md
         - "funfact.vectorize": api/vectorize.md
         - "funfact.view": api/view.md
         - "funfact.active_backend": api/active_backend.md

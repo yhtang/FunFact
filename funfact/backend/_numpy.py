@@ -37,11 +37,8 @@ class NumPyBackend(metaclass=BackendMeta):
         raise TypeError('NumPy backend does not support autograd and backward '
                         'mode; use JAX or PyTorch backend instead.')
 
-    def autograd_decorator(ob):
-        return ob
-
-    class AutoGradMixin():
-        pass
+    def add_autograd(cls):
+        raise NotImplementedError('NumPy backend does not support AutoGrad.')
 
     def no_grad():
         pass
