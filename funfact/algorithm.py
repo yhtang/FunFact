@@ -129,7 +129,14 @@ def factorize(
 
     loss_and_grad = ab.loss_and_grad(loss_and_penalty, fac, target)
 
-    if returns not in ['best', 'all'] and not isinstance(returns, int):
+    if stop_by == 'first':
+        stop_by = 1
+    if not (isinstance(stop_by, int) and stop_by > 0):
+        raise RuntimeError(f'Invalid argument value for stop_by: {stop_by}')
+
+    if not any((
+        returns in ['best', 'all'], isinstance(returns, int) and returns > 0
+    )):
         raise RuntimeError(f'Invalid argument value for returns: {returns}')
 
     # bookkeeping
@@ -156,17 +163,8 @@ def factorize(
                         b[better, ...] = o[better, ...]
 
                 converged |= np.where(curr_loss < tol, True, False)
-                if stop_by == 'first':
-                    if np.any(converged):
-                        break
-                elif isinstance(stop_by, int):
-                    if np.count_nonzero(converged) >= stop_by:
-                        break
-                else:
-                    if stop_by is not None:
-                        raise RuntimeError(
-                            f'Invalid argument value for stop_by: {stop_by}'
-                        )
+                if np.count_nonzero(converged) >= stop_by:
+                    break
 
     best_fac = Factorization.from_tsrex(tsrex_vec, dtype=dtype)
     best_fac.factors = [ab.tensor(x) for x in best_factors]
