@@ -29,3 +29,82 @@ def test_dtype():
 
     for f in fac.factors:
         assert f.dtype == ab.complex64
+
+
+def test_exception():
+
+    with pytest.raises(RuntimeError):
+        factorize(tensor(2), ab.ones(2), optimizer='non-existing')
+
+    with pytest.raises(RuntimeError):
+        class Optimizer:
+            def __init__(self):
+                pass
+
+        factorize(tensor(2), ab.ones(2), optimizer=Optimizer)
+
+    with pytest.raises(RuntimeError):
+        factorize(tensor(2), ab.ones(2), loss='non-existing')
+
+    with pytest.raises(RuntimeError):
+        class Loss:
+            def __call__(self, only_one):
+                pass
+
+        factorize(tensor(2), ab.ones(2), loss=Loss)
+
+    with pytest.raises(RuntimeError):
+        factorize(tensor(2), ab.ones(2), returns='Everything!')
+
+    with pytest.raises(RuntimeError):
+        factorize(tensor(2), ab.ones(2), returns=0)
+
+    with pytest.raises(RuntimeError):
+        factorize(tensor(2), ab.ones(2), returns=-1)
+
+    with pytest.raises(RuntimeError):
+        factorize(tensor(2), ab.ones(2), stop_by='Never')
+
+    with pytest.raises(RuntimeError):
+        factorize(tensor(2), ab.ones(2), stop_by=0)
+
+    with pytest.raises(RuntimeError):
+        factorize(tensor(2), ab.ones(2), stop_by=-1)
+
+
+@pytest.mark.parametrize('stop_by', ['first', 2, None])
+@pytest.mark.parametrize('append', [True, False])
+def test_kwargs(stop_by, append):
+
+    fac = factorize(
+        tensor(2), ab.ones(2), nvec=4, stop_by=stop_by, append=append,
+        max_steps=100
+    )
+
+    assert fac().shape == (2,)
+
+
+def test_returns():
+
+    fac = factorize(
+        tensor(2), ab.ones(2), nvec=4, max_steps=100, returns='best'
+    )
+    assert not isinstance(fac, list)
+
+    fac = factorize(
+        tensor(2), ab.ones(2), nvec=4, max_steps=100, returns=2
+    )
+    assert isinstance(fac, list)
+
+    fac = factorize(
+        tensor(2), ab.ones(2), nvec=4, max_steps=100, returns='all'
+    )
+    assert isinstance(fac, list)
+
+
+def test_penalty_weight():
+    fac = factorize(tensor(2), ab.ones(2), penalty_weight=1.0)
+    assert ab.allclose(fac(), ab.ones(2), atol=1e-4)
+
+    fac = factorize(tensor(2), ab.ones(2), penalty_weight=0.0)
+    assert ab.allclose(fac(), ab.ones(2), atol=1e-4)
