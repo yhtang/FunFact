@@ -23,7 +23,7 @@ try:
         )
     except Exception:
         warnings.warn('Cannot set up MathJAX, LaTeX rendering may not work.')
-except Exception:
+except ImportError:
     pass
 
 
