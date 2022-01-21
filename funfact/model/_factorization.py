@@ -252,3 +252,6 @@ class Factorization:
         def __iter__(self):
             for n in self.nodes:
                 yield getattr(n, self.attribute)
+
+        def __len__(self):
+            return len(self.nodes)
