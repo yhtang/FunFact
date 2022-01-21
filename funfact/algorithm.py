@@ -51,9 +51,9 @@ def factorize(
 
         returns ('best', int >= 1, or 'all'):
 
-            - If 'best', return the solution with the smallest loss.
-            - If int `n`, return the top `n` instances.
-            - If 'all', return all instances.
+            - If 'best', returns the solution with the smallest loss.
+            - If int `n` or 'all', returns a list of the top `n` or all of the
+            instances sorted in ascending order by loss.
 
         checkpoint_freq (int >= 1): The frequency of convergence checking.
 
