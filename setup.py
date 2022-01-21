@@ -41,6 +41,7 @@ setup(
     extras_require={
         'jax': [
             'jax>=0.2.24',
+            'jaxlib>=0.1.73',
         ],
         'torch': [
             'torch>=1.9',
