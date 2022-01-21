@@ -39,7 +39,7 @@ plugins:
       nav_file: SUMMARY.md
   - autorefs
   - mkdocs-jupyter:
-      include_source: True
+      include_source: False
   - mkdocstrings:
       watch:
         - funfact
