@@ -47,7 +47,7 @@ arguments for the `factorize` algorithm:
 stops:
     * `first`: the iteration stops as soon as one instance satisfies the
     convergence criterion.
-    * `int n: nvec >= n >= 1`: the iteration stops as soon as `n` instances
+    * int $n \in [1, \mathrm{nvec}]$: the iteration stops as soon as `n` instances
     satisfy the convergence criterion.
     * `None`: always run the iteration until `max_steps`.
 The default is `first`.
