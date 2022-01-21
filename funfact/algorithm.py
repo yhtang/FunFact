@@ -21,9 +21,6 @@ def factorize(
     Args:
         tsrex (TsrEx): A tensor expression.
         target (tensor): The original tensor to approximate.
-        lr (float): SGD learning rate.
-        tol (float):  convergence tolerance.
-        max_steps (int): maximum number of SGD steps to run.
         optimizer (str or callable):
 
             - If `str`, must be one of the optimizers defined in
@@ -38,6 +35,9 @@ def factorize(
             - If `callable`, can be any object that implements the interface of
             [funfact.loss.Loss]().
 
+        lr (float): SGD learning rate.
+        tol (float):  convergence tolerance.
+        max_steps (int): maximum number of SGD steps to run.
         nvec (int): Number of parallel instances to compute.
         append (bool): If vectorizing axis is appended or prepended.
         stop_by ('first', int >= 1, or None):
