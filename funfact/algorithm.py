@@ -89,14 +89,14 @@ def factorize(
         try:
             optimizer = getattr(funfact.optim, optimizer)
         except AttributeError:
-            raise AttributeError(
+            raise RuntimeError(
                 f'The optimizer \'{optimizer}\' does not exist in'
                 'funfact.optim.'
             )
     try:
         opt = optimizer(fac.factors, lr=lr)
     except Exception:
-        raise AssertionError(
+        raise RuntimeError(
             'Invalid optimization algorithm:\n{e}'
         )
 
@@ -104,7 +104,7 @@ def factorize(
         try:
             loss = getattr(funfact.loss, loss)
         except AttributeError:
-            raise AttributeError(
+            raise RuntimeError(
                 f'The loss function \'{loss}\' does not exist in'
                 'funfact.loss.'
             )
@@ -113,7 +113,7 @@ def factorize(
     try:
         loss(target, target)
     except Exception as e:
-        raise AssertionError(
+        raise RuntimeError(
             f'A loss function must accept two arguments:\n{e}'
         )
 
@@ -128,6 +128,9 @@ def factorize(
             return loss_val
 
     loss_and_grad = ab.loss_and_grad(loss_and_penalty, fac, target)
+
+    if returns not in ['best', 'all'] and not isinstance(returns, int):
+        raise RuntimeError(f'Invalid argument value for returns: {returns}')
 
     # bookkeeping
     best_factors = [np.zeros_like(ab.to_numpy(x)) for x in fac.factors]
@@ -176,5 +179,3 @@ def factorize(
         ]
     elif returns == 'all':
         return best_fac
-    else:
-        raise RuntimeError(f'Invalid argument value for returns: {returns}')
