@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.9.2 (2022-01-21)
+
+- Bug fixes and documentation updates.
+
 ## 0.9.1 (2022-01-18)
 
 - Bug fixes.
