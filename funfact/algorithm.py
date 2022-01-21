@@ -131,7 +131,9 @@ def factorize(
 
     if stop_by == 'first':
         stop_by = 1
-    if not (isinstance(stop_by, int) and stop_by > 0):
+    if not any((
+        stop_by is None, isinstance(stop_by, int) and stop_by > 0
+    )):
         raise RuntimeError(f'Invalid argument value for stop_by: {stop_by}')
 
     if not any((
@@ -163,8 +165,9 @@ def factorize(
                         b[better, ...] = o[better, ...]
 
                 converged |= np.where(curr_loss < tol, True, False)
-                if np.count_nonzero(converged) >= stop_by:
-                    break
+                if stop_by is not None:
+                    if np.count_nonzero(converged) >= stop_by:
+                        break
 
     best_fac = Factorization.from_tsrex(tsrex_vec, dtype=dtype)
     best_fac.factors = [ab.tensor(x) for x in best_factors]
@@ -176,4 +179,6 @@ def factorize(
             np.argsort(best_loss)[:returns]
         ]
     elif returns == 'all':
-        return best_fac
+        return [
+            view(best_fac, tsrex, i, append) for i in np.argsort(best_loss)
+        ]
