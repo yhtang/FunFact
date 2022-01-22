@@ -79,7 +79,7 @@ nav:
       - Nonlinear matrix approximation: examples/matrix-approximation.ipynb
     - pages/cheatsheet.md
     - User Guide:
-        - pages/user-guide/tensor-and-indices.md
+        - "Tensors and Indices": pages/user-guide/tensor-and-indices.md
         - pages/user-guide/tsrex.md
         - pages/user-guide/eval.md
         - pages/user-guide/factorize.md
@@ -100,6 +100,5 @@ nav:
         - "funfact.view": api/view.md
         - "funfact.active_backend": api/active_backend.md
         - "funfact.available_backends": api/available_backends.md
-        - "funfact.use": api/use.md
-    # - Debug: reference/
+        - "funfact.use": api/use.md/
     - pages/contribute.md  # contribution guide

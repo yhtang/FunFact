@@ -1,27 +1,33 @@
 # Grammar Reference
 
+!!! note
+    The information on this page is mostly relevant to advanced users and developers.
+
+
 ## Embedded Domain-Specific Language (eDSL) for Tensor Expressions
 
-FunFact's **t**en**s**o**r** **ex**pression (**tsrex**) is an index notation system that extends the Einstein summation convention.
+As we have seen [earlier](../tsrex), a FunFact **t**en**s**o**r** **ex**pressions (**tsrex**) can be expressed using a hybrid of:
 
-Below is the grammar of tsrex in BNF:
+- index notations that extends the Einstein summation convention, and
+- NumPy-style operations.
 
-``` BNF
+This expression system essentially implements a domain-specific language (eDSL) embedded in Python. The formal grammar for this eDSL is:
+
+```BNF
 tsrex -> f(tsrex) |
          tsrex binary_operator tsrex |
          unary_operator tsrex |
          index_notation |
-         scalar
+         tensor |
+         literal
 
-index_notation -> tensor[indices]
+index_notation -> tsrex[indices]
 
-indices -> indices,index |
-           index
-```
+indices -> index |
+           indices,  index |
+           indices, ~index |
+           indices, *index
 
-where the terminal symbols are
-
-```BNF
 f -> abs   |
      exp   | log   |
      sin   | cos   | tan   |
@@ -31,12 +37,12 @@ f -> abs   |
      erf   | erfc  |
      ...
 
-binary_operator -> * |
-                   / |
-                   + |
-                   - |
-                   ** | 
-                   % |
+binary_operator -> *  |
+                   /  |
+                   +  |
+                   -  |
+                   ** |
+                   &  |
                    ...
 
 unary_operator -> - |
@@ -48,5 +54,5 @@ index -> identifier
 
 identifier -> ([a-zA-Z]+)(?:_([a-zA-Z\d]+))?
 
-scalar -> real
+literal -> number
 ```
