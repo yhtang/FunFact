@@ -1,8 +1,4 @@
-!!! warning
-
-    Page under construction
-    
-# Welcome to the documentation of FunFact!
+# FunFact: Build Your Own Tensor Decomposition Model in a Breeze
 
 [![CI](https://github.com/yhtang/FunFact/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/yhtang/FunFact/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/yhtang/839011f3f7a6bab680b18cbd9a45d2d3/raw/coverage-develop.json)](https://badge.fury.io/py/funfact)
@@ -10,17 +6,7 @@
 [![Documentation Status](https://readthedocs.org/projects/funfact/badge/?version=latest)](https://funfact.readthedocs.io/en/latest/?badge=latest)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-## Overview
-
-[FunFact](https://github.com/yhtang/FunFact.git) is a Python package that
-enables flexible and concise expressions of tensor algebra through an Einstein
-notation-based syntax. A particular emphasis is on automating the design of
-matrix and tensor factorization models.  It’s areas of applications include
-quantum circuit synthesis, tensor decomposition, and neural network
-compression. It is GPU- and parallelization-ready thanks to modern numerical
-linear algebra backends such as JAX/TensorFlow and PyTorch.
-<!-- To this end, it leverages randomized combinatorial optimization
-and stochastic gradient-based methods. -->
+[FunFact](https://github.com/yhtang/FunFact.git) is a Python package for accelerating the design of matrix and tensor factorization algorithms. It features a powerful programming interface that augments the NumPy APIs with Einstein notations for writing very concise tensor expressions. Given an arbitrary forward calculation scheme, the package will solve the corresponding inverse problem using stochastic gradient descent, automatic differentiation, and multi-replica vectorization. Its application areas include quantum circuit synthesis, tensor decomposition, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra backends such as JAX/TensorFlow and PyTorch.
 
 ## Quick start guide
 
@@ -54,16 +40,9 @@ target = np.random.randn(10, 20)
 ff.factorize(target, tsrex)
 ```
 
-<!-- ## Indices and tables
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search` -->
-
-
 ## How to cite
 
-If you use this package for a publication (either in-paper or electronically), please cite it using the following DOI: https://doi.org/10.11578/dc.20210922.1
+If you use this package for a publication (either in-paper or electronically), please cite it using the following DOI: [https://doi.org/10.11578/dc.20210922.1](https://doi.org/10.11578/dc.20210922.1)
 
 ## Contributors
 
@@ -97,21 +76,3 @@ works, and perform publicly and display publicly, and to permit others to do so.
 ## Funding Acknowledgment
 
 This work was supported by the Laboratory Directed Research and Development Program of Lawrence Berkeley National Laboratory under U.S. Department of Energy Contract No. DE-AC02-05CH11231.
-
-
-
-<!-- For full documentation visit [mkdocs.org](https://www.mkdocs.org).
-
-## Commands
-
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files. -->
