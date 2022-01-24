@@ -9,10 +9,6 @@ a = ff.tensor('a', 5, 2, 4)                      # a random 3-way tensor
 !!! note
     The tensors that we create here are *abstract tensors*, which only have attributes such as dimensionality, shape, and a symbol. They have not been populated with numerical elements yet.
 
-
-
-
-
 ```
 import numpy as np
 b = ff.tensor('b', np.arange(10).reshape(2, 5))  # a 2-way tensor (matrix)
