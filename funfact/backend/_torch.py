@@ -14,6 +14,10 @@ class PyTorchBackend(metaclass=BackendMeta):
     tensor_t = (torch.Tensor, np.ndarray)
 
     @classmethod
+    def set_context(cls, **context):
+        pass
+
+    @classmethod
     def tensor(cls, array, optimizable=False, **kwargs):
         if type(array) is cls.native_t:
             t = array.clone().detach()

@@ -23,7 +23,7 @@ Examples:
 '''
 
 
-def use(backend: str, enable_x64: bool = False):
+def use(backend: str, enable_x64: bool = False, **context):
     '''Specify the numerical tensor algebra library to use as the computational
     backend.
 
@@ -43,6 +43,9 @@ def use(backend: str, enable_x64: bool = False):
         enable_x64 (bool):
             Enable 64bit floating point type for JAX backend.
 
+        context (kwargs):
+            Additional context to be passed on to the specified backend.
+
     Examples:
         >>> from funfact import use, active_backend as ab
         >>> use('numpy')
@@ -54,6 +57,10 @@ def use(backend: str, enable_x64: bool = False):
         <backend 'JAXBackend'>
 
         >>> use('torch')
+        >>> ab
+        <backend 'PyTorchBackend'>
+
+        >>> use('torch', device='cuda:0')
         >>> ab
         <backend 'PyTorchBackend'>
     '''
