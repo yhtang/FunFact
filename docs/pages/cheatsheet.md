@@ -7,16 +7,16 @@ import funfact as ff
 from funfact import active_backend as ab  # use it like numpy!
 ```
 
-## Choose backend
+## Choose [backend](../user-guide/backends/)
 
 | **Syntax** | **Description** |
 | ------------------- | -------------------------------------------------------------------- |
 | `ff.use('jax')` | Use JAX as backend |
 | `ff.use('torch')` | Use PyTorch as backend |
-| `ff.use('numpy')` | Use NumPy as backend |
+| `ff.use('numpy')` | Use NumPy as backend, forward calculations only |
 
 
-## Declare abstract indices
+## Declare [abstract indices](../user-guide/tensor-and-indices#abstract-indices)
 
 | **Syntax** | **Description** |
 | ------------------- | -------------------------------------------------------------------- |
@@ -27,7 +27,7 @@ from funfact import active_backend as ab  # use it like numpy!
 | `ff.indices('i, j, k')` | Same as above |
 | `ff.indices(5)` | Create a tuple of 5 anonymous indices |
 
-## Declare abstract tensors
+## Declare [abstract tensors](../user-guide/tensor-and-indices#abstract-tensors)
 
 | **Syntax** | **Description** |
 | ------------------- | -------------------------------------------------------------------- |
@@ -50,6 +50,10 @@ from funfact import active_backend as ab  # use it like numpy!
 | `ff.tensor('T', 2, 3, 4, prefer=ff.conditions.Unitary)` | Penalize the tensor if not orthonormal/unitary |
 | `ff.tensor('T', 2, 3, 4, prefer=ff.conditions.UpperTriangular)` | Penalize lower triangular elements from being nonzero |
 | `ff.tensor('T', 2, 3, 4, prefer=ff.conditions.NonNegative)` | Penalize tensor elements for being negative |
+| <div style="color:#808080;">**Special Tensors**</div> |
+| `ff.zeros(2, 3, 4)` | Shortcut for `ff.tensor(2, 3, 4, initializer=ff.initializers.Zeros)` |
+| `ff.ones(2, 3, 4)` | Shortcut for `ff.tensor(2, 3, 4, initializer=ff.initializers.Ones)` |
+| `ff.eye(2, 3)` | Shortcut for `ff.tensor(2, 3, initializer=ff.initializers.Eye)` |
 
 ## Arithmetics
 
@@ -85,7 +89,7 @@ from funfact import active_backend as ab  # use it like numpy!
 | `ff.sin(a)` | $\sin \boldsymbol{a}$ |
 | `ff.sin(a[i, j])` | Equivalent to `ff.sin(a)[i, j]` |
 
-## Factorization objects
+## [Factorization](../user-guide/eval/) objects
 
 ``` py title="context"
 T = ff.tensor('T', n1, n2, n3)

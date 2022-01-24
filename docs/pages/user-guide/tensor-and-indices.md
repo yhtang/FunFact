@@ -1,5 +1,10 @@
 # Tensors and Indices
 
+## Abstract Indices
+
+
+## Abstract Tensors
+
 Tensors can be created using the [tensor](funfact.tensor) method.
 
 ``` py
@@ -21,3 +26,4 @@ v = ff.tensor(5)                                 # an anonymous random vector
 c = ff.tensor('c')                               # a scalar, i.e. 0-tensor
 i, j, k = ff.indices('i, j, k')                  # define indices
 ```
+
