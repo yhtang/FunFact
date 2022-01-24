@@ -75,8 +75,8 @@ from funfact import active_backend as ab  # use it like numpy!
 | `A[i, j, k] >> [k, i, j]` | Transposition/axis permutation |
 | `A[i, j] * B[j, k] >> [k, i]` | $(A B)^\mathsf{T}$, reorder output axes |
 | <div style="color:#808080;">**Kronecker product**</div> |
-| `a[[*i]] * b[[*i]]` | $\boldsymbol{\lambda}_{i \times n'+i'} = \boldsymbol{a}_{i} \boldsymbol{b}_{i'}$, outer product within the i-th dimension
-| `a[[*i]] * b[[*i]]` | $\boldsymbol{\lambda}_{i \times n'+i'} = \boldsymbol{a}_{i} \boldsymbol{b}_{i'}$, outer product within the i-th dimension
+| `a[[*i]] * b[[*i]]` | $\boldsymbol{\lambda}_{i \times n'+i'} = \boldsymbol{a}_{i} \boldsymbol{b}_{i'}$, Kronecker product between vectors
+| `a[[i, *j]] * b[[*j, k]]` | $\boldsymbol{\lambda}_{i \times n'+i'} = \boldsymbol{a}_{i} \boldsymbol{b}_{i'}$, Kronecker product within the $j$ axis
 | <div style="color:#808080;">**Indexless**</div> |
 | `a+b`, `a-b`, `a*b`, `a/b`, `a**b` | elementwise addition, subtraction, multiplication, division, exponentiation |
 | `a @ b` | matrix multiplication |
