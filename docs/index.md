@@ -1,4 +1,4 @@
-# Welcome to the documentation of FunFact!
+# FunFact: Build Your Own Tensor Decomposition Model in a Breeze
 
 [![CI](https://github.com/yhtang/FunFact/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/yhtang/FunFact/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/yhtang/839011f3f7a6bab680b18cbd9a45d2d3/raw/coverage-develop.json)](https://badge.fury.io/py/funfact)
@@ -6,17 +6,7 @@
 [![Documentation Status](https://readthedocs.org/projects/funfact/badge/?version=latest)](https://funfact.readthedocs.io/en/latest/?badge=latest)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-## Overview
-
-[FunFact](https://github.com/yhtang/FunFact.git) is a Python package that
-enables flexible and concise expressions of tensor algebra through an Einstein
-notation-based syntax. A particular emphasis is on automating the design of
-matrix and tensor factorization models.  It’s areas of applications include
-quantum circuit synthesis, tensor decomposition, and neural network
-compression. It is GPU- and parallelization-ready thanks to modern numerical
-linear algebra backends such as JAX/TensorFlow and PyTorch.
-<!-- To this end, it leverages randomized combinatorial optimization
-and stochastic gradient-based methods. -->
+[FunFact](https://github.com/yhtang/FunFact.git) is a Python package for accelerating the design of matrix and tensor factorization algorithms. It features a powerful programming interface that augments the NumPy APIs with Einstein notations for writing very concise tensor expressions. Given an arbitrary forward calculation scheme, the package will solve the corresponding inverse problem using stochastic gradient descent, automatic differentiation, and multi-replica vectorization. Its application areas include quantum circuit synthesis, tensor decomposition, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra backends such as JAX/TensorFlow and PyTorch.
 
 ## Quick start guide
 

@@ -1,5 +1,4 @@
-site_name: "FunFact: Tensor Algebra and Deep Learning via Einstein Notations"
-# site_description: "Automatic documentation from sources, for MkDocs."
+site_name: "FunFact: Tensor Decomposition, Your Way"
 site_url: "https://funfact.readthedocs.io/"
 repo_url: "https://github.com/yhtang/FunFact/"
 edit_uri: "blob/develop/docs/"
@@ -30,8 +29,9 @@ theme:
     - navigation.top
 plugins:
   - search
-  # - gen-files:
-  #     scripts:
+  - gen-files:
+      scripts:
+        - docs/copy_readme.py
   #     - docs/gen_ref_nav.py
   #     - docs/gen_credits.py
   - section-index
@@ -72,10 +72,9 @@ extra_javascript:
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 nav:
-    - index.md
+    - Home: index.md
     - pages/installation.md
     - Examples:
-      # - Nonlinear matrix approximation: pages/examples/nma.md
       - Nonlinear matrix approximation: examples/matrix-approximation.ipynb
     - pages/cheatsheet.md
     - User Guide:
