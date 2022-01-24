@@ -22,7 +22,6 @@ class Optimizer(ABC):
             model (factors): factors from factorization model to be optimized.
             kwargs: (hyper)parameters for optimizer.
         '''
-        pass
 
     @abstractmethod
     def step(self, grad):
@@ -31,7 +30,6 @@ class Optimizer(ABC):
         Args:
             grad (factors): gradiemts of the factors
         '''
-        pass
 
 
 class Adam(Optimizer):
