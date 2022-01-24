@@ -12,10 +12,10 @@ class _Condition(ABC):
 
         Args:
             weight (float): Hyperparameter that determines weight of condition.
-            elementwise:
+            elementwise (str):
                 If 'mse', the mean-squared error is evaluated elementwise.
                 If 'l1', the L1 error is evaluated elementwise.
-            reduction:
+            reduction (str):
                 If 'mean', the mean of the elementwise condition is returned.
                 If 'sum', the sum over the elementwise condition is returned.
         '''
@@ -71,14 +71,58 @@ class _MatrixCondition(_Condition):
 
 
 class UpperTriangular(_MatrixCondition):
-    '''Checks an upper triangular condition.'''
+    ''' Checks an upper triangular condition for a 2-way leaf tensor (matrix).
+
+        **Usage:**
+        ```py
+        T = funfact.tensor(...,
+                prefer=funfact.conditions.UpperTriangular(
+                    weight=1.0,
+                    elementwise='mse',
+                    reduction='mean'
+                )
+        )
+        ```
+
+        Args:
+            weight (float): Hyperparameter that determines weight of triangular
+                            condition.
+            elementwise (str):
+                If 'mse', the mean-squared error is evaluated elementwise.
+                If 'l1', the L1 error is evaluated elementwise.
+            reduction (str):
+                If 'mean', the mean of the elementwise condition is returned.
+                If 'sum', the sum over the elementwise condition is returned.
+    '''
 
     def _condition(self, data):
         return ab.tril(data, -1)
 
 
 class Unitary(_MatrixCondition):
-    '''Checks a unitary condition.'''
+    ''' Checks a unitary condition for a 2-way leaf tensor (matrix).
+
+        **Usage:**
+        ```py
+        T = funfact.tensor(...,
+                prefer=funfact.conditions.Unitary(
+                    weight=1.0,
+                    elementwise='mse',
+                    reduction='mean'
+                )
+        )
+        ```
+
+        Args:
+            weight (float): Hyperparameter that determines weight of unitary
+                            condition.
+            elementwise (str):
+                If 'mse', the mean-squared error is evaluated elementwise.
+                If 'l1', the L1 error is evaluated elementwise.
+            reduction (str):
+                If 'mean', the mean of the elementwise condition is returned.
+                If 'sum', the sum over the elementwise condition is returned.
+    '''
 
     def _condition(self, data):
         return ab.subtract(
@@ -88,14 +132,59 @@ class Unitary(_MatrixCondition):
 
 
 class Diagonal(_MatrixCondition):
-    '''Checks a diagonal condition.'''
+    ''' Checks a diagonal condition for a 2-way leaf tensor (matrix).
+
+        **Usage:**
+        ```py
+        T = funfact.tensor(...,
+                prefer=funfact.conditions.Diagonal(
+                    weight=1.0,
+                    elementwise='mse',
+                    reduction='mean'
+                )
+        )
+        ```
+
+        Args:
+            weight (float): Hyperparameter that determines weight of diagonal
+                            condition.
+            elementwise (str):
+                If 'mse', the mean-squared error is evaluated elementwise.
+                If 'l1', the L1 error is evaluated elementwise.
+            reduction (str):
+                If 'mean', the mean of the elementwise condition is returned.
+                If 'sum', the sum over the elementwise condition is returned.
+    '''
 
     def _condition(self, data):
         return ab.add(ab.triu(data, 1), ab.tril(data, -1))
 
 
 class NonNegative(_Condition):
-    '''Checks a non-negative condition.'''
+    ''' Checks a non-negative condition for a leaf tensor.
+
+        **Usage:**
+        ```py
+        T = funfact.tensor(...,
+                prefer=funfact.conditions.NonNegative(
+                    weight=1.0,
+                    elementwise='mse',
+                    reduction='mean'
+                )
+        )
+        ```
+
+        Args:
+            weight (float): Hyperparameter that determines weight of
+                            nonnegative condition.
+            elementwise (str):
+                If 'mse', the mean-squared error is evaluated elementwise.
+                If 'l1', the L1 error is evaluated elementwise.
+            reduction (str):
+                If 'mean', the mean of the elementwise condition is returned.
+                If 'sum', the sum over the elementwise condition is returned.
+
+    '''
 
     def _condition(self, data):
         negative = data[data < 0.0]
@@ -104,7 +193,15 @@ class NonNegative(_Condition):
 
 
 class NoCondition(_Condition):
-    '''No condition enforced.'''
+    ''' No condition enforced for a leaf tensor.
+
+        **Usage:**
+        ```py
+        T = funfact.tensor(...,
+                prefer=funfact.conditions.NoCondition()
+        )
+        ```
+    '''
 
     def _condition(self, data):
         return ab.tensor(0.0)

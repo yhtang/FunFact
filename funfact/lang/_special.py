@@ -29,11 +29,11 @@ def ones(*shape, optimizable=False, dtype=None):
     )
 
 
-def eye(n, optimizable=False, dtype=None):
+def eye(n, m=None, optimizable=False, dtype=None):
     return TsrEx(
         P.tensor(
             AbstractTensor(
-                n, n, symbol=('I', None),
+                n, m or n, symbol=('I', None),
                 initializer=ini.Eye(dtype=dtype),
                 optimizable=optimizable
             )

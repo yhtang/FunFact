@@ -191,13 +191,13 @@ def _as_node(x):
         )
 
 
-def as_tsrex(f):
+def _as_tsrex(f):
     def wrapper(*args, **kwargs):
         return TsrEx(f(*args, **kwargs))
     return wrapper
 
 
-def yield_tsrex(f):
+def _yield_tsrex(f):
     def wrapper(*args, **kwargs):
         for n in f(*args, **kwargs):
             yield TsrEx(n)
@@ -206,79 +206,79 @@ def yield_tsrex(f):
 
 class SyntaxOverloadMixin:
 
-    @as_tsrex
+    @_as_tsrex
     def __neg__(self):
         return _neg(_as_node(self))
 
-    @as_tsrex
+    @_as_tsrex
     def __add__(self, rhs):
         return _binary(_as_node(self), _as_node(rhs), 6, 'add')
 
-    @as_tsrex
+    @_as_tsrex
     def __sub__(self, rhs):
         return _binary(_as_node(self), _as_node(rhs), 6, 'subtract')
 
-    @as_tsrex
+    @_as_tsrex
     def __mul__(self, rhs):
         return _binary(_as_node(self), _as_node(rhs), 5, 'multiply')
 
-    @as_tsrex
+    @_as_tsrex
     def __matmul__(self, rhs):
         return _binary(_as_node(self), _as_node(rhs), 5, 'matmul')
 
-    @as_tsrex
+    @_as_tsrex
     def __truediv__(self, rhs):
         return _binary(_as_node(self), _as_node(rhs), 5, 'divide')
 
-    @as_tsrex
+    @_as_tsrex
     def __pow__(self, rhs):
         return _binary(_as_node(self), _as_node(rhs), 3, 'float_power')
 
-    @as_tsrex
+    @_as_tsrex
     def __and__(self, rhs):
         return _binary(_as_node(self), _as_node(rhs), 5, 'kron')
 
-    @as_tsrex
+    @_as_tsrex
     def __radd__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 6, 'add')
 
-    @as_tsrex
+    @_as_tsrex
     def __rsub__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 6, 'subtract')
 
-    @as_tsrex
+    @_as_tsrex
     def __rmul__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 5, 'multiply')
 
-    @as_tsrex
+    @_as_tsrex
     def __rmatmul__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 5, 'matmul')
 
-    @as_tsrex
+    @_as_tsrex
     def __rtruediv__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 5, 'divide')
 
-    @as_tsrex
+    @_as_tsrex
     def __rpow__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 3, 'float_power')
 
-    @as_tsrex
+    @_as_tsrex
     def __rand__(self, lhs):
         return _binary(_as_node(lhs), _as_node(self), 5, 'kron')
 
-    @as_tsrex
+    @_as_tsrex
     def __getitem__(self, indices):
         return _getitem(_as_node(self), indices)
 
-    @as_tsrex
+    @_as_tsrex
     def __rshift__(self, indices):
         return _rshift(_as_node(self), indices)
 
-    @as_tsrex
+    @_as_tsrex
     def __invert__(self):
         return _invert(_as_node(self))
 
-    @yield_tsrex
+    @_yield_tsrex
     def __iter__(self):
         return _iter(_as_node(self))
 

@@ -5,35 +5,48 @@ from funfact.backend import active_backend as ab
 
 
 class Optimizer(ABC):
-    '''A FunFact optimizer has to implement two methods: an initializer to set
-    the model and optimizer parameters, and a step method.'''
+    '''Base class for FunFact optimizers.
+
+    To add your own optimizer:
+
+    - *inherit* from `Optimizer`
+    - implement two methods: an initializer `__init__` to set
+    the model and optimizer parameters, and a `step` method to take a step
+    based on the gradient.'''
 
     @abstractmethod
     def __init__(self, model, **kwargs):
+        '''Initialize optimizer.
+
+        Args:
+            model (factors): factors from factorization model to be optimized.
+            kwargs: (hyper)parameters for optimizer.
+        '''
         pass
 
     @abstractmethod
     def step(self, grad):
+        '''Take a step in the optimization process.
+
+        Args:
+            grad (factors): gradiemts of the factors
+        '''
         pass
 
 
 class Adam(Optimizer):
-    '''Adam gradient descent optimizer.
-
-    Parameters
-    ----------
-    lr
-        Learning rate (default: 0.1)
-    beta1
-        First order moment (default: 0.9)
-    beta2
-        Second order moment (default: 0.999)
-    epsilon
-        default: 1e-7
-    '''
     def __init__(
         self, X, lr=0.1, beta1=0.9, beta2=0.999, epsilon=1e-7, **kwargs
     ):
+        '''Adam gradient descent optimizer.
+
+        Args:
+            X (factors): factors from factorization model to be optimized.
+            lr (float): learning rate.
+            beta1 (float): first order moment.
+            beta2 (float): second order moment.
+            epsilon (float): perturbation to improve numerical stablility.
+        '''
         self.X = X
         self.lr = lr
         self.beta1 = beta1
@@ -54,16 +67,21 @@ class Adam(Optimizer):
 
 
 class RMSprop(Optimizer):
-    '''RMSprop gradient descent optimizer with momentum.
-
-    Parameters
-    ----------
-
-    '''
     def __init__(
         self, X, lr=0.1, alpha=0.99, epsilon=1e-8, weight_decay=0,
         momentum=0, centered=False, **kwargs
     ):
+        '''RMSprop gradient descent optimizer with momentum.
+
+        Args:
+            X (factors): factors from factorization model to be optimized.
+            lr (float): learning rate.
+            alpha (float): smoothing constant.
+            epsilon (float): perturbation to improve numerical stablility.
+            weight_decay (float): weight decay.
+            momentum (float): momentum factor.
+            centered (bool): centered RMPSprop.
+        '''
         self.X = X
         self.lr = lr
         self.alpha = alpha

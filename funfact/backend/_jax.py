@@ -53,18 +53,22 @@ class JAXBackend(metaclass=BackendMeta):
             return loss, [jnp.conjugate(df) for df in dmodel.factors]
         return wrapper
 
-    def autograd_decorator(*args, **kwargs):
-        return register_pytree_node_class(*args, **kwargs)
+    def add_autograd(cls):
 
-    class AutoGradMixin():
-        def tree_flatten(self):
-            return list(self.factors), (self.tsrex,)
+        class AutoGradMixin():
+            def tree_flatten(self):
+                return list(self.factors), (self.tsrex,)
 
-        @classmethod
-        def tree_unflatten(cls, metadata, children):
-            unflatten = cls(*metadata, initialize=False)
-            unflatten.factors = children
-            return unflatten
+            @classmethod
+            def tree_unflatten(cls, metadata, children):
+                unflatten = cls(*metadata, initialize=False)
+                unflatten.factors = children
+                return unflatten
+
+        class cls_with_autograd(cls, AutoGradMixin):
+            pass
+
+        return register_pytree_node_class(cls_with_autograd)
 
     def no_grad():
         return contextlib.nullcontext()
