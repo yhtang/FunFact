@@ -29,9 +29,9 @@ theme:
     - navigation.top
 plugins:
   - search
-  - gen-files:
-      scripts:
-        - docs/copy_readme.py
+  # - gen-files:
+  #     scripts:
+  #       - docs/copy_readme.py
   #     - docs/gen_ref_nav.py
   #     - docs/gen_credits.py
   - section-index
