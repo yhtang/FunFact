@@ -61,7 +61,7 @@ Z = ff.tensor('Z', 5, 2, 4, initializer=ini.Normal(mean=-1, std=0.2))
 
 ## Preferences and conditions
 
-Many factorization algorithms enforces constraints on the factors found in the solution.
+Many factorization algorithms enforce constraints on the factors found in the solution.
 For example, the eigencomposition requires that the matrix of eigenvectors to be
 orthogonal/unitary. In FunFact, this can be specified on a tensor-by-tensor basis
 using the `prefer=` argument to [`tensor`](../../../api/tensor). A number of
