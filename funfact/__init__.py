@@ -37,7 +37,7 @@ __all__ = [
 ]
 
 
-__version__ = '0.9.2'
+__version__ = '0.9.3'
 __author__ = '''Yu-Hang "Maxin" Tang, Daan Camps, Elizaveta Rebrova'''
 __maintainer__ = 'Yu-Hang "Maxin" Tang'
 __email__ = 'Tang.Maxin@gmail.com'
