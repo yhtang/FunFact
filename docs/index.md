@@ -6,7 +6,7 @@
 [![Documentation Status](https://readthedocs.org/projects/funfact/badge/?version=latest)](https://funfact.readthedocs.io/en/latest/?badge=latest)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-[FunFact](https://github.com/yhtang/FunFact.git) is a Python package for accelerating the design of matrix and tensor factorization algorithms. It features a powerful programming interface that augments the NumPy APIs with Einstein notations for writing very concise tensor expressions. Given an arbitrary forward calculation scheme, the package will solve the corresponding inverse problem using stochastic gradient descent, automatic differentiation, and multi-replica vectorization. Its application areas include quantum circuit synthesis, tensor decomposition, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra backends such as JAX/TensorFlow and PyTorch.
+[FunFact](https://github.com/yhtang/FunFact.git) is a Python package for accelerating the design of matrix and tensor factorization algorithms. It features a powerful programming interface that augments the NumPy API with Einstein notations for writing concise tensor expressions. Given an arbitrary forward calculation scheme, the package will solve the corresponding inverse problem using stochastic gradient descent, automatic differentiation, and multi-replica vectorization. Its application areas include quantum circuit synthesis, tensor decomposition, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra backends such as JAX/TensorFlow and PyTorch.
 
 ## Quick start guide
 
