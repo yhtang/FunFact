@@ -93,9 +93,9 @@ nav:
         - pages/user-guide/backends.md
         - pages/user-guide/cfg.md
     - API Reference:
-        - "funfact.tensor": api/tensor.md
-        - "funfact.index": api/index.md
+        - "funfact.index": api/index_.md
         - "funfact.indices": api/indices.md
+        - "funfact.tensor": api/tensor.md
         - "funfact.initializers": api/initializers.md
         - "funfact.conditions": api/conditions.md
         - "funfact.TsrEx": api/tsrex.md
