@@ -44,3 +44,13 @@ v = ff.tensor(5)                                 # an anonymous random vector
 c = ff.tensor('c')                               # a scalar, i.e. 0-tensor
 i, j, k = ff.indices('i, j, k')                  # define indices
 ```
+
+## Initializers
+
+By default, the abstract tensors are populated with random elements draw
+from the normal distribution upon initialization of a factorization model. A
+collection of alternative initializers are provided in the
+[`initializers`](../../../api/initializers) module for customizing this behavior.
+Users can also plug in any callable objects that accepts a `shape`
+argument of a tuple of integers and returns a numerical tensor of the
+corresponding shape.
