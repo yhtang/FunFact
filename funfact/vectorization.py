@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from funfact.lang import index
-from funfact.lang.interpreter import (
-    IndexAnalyzer,
-    LeafVectorizer,
-    EinopVectorizer,
-)
+from funfact.lang.interpreter import IndexnessAnalyzer, Compiler, Vectorizer
 from funfact.model import Factorization
 
 
-def vectorize(tsrex, n):
+def vectorize(tsrex, n, append: bool = False):
     ''''Vectorize' a tensor expression by extending its dimensionality by one.
     Each slice along the vectorization dimension of a factorization model
     represents an independent realization of the original tensor expression.
@@ -27,16 +23,20 @@ def vectorize(tsrex, n):
     Args:
         n (int > 0):
             Size of the vectorization dimension.
+        append (bool):
+            If True, the vectorizing index is set to the last index of every
+            leaf. If False, the vectorizing index is set to the first index
+            of every leaf.
 
     Returns
         TsrEx:
             A vectorized tensor expression.
     '''
     i = index().root
-    return tsrex | LeafVectorizer(n, i) | IndexAnalyzer() | EinopVectorizer(i)
+    return tsrex | IndexnessAnalyzer() | Compiler() | Vectorizer(n, i, append)
 
 
-def view(fac, tsrex_scalar, instance: int):
+def view(fac, tsrex_scalar, instance: int, append: bool = False):
     '''Obtain a zero-copy instance from a vectorized factorization model.
 
     Args:
@@ -46,17 +46,22 @@ def view(fac, tsrex_scalar, instance: int):
             The original, un-vectorized tensor expression.
         instance (int):
             Index along the vectorization dimension.
+        append (bool):
+            Indicates whether the vectorization dimension was appended
+            or prepended.
 
     Returns:
         Factorization:
             A factorization model.
     '''
-    if instance >= fac.shape[-1]:
+    nvec = fac.shape[-1] if append else fac.shape[0]
+    if instance >= nvec:
         raise IndexError(
-            f'Only {fac.shape[-1]} vector instances exist, '
+            f'Only {nvec} vector instances exist, '
             f'index {instance} out of range.'
         )
     fac_scalar = Factorization(tsrex_scalar)
+    instance = [..., instance] if append else [instance, ...]
     for i, f in enumerate(fac.all_factors):
-        fac_scalar.all_factors[i] = f[..., instance]
+        fac_scalar.all_factors[i] = f[tuple(instance)]
     return fac_scalar

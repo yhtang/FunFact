@@ -32,18 +32,16 @@ setup(
     tests_require=['tox'],
     install_requires=[
         'numpy>=1.17',
-        'deap>=1.3',
-        'treelib>=1.6',
         'tqdm>=4.55',
         'dill>=0.3.3',
-        'matplotlib>=3.4',
-        'scipy>=1.7.1',
+        'matplotlib>=3.2',
         'asciitree>=0.3.3',
         'plum-dispatch>=1.5.8'
     ],
     extras_require={
         'jax': [
             'jax>=0.2.24',
+            'jaxlib>=0.1.73',
         ],
         'torch': [
             'torch>=1.9',
@@ -54,6 +52,7 @@ setup(
             'mkdocs-material==8.0.5',
             'mkdocs-literate-nav==0.4.1',
             'mkdocs-section-index==0.3.2',
+            'mkdocs-jupyter==0.19.0',
             'mkdocstrings==0.16.2',
         ],
         'devel': [

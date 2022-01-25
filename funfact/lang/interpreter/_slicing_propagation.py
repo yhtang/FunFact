@@ -21,10 +21,21 @@ class SlicingPropagator(TranscribeInterpreter):
             node.slices = self.slices
         return super().__call__(node, parent)
 
+    def abstract_index_notation(
+        self, tensor: P.Numeric, indices: P.indices, slices, **kwargs
+    ):
+        raise NotImplementedError()
+
+    def abstract_binary(
+        self, lhs: P.Numeric, rhs: P.Numeric, operator: str, slices,
+        **kwargs
+    ):
+        raise NotImplementedError()
+
     def literal(self, value: LiteralValue, **kwargs):
         pass
 
-    def tensor(self, abstract: AbstractTensor, **kwargs):
+    def tensor(self, decl: AbstractTensor, **kwargs):
         pass
 
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
@@ -33,10 +44,10 @@ class SlicingPropagator(TranscribeInterpreter):
     def indices(self, items: AbstractIndex, **kwargs):
         pass
 
-    def index_notation(
-        self, indexless: P.Numeric, indices: P.indices, slices, **kwargs
+    def indexed_tensor(
+        self, tensor: P.Numeric, indices: P.indices, slices, **kwargs
     ):
-        indexless.slices = slices
+        tensor.slices = slices
 
     def call(self, f: str, x: P.Tensorial, slices, **kwargs):
         x.slices = slices
@@ -44,16 +55,9 @@ class SlicingPropagator(TranscribeInterpreter):
     def neg(self, x: P.Numeric, slices, **kwargs):
         x.slices = slices
 
-    def matmul(self, lhs: P.Numeric, rhs: P.Numeric, slices, **kwargs):
-        lhs.slices = (slices[0], slice(None))
-        rhs.slices = (slice(None), slices[1])
-
-    def kron(self, lhs: P.Numeric, rhs: P.Numeric, slices, **kwargs):
-        raise NotImplementedError()
-
-    def binary(
-        self, lhs: P.Numeric, rhs: P.Numeric, oper: str, slices,
-        **kwargs
+    def elem(
+        self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
+        slices, **kwargs
     ):
         lhs.slices = slices
         rhs.slices = slices
@@ -85,3 +89,6 @@ class SlicingPropagator(TranscribeInterpreter):
         src.slices = [
             slices[src.live_indices.index(i)] for i in indices.live_indices
         ]
+
+    def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
+        raise NotImplementedError()

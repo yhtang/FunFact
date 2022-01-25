@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from ._base import TranscribeInterpreter
+from ._base import _as_payload, TranscribeInterpreter
 
 
 class ASCIIRenderer(TranscribeInterpreter):
@@ -8,15 +8,23 @@ class ASCIIRenderer(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    as_payload = TranscribeInterpreter.as_payload('ascii')
+    as_payload = _as_payload('ascii')
+
+    @as_payload
+    def abstract_index_notation(self, tensor, indices, **kwargs):
+        return f'[{indices.ascii}]'
+
+    @as_payload
+    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
+        return f'{operator}'
 
     @as_payload
     def literal(self, value, **kwargs):
         return str(value)
 
     @as_payload
-    def tensor(self, abstract, **kwargs):
-        return str(abstract.symbol)
+    def tensor(self, decl, **kwargs):
+        return str(decl.symbol)
 
     @as_payload
     def index(self, item, bound, kron, **kwargs):
@@ -32,7 +40,7 @@ class ASCIIRenderer(TranscribeInterpreter):
         return ','.join([i.ascii for i in items])
 
     @as_payload
-    def index_notation(self, indexless, indices, **kwargs):
+    def indexed_tensor(self, tensor, indices, **kwargs):
         return f'[{indices.ascii}]'
 
     @as_payload
@@ -44,16 +52,8 @@ class ASCIIRenderer(TranscribeInterpreter):
         return ''
 
     @as_payload
-    def matmul(self, lhs, rhs, **kwargs):
-        return ''
-
-    @as_payload
-    def kron(self, lhs, rhs, **kwargs):
-        return ''
-
-    @as_payload
-    def binary(self, lhs, rhs, precedence, oper, **kwargs):
-        return f'{oper}'
+    def elem(self, lhs, rhs, precedence, operator, **kwargs):
+        return operator
 
     @as_payload
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
@@ -62,4 +62,8 @@ class ASCIIRenderer(TranscribeInterpreter):
 
     @as_payload
     def tran(self, src, indices, **kwargs):
+        return f'-> [{indices.ascii}]'
+
+    @as_payload
+    def abstract_dest(self, src, indices, **kwargs):
         return f'-> [{indices.ascii}]'

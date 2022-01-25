@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import numpy as np
 from funfact.backend import active_backend as ab
 from funfact.initializers import Normal
-from ._base import TranscribeInterpreter
+from ._base import _as_payload, TranscribeInterpreter
 
 
 class LeafInitializer(TranscribeInterpreter):
@@ -10,17 +11,23 @@ class LeafInitializer(TranscribeInterpreter):
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.POST
 
-    def __init__(self, dtype):
+    def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32
         super().__init__()
+
+    def abstract_index_notation(self, tensor, indices, **kwargs):
+        return []
+
+    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
+        return []
 
     def literal(self, value, **kwargs):
         return []
 
-    @TranscribeInterpreter.as_payload('data')
-    def tensor(self, abstract, **kwargs):
+    @_as_payload('data')
+    def tensor(self, decl, **kwargs):
         initializer, optimizable, shape = (
-            abstract.initializer, abstract.optimizable, abstract.shape
+            decl.initializer, decl.optimizable, decl.shape
         )
         if initializer is None:
             initializer = Normal(dtype=self.dtype)
@@ -32,11 +39,17 @@ class LeafInitializer(TranscribeInterpreter):
         except TypeError:
             # If optimizable, slice for each instance must be independent.
             # Otherwise, slices can share a view into the original tensor.
-            f = ab.tile if optimizable else ab.broadcast_to
-            return ab.set_optimizable(
-                f(ab.tensor(initializer, dtype=self.dtype), shape),
-                optimizable=optimizable
-            )
+            ini = ab.tensor(initializer, dtype=self.dtype)
+            if np.any(np.remainder(shape, ini.shape) != 0):
+                raise ValueError(
+                    f'Concrete initializer of shape {ini.shape} cannot be '
+                    f'broadcasted to initialize tensor of shape {shape}.'
+                )
+            if optimizable:
+                ini = ab.tile(ini, [s // d for s, d in zip(shape, ini.shape)])
+            else:
+                ini = ab.broadcast_to(ini, shape)
+            return ab.set_optimizable(ini, optimizable=optimizable)
 
     def index(self, item, bound, kron, **kwargs):
         return []
@@ -44,7 +57,7 @@ class LeafInitializer(TranscribeInterpreter):
     def indices(self, items, **kwargs):
         return []
 
-    def index_notation(self, indexless, indices, **kwargs):
+    def indexed_tensor(self, tensor, indices, **kwargs):
         return []
 
     def call(self, f, x, **kwargs):
@@ -53,17 +66,14 @@ class LeafInitializer(TranscribeInterpreter):
     def neg(self, x, **kwargs):
         return []
 
-    def matmul(self, lhs, rhs, **kwargs):
-        return []
-
-    def kron(self, lhs, rhs, **kwargs):
-        return []
-
-    def binary(self, lhs, rhs, precedence, oper, **kwargs):
+    def elem(self, lhs, rhs, precedence, operator, **kwargs):
         return []
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, **kwargs):
         return []
 
     def tran(self, src, indices, **kwargs):
+        return []
+
+    def abstract_dest(self, src, indices, **kwargs):
         return []

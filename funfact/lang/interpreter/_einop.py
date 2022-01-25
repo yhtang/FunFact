@@ -5,6 +5,7 @@
 import re
 import numpy as np
 from funfact.backend import active_backend as ab
+from funfact.util.set import ordered_symmdiff
 
 
 def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
@@ -30,11 +31,11 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
         Name of the pairwise operator
     '''
     # parse input spec string
-    out = re.fullmatch(r'(\w*),(\w*)->(\w*)\|(\w*)', spec)
+    out = re.fullmatch(r'(\w*),(\w*)(->(\w*))?(\|(\w*))?', spec)
     lhs_spec = list(out.group(1))
     rhs_spec = list(out.group(2))
-    out_spec = list(out.group(3))
-    kron_spec = list(out.group(4))
+    out_spec = list(out.group(4) or ordered_symmdiff(lhs_spec, rhs_spec))
+    kron_spec = list(out.group(6) or [])
 
     # reorder lhs and rhs in alphabetical order
     if lhs_spec:
@@ -43,63 +44,55 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
         rhs = ab.transpose(rhs, np.argsort(rhs_spec))
 
     # determine all indices in alphabetical order
-    indices_all = set(lhs_spec).union(rhs_spec)
-    indices_all = sorted(list(indices_all))
+    indices_all = sorted(set(lhs_spec).union(rhs_spec))
 
     # determine dimensions of lhs and rhs tensors,
     # contraction axis, Kronecker indices and remaining indices
-    shape_lhs = lhs.shape
-    shape_rhs = rhs.shape
     j_l = 0
     j_r = 0
-    i = 0
     dim_lhs = []
     dim_rhs = []
     con_ax = []
     indices_rem = []
     kron_res = []
+
+    colon = slice(None)
+    newaxis = None
+
     for c in indices_all:
         if c in out_spec:
             # non-contracting index
             indices_rem.append(c)
             if c in kron_spec:
-                dim_lhs.append(None)
-                dim_lhs.append(slice(None))
-                dim_rhs.append(slice(None))
-                dim_rhs.append(None)
-                kron_res.append(shape_lhs[j_l]*shape_rhs[j_r])
-                i += 2
+                dim_lhs += [newaxis, colon]
+                dim_rhs += [colon, newaxis]
+                kron_res.append(lhs.shape[j_l] * rhs.shape[j_r])
                 j_l += 1
                 j_r += 1
             else:
                 if c in lhs_spec and c in rhs_spec:
-                    dim_lhs.append(slice(None))
-                    dim_rhs.append(slice(None))
-                    if shape_lhs[j_l] > shape_rhs[j_r]:
-                        kron_res.append(shape_lhs[j_l])
-                    else:
-                        kron_res.append(shape_rhs[j_r])
+                    dim_lhs.append(colon)
+                    dim_rhs.append(colon)
+                    kron_res.append(max(lhs.shape[j_l], rhs.shape[j_r]))
                     j_l += 1
                     j_r += 1
                 elif c in lhs_spec:
-                    dim_lhs.append(slice(None))
-                    dim_rhs.append(None)
-                    kron_res.append(shape_lhs[j_l])
+                    dim_lhs.append(colon)
+                    dim_rhs.append(newaxis)
+                    kron_res.append(lhs.shape[j_l])
                     j_l += 1
                 elif c in rhs_spec:
-                    dim_lhs.append(None)
-                    dim_rhs.append(slice(None))
-                    kron_res.append(shape_rhs[j_r])
+                    dim_lhs.append(newaxis)
+                    dim_rhs.append(colon)
+                    kron_res.append(rhs.shape[j_r])
                     j_r += 1
-                i += 1
         else:
             # contracting index
-            dim_lhs.append(slice(None))
-            dim_rhs.append(slice(None))
-            con_ax.append(i)
+            con_ax.append(len(dim_lhs))
+            dim_lhs.append(colon)
+            dim_rhs.append(colon)
             j_l += 1
             j_r += 1
-            i += 1
 
     # compute the contraction in alphabetical order
     op_redu = getattr(ab, reduction)
@@ -109,8 +102,7 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
         return op_redu(tensor, tuple(con_ax)) if con_ax else tensor
 
     # reorder contraction according to out_spec
-    dictionary = dict(zip(indices_rem, np.arange(len(indices_rem))))
-    res_order = [dictionary[key] for key in out_spec]
+    res_order = [indices_rem.index(i) for i in out_spec]
 
     return ab.transpose(
         ab.reshape(

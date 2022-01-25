@@ -42,7 +42,7 @@ class PyTorchBackend(metaclass=BackendMeta):
     def uniform(cls, low, high, shape, dtype=torch.float32):
         with torch.no_grad():
             return torch.rand(
-                *shape, dtype=dtype, generator=cls._gen
+                shape, dtype=dtype, generator=cls._gen
             ) * (high - low) + low
 
     @classmethod
@@ -65,9 +65,9 @@ class PyTorchBackend(metaclass=BackendMeta):
             )
 
     @staticmethod
-    def loss_and_grad(loss_fn, example_model, example_target):
+    def loss_and_grad(loss_fn, example_model, example_target, **kwargs):
         def wrapper(model, target):
-            loss = loss_fn(model(), target)
+            loss = loss_fn(model, target, **kwargs)
             gradients = torch.autograd.grad(loss, model)
             # gradients = [data.grad for data in model.factors]
             return loss, gradients
@@ -75,13 +75,17 @@ class PyTorchBackend(metaclass=BackendMeta):
         return torch.jit.trace(wrapper, (example_model, example_target))
         # TODO jit trace with Factorization class
 
-    def autograd_decorator(ob):
-        return ob
+    def add_autograd(cls):
 
-    class AutoGradMixin():
-        def __iter__(self):
-            for f in self.factors:
-                yield f
+        class AutoGradMixin():
+            def __iter__(self):
+                for f in self.factors:
+                    yield f
+
+        class cls_with_autograd(cls, AutoGradMixin):
+            pass
+
+        return cls_with_autograd
 
     @classmethod
     def set_optimizable(self, x: native_t, optimizable: bool):

@@ -14,7 +14,7 @@ class Zeros:
         self.dtype = dtype or ab.float32
 
     def __call__(self, shape):
-        return ab.zeros(shape, self.dtype)
+        return ab.zeros(shape, dtype=self.dtype)
 
 
 class Ones:
@@ -27,7 +27,24 @@ class Ones:
         self.dtype = dtype or ab.float32
 
     def __call__(self, shape):
-        return ab.ones(shape, self.dtype)
+        return ab.ones(shape, dtype=self.dtype)
+
+
+class Eye:
+    '''Initializes diagonal elements to 1 and all others to 0.
+
+    Args:
+        dtype: Numerical type of elements.
+    '''
+    def __init__(self, dtype=None):
+        self.dtype = dtype or ab.float32
+
+    def __call__(self, shape):
+        if len(shape) != 2:
+            raise ValueError(
+                'Only 2D matrices can be initialized as identity'
+            )
+        return ab.eye(*shape, dtype=self.dtype)
 
 
 class Normal:
@@ -48,11 +65,11 @@ class Normal:
         self.std = std
         self.dtype = dtype or ab.float32
         if truncation is True:
-            self.truncation = 2.0 * std
+            self.truncation = ab.tensor(2.0 * std, dtype=self.dtype)
         elif truncation is False:
-            self.truncation = 0
+            self.truncation = ab.tensor(0.0, dtype=self.dtype)
         else:
-            self.truncation = float(truncation) * std
+            self.truncation = ab.tensor(truncation * std, dtype=self.dtype)
 
     def __call__(self, shape):
         n = ab.normal(0.0, self.std, as_tuple(shape), dtype=self.dtype)
@@ -125,3 +142,31 @@ class VarianceScaling:
         shape = as_tuple(shape)
         std = (self.scale / shape[self.axis])**0.5
         return std * self.distribution(shape)
+
+
+def stack(initializer, append: bool = True):
+    '''Stacks initializers for the purpose of vectorization.
+
+    Args:
+        initializer (callable): initializer to be vectorized.
+        append (bool):
+            If True, the last index of shape is considered the vectorizing
+            index. If False, the first index of shape tuple is considered
+            the vectorizing index.
+    '''
+    class StackedInitializer:
+        def __init__(self, dtype=None):
+            if isinstance(initializer, type):
+                self.initializer = initializer(dtype=dtype or ab.float32)
+            else:
+                self.initializer = initializer
+
+        def __call__(self, shape):
+            nvec = shape[-1] if append else shape[0]
+            shape = shape[:-1] if append else shape[1:]
+            axis = -1 if append else 0
+            return ab.stack(
+                [self.initializer(shape) for i in range(nvec)], axis
+            )
+
+    return StackedInitializer

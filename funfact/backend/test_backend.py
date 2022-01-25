@@ -3,7 +3,6 @@
 import pytest
 import os
 from . import (
-    _active_backend,
     _use_default_backend,
     active_backend,
     available_backends,
