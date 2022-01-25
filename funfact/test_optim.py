@@ -60,3 +60,32 @@ def test_rmsprop_init_and_step():
     opt.step(grad)
     assert opt.X[0].shape == X[0].shape
     assert opt.X[1].shape == X[1].shape
+
+
+@pytest.mark.parametrize('opt_class', [
+    Adam,
+    RMSprop
+])
+def test_convergence(opt_class):
+
+    class Model():
+        def __init__(self, a, b, target):
+            self.a = a
+            self.b = b
+            self.target = target
+            self.X = ab.tensor([0.16, -2.34])
+
+        def __call__(self):
+            return (self.a * self.X[0]**2 + self.b * self.X[1] -
+                    self.target)**2
+
+        def grad(self):
+            g = 2*(self.a * self.X[0]**2 + self.b * self.X[1] - self.target)
+            return [g*2*self.a*self.X[0], g*self.b]
+
+    tol = 0.001
+    model = Model(1.5, -0.25, 3.0)
+    opt = opt_class(model.X)
+    for i in range(100):
+        opt.step(model.grad())
+    assert model() < tol
