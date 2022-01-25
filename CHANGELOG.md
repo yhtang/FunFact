@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.9.3 (2022-01-25)
+
+- New quantum circuit synthesis example.
+- Documentation updates.
+
 ## 0.9.2 (2022-01-21)
 
 - Bug fixes and documentation updates.

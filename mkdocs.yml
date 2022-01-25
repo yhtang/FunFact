@@ -1,5 +1,4 @@
-site_name: "FunFact: Tensor Algebra and Deep Learning via Einstein Notations"
-# site_description: "Automatic documentation from sources, for MkDocs."
+site_name: "FunFact: Tensor Decomposition, Your Way"
 site_url: "https://funfact.readthedocs.io/"
 repo_url: "https://github.com/yhtang/FunFact/"
 edit_uri: "blob/develop/docs/"
@@ -32,6 +31,7 @@ plugins:
   - search
   # - gen-files:
   #     scripts:
+  #       - docs/copy_readme.py
   #     - docs/gen_ref_nav.py
   #     - docs/gen_credits.py
   - section-index
@@ -58,6 +58,8 @@ markdown_extensions:
   - tables
   - toc:
       permalink: "¶"
+  - pymdownx.tabbed:
+      alternate_style: true 
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.highlight:
@@ -65,21 +67,27 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true 
   - pymdownx.snippets
   - pymdownx.details
 extra_javascript:
-  - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
-  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js
+  - https://cdnjs.cloudflare.com/ajax/libs/tablesort/5.2.1/tablesort.min.js
+  - javascripts/mathjax.js
+  # - javascripts/tablesort.js
+extra_css:
+  - stylesheets/extra.css
 nav:
-    - index.md
+    - Home: index.md
     - pages/installation.md
     - Examples:
-      # - Nonlinear matrix approximation: pages/examples/nma.md
       - Nonlinear matrix approximation: examples/matrix-approximation.ipynb
+      - Quantum circuit compilation: examples/quantum-compilation.ipynb
     - pages/cheatsheet.md
     - User Guide:
-        - pages/user-guide/tensor-and-indices.md
+        - "Tensors and Indices": pages/user-guide/tensor-and-indices.md
         - pages/user-guide/tsrex.md
         - pages/user-guide/eval.md
         - pages/user-guide/factorize.md
@@ -100,6 +108,5 @@ nav:
         - "funfact.view": api/view.md
         - "funfact.active_backend": api/active_backend.md
         - "funfact.available_backends": api/available_backends.md
-        - "funfact.use": api/use.md
-    # - Debug: reference/
+        - "funfact.use": api/use.md/
     - pages/contribute.md  # contribution guide
