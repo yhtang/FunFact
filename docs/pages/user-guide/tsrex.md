@@ -13,11 +13,24 @@ This page provides a brief overview of the supported operations and illustrates
 their use with some examples.
 
 !!! note
+
     FunFact adopts a lazy evaluation model for tensor expressions. Upon
     generation only some [basic analysis](#properties-of-tensor-expressions)
     is performed without evaluating the full expression. Evaluation only
     happens when a model created from the tensor expression is
     [evaluated](../eval).
+
+
+!!! note
+
+    We assume the readers are familiar with the Einstein notation. Many
+    excellent introductary articles can be found online, such as:
+
+    - [Einstein notation - Wikipedia](https://en.wikipedia.org/wiki/Einstein_notation)
+    - [Tensor - Wikipedia](https://en.wikipedia.org/wiki/Tensor#Notation)
+    - [Einstein Summation - MathWorld](https://mathworld.wolfram.com/EinsteinSummation.html)
+    - [Einstein Summation Convention: an Introduction - YouTube](https://www.youtube.com/watch?v=CLrTj7D2fLM)
+
 
 ## Three Types of Tensor Expressions
 

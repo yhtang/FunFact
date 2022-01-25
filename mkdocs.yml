@@ -96,6 +96,9 @@ nav:
         - "funfact.index": api/index_.md
         - "funfact.indices": api/indices.md
         - "funfact.tensor": api/tensor.md
+        - "funfact.zeros": api/zeros.md
+        - "funfact.ones": api/ones.md
+        - "funfact.eye": api/eye.md
         - "funfact.initializers": api/initializers.md
         - "funfact.conditions": api/conditions.md
         - "funfact.TsrEx": api/tsrex.md
