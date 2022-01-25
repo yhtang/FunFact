@@ -1,20 +1,23 @@
 # Installation
 
-There are two options to install FunFact: either from PyPI or directly from source.
+There are two options to install FunFact:
 
-## Install stable versions from [Python Package Index](https://pypi.org/project/funfact/)
+- install released versions from [PyPI](https://pypi.org/project/funfact/)
+- install the latest version from source.
 
-```bash
-pip install funfact
-```
+=== "Install from PyPI"
 
-## Install the latest version from source
+    ```bash
+    pip install funfact
+    ```
 
-```bash
-git clone https://github.com/yhtang/FunFact.git
-cd FunFact/
-python setup.py install
-```
+=== "Install from source"
+
+    ```bash
+    git clone https://github.com/yhtang/FunFact.git
+    cd FunFact/
+    python setup.py install
+    ```
 
 ## Autograd backends
 
@@ -22,20 +25,28 @@ The default installation of FunFact installs the NumPy backend, which only
 supports forward calculations. The NumPy backend doesn't support automatic differentiation
 and is not able to optimize tensor expressions for methods such as [funfact.factorize](funfact.factorize).
 
-In order to factorize tensor data by a tensor expression, two other backends are provides:
+In order to factorize tensor data by a tensor expression, two autograd backends
+are provided:
 
-  * [JAX](https://jax.readthedocs.io/en/latest/) backend. Detailed 
-  installation instructions for JAX can be found [here](https://github.com/google/jax#installation). Alternatively, use:
-  ```bash
-  pip install "funfact[jax]"
-  ```
+=== "Use the JAX backend"
 
-  * [PyTorch](https://pytorch.org) backend. Detailed installation instruction
-  for PyTorch can be found [here](https://pytorch.org/get-started/locally/).
-  Alternatively, use:
-  ```bash
-  pip install "funfact[torch]"
-  ``` 
+    ```bash
+    pip install "funfact[jax]"
+    ```
+
+=== "Use the PyTorch backend"
+
+    ```bash
+    pip install "funfact[torch]"
+    ``` 
+
+Running the command as above will trigger installalation of the respective
+packages. For more control on backend installation, please refer to:
+
+* [JAX](https://jax.readthedocs.io/en/latest/): [installation instructions](https://github.com/google/jax#installation).
+
+* [PyTorch](https://pytorch.org): [installation instructions](https://pytorch.org/get-started/locally/).
+
 
 ## Development dependencies
 
