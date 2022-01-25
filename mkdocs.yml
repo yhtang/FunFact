@@ -79,6 +79,7 @@ nav:
     - Examples:
       # - Nonlinear matrix approximation: pages/examples/nma.md
       - Nonlinear matrix approximation: examples/matrix-approximation.ipynb
+      - Quantum circuit compilation: examples/quantum-compilation.ipynb
     - pages/cheatsheet.md
     - User Guide:
         - "Tensors and Indices": pages/user-guide/tensor-and-indices.md
