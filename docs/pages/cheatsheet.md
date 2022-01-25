@@ -2,7 +2,7 @@
 
 ## Import
 
-``` py title="Recommended way of importing funfact"
+``` py title="Recommended import statements"
 import funfact as ff
 from funfact import active_backend as ab  # use it like numpy!
 ```
@@ -21,8 +21,8 @@ from funfact import active_backend as ab  # use it like numpy!
 | **Syntax** | **Description** |
 | ------------------- | -------------------------------------------------------------------- |
 | `ff.index()` | Create an anonymous index |
-| `ff.index('i')` | Create an index with name $i$ |
-| `ff.index('j_1')` | Create an index with name $j_1$ |
+| `ff.index('i')` | Create an index named $i$ |
+| `ff.index('j_1')` | Create an index named $j_1$ |
 | `ff.indices('i j k')` | Creates a tuple of 3 indices named $i$, $j$, and $k$ |
 | `ff.indices('i, j, k')` | Same as above |
 | `ff.indices(5)` | Create a tuple of 5 anonymous indices |
@@ -36,10 +36,10 @@ from funfact import active_backend as ab  # use it like numpy!
 | `ff.tensor(2, 3, 4)` | A $2 \times 3 \times 4$ nameless random tensor with normally initialized values |
 | `ff.tensor(np.array([[1, 2], [3, 4]]))` | A concrete nameless matrix $\begin{bmatrix}1&2\\3&4\end{bmatrix}$ |
 | <div style="color:#808080;">**Optimizability**</div> || 
-| `ff.tensor('T', 2, 3, 4)` | Pure abstract tensors will be optimized by default |
+| `ff.tensor('T', 2, 3, 4)` | Pure abstract tensors are optimizable by default |
 | `ff.tensor('T', 2, 3, 4, optimizable=False)` | No optimization after random initialization |
-| `ff.tensor('T', np.random.randn(2, 3, 4))` | Concrete data disables optimization |
-| `ff.tensor('T', np.random.randn(2, 3, 4), optimizable=True)` | Force optimizable |
+| `ff.tensor('T', np.random.randn(2, 3, 4))` | Concrete data are not optimizable by default |
+| `ff.tensor('T', np.random.randn(2, 3, 4), optimizable=True)` | Force optimizable to be on |
 | <div style="color:#808080;">**Initializers**</div> || 
 | `ff.tensor('T', 2, 3, 4, initializer=ff.initializers.Zeros)` | Initialize all elements as 0 |
 | `ff.tensor('T', 2, 3, 4, initializer=ff.initializers.Ones)` | Initialize all elements as 1 |
@@ -59,10 +59,10 @@ from funfact import active_backend as ab  # use it like numpy!
 
 | **Syntax** | **Description** |
 | ------------------- | -------------------------------------------------------------------- |
-| `a[i] + b[j]` | $\boldsymbol{\lambda}_{ij} = \boldsymbol{a}_{i}  -\boldsymbol{b}_{j}$, pairwise addition between two vectors |
-| `a[i] - b[j]` | $\boldsymbol{\lambda}_{ij} = \boldsymbol{a}_{i}  -\boldsymbol{b}_{j}$, pairwise subtraction between two vectors |
+| `a[i] + b[j]` | $\boldsymbol{\lambda}_{ij} = \boldsymbol{a}_{i} + \boldsymbol{b}_{j}$, pairwise addition between two vectors |
+| `a[i] - b[j]` | $\boldsymbol{\lambda}_{ij} = \boldsymbol{a}_{i} - \boldsymbol{b}_{j}$, pairwise subtraction between two vectors |
 | `a[i] * b[j]` | $\boldsymbol{a} \boldsymbol{b}^\mathsf{T}$, pairwise multiplication, i.e. outer product between two vectors |
-| `a[i] / b[j]` | $\boldsymbol{\lambda}_{ij} = \boldsymbol{a}_{i}  -\boldsymbol{b}_{j}$, pairwise division between two vectors |
+| `a[i] / b[j]` | $\boldsymbol{\lambda}_{ij} = \boldsymbol{a}_{i} / \boldsymbol{b}_{j}$, pairwise division between two vectors |
 | `a[i] * b[i]` | $\boldsymbol{a} \cdot \boldsymbol{b}$, inner product between two vectors |
 | `A[i, j] * B[j, k]` | $A \cdot B$, inner product between two matrices |
 | `A[i, j] * B[k, j]` | $A \cdot B^\mathsf{T}$, inner product with transposition |
