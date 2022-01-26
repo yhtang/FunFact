@@ -111,5 +111,8 @@ def test_dfs_filter(test_case):
     RewritingTranscriber
 ])
 def test_abstract_interpreter(intr):
-    for prim in filter(lambda a: isinstance(a, type) and issubclass(a, _ASNode), P.__dict__.values()):
+    for prim in filter(
+        lambda a: isinstance(a, type) and issubclass(a, _ASNode),
+        P.__dict__.values()
+    ):
         assert hasattr(intr, prim.__name__)
