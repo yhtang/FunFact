@@ -33,10 +33,32 @@ def intr():
     (P.index(M(symbol='symbol'), False, True),
      '*symbol'),
 
-    # (,
-    #  ),
-    # (,
-    #  ),
+    (P.indices([M(ascii='i'), M(ascii='j')]),
+     'i,j'),
+
+    (P.indexed_tensor('', M(ascii='indices')),
+     '[indices]'),
+
+    (P.call('fun', ''),
+     'fun'),
+
+    (P.neg(''),
+     ''),
+
+    (P.elem('', '', '', 'operator'),
+     'operator'),
+
+    (P.ein('', '', '', 'red', 'pair', M(ascii='outidx')),
+     'red:pair -> outidx'),
+
+    (P.ein('', '', '', 'red', 'pair', None),
+     'red:pair'),
+
+    (P.tran('', M(ascii='indices')),
+     '-> [indices]'),
+
+    (P.abstract_dest('', M(ascii='indices')),
+     '-> [indices]'),
 ])
 def test_intr(test_case, intr):
     node, result = test_case
