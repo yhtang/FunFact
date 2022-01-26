@@ -52,12 +52,10 @@ packages. For more control on backend installation, please refer to:
 
 There are two additional sets of dependencies useful for developers:
 
- * To install all dependencies for generating FunFact documentation, use:
-  ```bash
-  pip install "funfact[docs]"
-  ``` 
+``` bash title="Extra dependencies for generating documentation"
+pip install "funfact[docs]"
+``` 
 
- * To install all dependencies for development of FunFact, use:
-  ```bash
-  pip install "funfact[devel]"
-  ``` 
+``` bash title="Extra dependencies for code development"
+pip install "funfact[devel]"
+```
