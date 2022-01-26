@@ -77,9 +77,9 @@ def test_penalties():
     assert fac.penalty() > 0.0
     assert fac.penalty(sum_leafs=False).shape == (2,)
     assert fac.penalty() == fac.penalty(sum_leafs=False)[0] + \
-           fac.penalty(sum_leafs=False)[1] 
+           fac.penalty(sum_leafs=False)[1]
 
-    
+
 '''
 def test_elementwise():
     tol = 20 * np.finfo(np.float32).eps
