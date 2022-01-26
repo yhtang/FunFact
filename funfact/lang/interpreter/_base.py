@@ -295,7 +295,8 @@ def dfs(node: _ASNode):
     ):
         if isinstance(child, _ASNode):
             yield from dfs(child)
-        yield node
+
+    yield node
 
 
 def dfs_filter(function: Callable[[_ASNode], bool], node: _ASNode):
