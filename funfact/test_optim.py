@@ -60,3 +60,64 @@ def test_rmsprop_init_and_step():
     opt.step(grad)
     assert opt.X[0].shape == X[0].shape
     assert opt.X[1].shape == X[1].shape
+
+
+@pytest.mark.parametrize('opt_class', [
+    Adam,
+    RMSprop
+])
+def test_convergence(opt_class):
+
+    class Model():
+        def __init__(self, a, b, target):
+            self.a = a
+            self.b = b
+            self.target = target
+            self.X = [self._DataTensor(ab.tensor([0.16])),
+                      self._DataTensor(ab.tensor([-2.34]))]
+
+        def __call__(self):
+            return (self.a * self.X[0].data**2 + self.b * self.X[1].data -
+                    self.target)**2
+
+        def grad(self):
+            g = 2*(self.a * self.X[0].data**2 + self.b * self.X[1].data -
+                   self.target)
+            return [g*2*self.a*self.X[0].data, g*self.b]
+
+        @property
+        def factors(self):
+            return self._NodeView(
+                'data', self.X
+            )
+
+        @factors.setter
+        def factors(self, tensors):
+            for i, n in enumerate(self.X):
+                n.data = tensors[i]
+
+        class _DataTensor:
+            def __init__(self, tensor):
+                self.data = tensor
+
+        class _NodeView:
+            def __init__(self, attribute: str, nodes):
+                self.attribute = attribute
+                self.nodes = nodes
+
+            def __getitem__(self, i):
+                return getattr(self.nodes[i], self.attribute)
+
+            def __setitem__(self, i, value):
+                setattr(self.nodes[i], self.attribute, value)
+
+            def __iter__(self):
+                for n in self.nodes:
+                    yield getattr(n, self.attribute)
+
+    tol = 0.001
+    model = Model(1.5, -0.25, 3.0)
+    opt = opt_class(model.factors)
+    for i in range(100):
+        opt.step(model.grad())
+    assert model() < tol
