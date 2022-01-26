@@ -1,11 +1,86 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import pytest
-import numpy as np
-from ._factorization import Factorization
-from funfact import tensor, indices
+import funfact as ff
+from funfact import active_backend as ab
 
 
+def test_instantiation():
+    A = ff.tensor('A', 2, 2, initializer=ff.initializers.Ones)
+
+    fac = ff.Factorization(A, test=1.0)
+    assert fac.test == 1.0
+
+    fac = ff.Factorization.from_tsrex(A, dtype=ab.float32)
+    assert ab.allclose(fac.tsrex.root.data, ab.tensor([1.0]))
+    assert fac.tsrex.root.data.dtype == ab.float32
+
+    fac = ff.Factorization.from_tsrex(A, initialize=False)
+    with pytest.raises(AttributeError):
+        fac.tsrex.root.data
+    assert isinstance(fac.tsrex, ff.lang._tsrex.TsrEx)
+    assert fac.shape == A.shape
+    assert fac.ndim == A.ndim
+
+
+def test_factors_element_access():
+    A = ff.tensor('A', 2, 2, optimizable=False)
+    B = ff.tensor('B', 2, 2)
+    tsrex = A @ B
+    fac = ff.Factorization.from_tsrex(tsrex)
+    assert len(fac.factors) == 1
+    assert len(fac.all_factors) == 2
+    fac.factors = ab.tensor([[1, 2], [3, 4]])
+    ab.allclose(fac.factors[0], ab.tensor([[1, 2], [3, 4]]))
+    fac.factors[0] = ab.tensor([[5, 6], [7, 8]])
+    ab.allclose(fac.factors[0], ab.tensor([[5, 6], [7, 8]]))
+    assert isinstance(fac.factors.__repr__(), str)
+    assert ab.allclose(fac(), fac.forward())
+    assert fac().shape == (2, 2)
+    assert ab.allclose(fac['B'], fac.factors[0])
+    with pytest.raises(AttributeError):
+        fac['Unknown']
+    fac['A'] = ab.tensor([[10, 20], [30, 40]])
+    assert ab.allclose(fac['A'], ab.tensor([[10, 20], [30, 40]]))
+    with pytest.raises(AttributeError):
+        fac['Unknown'] = ab.tensor([-1])
+    assert fac[0, 0] == fac()[0, 0]
+    assert fac[-1, -1] == fac()[-1, -1]
+    assert ab.allclose(ab.squeeze(fac[:, 0]), fac()[:, 0])
+    assert ab.allclose(ab.squeeze(fac[1, ...]), fac()[1, ...])
+    with pytest.raises(IndexError):
+        fac[0, 'A']
+    with pytest.raises(IndexError):
+        fac[0, 0, 0]
+    with pytest.raises(IndexError):
+        fac[5:6, 0]
+    with pytest.raises(IndexError):
+        fac[0:3, 0]
+
+
+def test_multiple_factors():
+    A = ff.tensor('A', 2, 2)
+    B = ff.tensor('B', 2, 2)
+    tsrex = A @ B
+    fac = ff.Factorization.from_tsrex(tsrex)
+    i = 0
+    for f in fac.factors:
+        i += 1
+    assert i == 2
+
+
+def test_penalties():
+    A = ff.tensor('A', 2, 2, prefer=ff.conditions.UpperTriangular())
+    B = ff.tensor('B', 2, 2, prefer=ff.conditions.Unitary())
+    tsrex = A @ B
+    fac = ff.Factorization.from_tsrex(tsrex)
+    assert fac.penalty() > 0.0
+    assert fac.penalty(sum_leafs=False).shape == (2,)
+    assert fac.penalty() == fac.penalty(sum_leafs=False)[0] + \
+           fac.penalty(sum_leafs=False)[1] 
+
+    
+'''
 def test_elementwise():
     tol = 20 * np.finfo(np.float32).eps
 
@@ -189,3 +264,4 @@ def test_Kronecker():
     for o, f, e in zip(out.shape, fac.shape, expected_shape):
         assert o == e
         assert o == f
+'''
