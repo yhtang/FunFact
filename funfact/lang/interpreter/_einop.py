@@ -95,11 +95,6 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
                     p_rhs += 1
                     p_out += 1
 
-    print('ax_contraction', ax_contraction)
-    print('ax_expand_lhs', ax_expand_lhs)
-    print('ax_expand_rhs', ax_expand_rhs)
-    print('target_shape', target_shape)
-
     # compute the contraction in alphabetical order
     op_redu = getattr(ab, reduction)
     op_pair = getattr(ab, pairwise)
@@ -109,10 +104,6 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
             return op_redu(tensor, tuple(ax_contraction))
         else:
             return tensor
-
-    print(lhs.shape)
-    print(ab.expand_dims(lhs, ax_expand_lhs).shape)
-    print(ab.expand_dims(rhs, ax_expand_rhs).shape)
 
     return ab.reshape(
         op_reduce_if(
