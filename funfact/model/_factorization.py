@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from numbers import Integral
 from funfact.lang.interpreter import (
     dfs_filter,
     Compiler,
@@ -161,52 +162,48 @@ class Factorization:
         '''Evaluate the tensor expression the result.'''
         return self.tsrex | Evaluator()
 
+    @staticmethod
+    def _as_slice(i, axis):
+        if isinstance(axis, slice):
+            return axis
+        elif isinstance(axis, Integral):
+            if axis != -1:
+                return slice(axis, axis + 1)
+            else:
+                return slice(axis)
+        elif hasattr(axis, '__iter__'):
+            return tuple(axis)
+        elif axis is Ellipsis:
+            return None
+        else:
+            raise RuntimeError(
+                f'Invalid index for axis {i}: {axis}'
+            )
+
     def _get_elements(self, key):
         '''Get elements at index of tensor expression.'''
 
         # Generate full index list
-        full_idx = []
-        ellipsis_i = None
-        for i in key:
-            if isinstance(i, int):
-                if i != -1:
-                    full_idx.append(slice(i, i+1))
-                else:
-                    full_idx.append(slice(i, None))
-            elif isinstance(i, slice):
-                full_idx.append(i)
-            elif i is Ellipsis:
-                ellipsis_i = key.index(...)
-            else:
-                raise IndexError(
-                    f'Unrecognized index {i} of type {type(i)}'
-                )
-        if ellipsis_i is not None:
-            for i in range(self.ndim - len(full_idx)):
-                full_idx.insert(ellipsis_i, slice(None))
+        indices = tuple([self._as_slice(i, axis) for i, axis in enumerate(key)])
+        try:
+            i = key.index(Ellipsis)
+            indices = tuple([
+                *indices[:i],
+                *[slice(None)] * (self.ndim - len(indices) + 1),
+                *indices[i + 1:]
+            ])
+        except ValueError:
+            pass
 
         # Validate full index list
-        if len(full_idx) != self.ndim:
+        if len(indices) != self.ndim:
             raise IndexError(
-                f'Wrong number of indices {len(full_idx)},'
-                f'expected {self.ndim}'
+                f'Wrong number of indices: expected {self.ndim}, '
+                f'got {len(indices)}.'
             )
-        for i, idx in enumerate(full_idx):
-            if idx.start is not None:
-                if idx.start >= self.shape[i] or idx.start < -self.shape[i]:
-                    raise IndexError(
-                        f'index.start {idx.start} is out of bounds for '
-                        f'axis {i} with size {self.shape[i]}'
-                    )
-            if idx.stop is not None:
-                if idx.stop > self.shape[i] or idx.stop <= -self.shape[i]:
-                    raise IndexError(
-                        f'index.stop {idx.stop} is out of bounds for '
-                        f'axis {i} with size {self.shape[i]}'
-                    )
 
         # Evaluate model
-        return self.tsrex | SlicingPropagator(full_idx) \
+        return self.tsrex | SlicingPropagator(indices) \
                           | ElementwiseEvaluator()
 
     def __getitem__(self, idx):
