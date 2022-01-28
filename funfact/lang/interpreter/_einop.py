@@ -55,21 +55,24 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     # Determine expansion positions to align the contraction, Kronecker,
     # elementwise, and outer product indices
     p_out, p_lhs, p_rhs = 0, 0, 0
-    ax_expand_lhs = []
-    ax_expand_rhs = []
+    newaxis, colon = None, slice(None)
+    index_lhs = []
+    index_rhs = []
     ax_contraction = []
     target_shape = []
 
     for c in indices_all:
         if c not in out_spec:  # contracting index
             ax_contraction.append(p_out)
+            index_lhs.append(colon)
+            index_rhs.append(colon)
             p_lhs += 1
             p_rhs += 1
             p_out += 1
         else:  # non-contracting index
             if c in kron_spec:
-                ax_expand_lhs.append(p_out)
-                ax_expand_rhs.append(p_out + 1)
+                index_lhs += [colon, newaxis]
+                index_rhs += [newaxis, colon]
                 target_shape.append(lhs.shape[p_lhs] * rhs.shape[p_rhs])
                 p_lhs += 1
                 p_rhs += 1
@@ -81,16 +84,20 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
                             lhs.shape[p_lhs], rhs.shape[p_rhs]
                         )
                     )
+                    index_lhs.append(colon)
+                    index_rhs.append(colon)
                     p_lhs += 1
                     p_rhs += 1
                     p_out += 1
                 elif c in lhs_spec:
-                    ax_expand_rhs.append(p_out)
+                    index_lhs.append(colon)
+                    index_rhs.append(newaxis)
                     target_shape.append(lhs.shape[p_lhs])
                     p_lhs += 1
                     p_out += 1
                 elif c in rhs_spec:
-                    ax_expand_lhs.append(p_out)
+                    index_lhs.append(newaxis)
+                    index_rhs.append(colon)
                     target_shape.append(rhs.shape[p_rhs])
                     p_rhs += 1
                     p_out += 1
@@ -107,12 +114,8 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
 
     return ab.reshape(
         op_reduce_if(
-            op_pair(
-                ab.expand_dims(lhs, ax_expand_lhs),
-                ab.expand_dims(rhs, ax_expand_rhs),
-            ),
+            op_pair(lhs[tuple(index_lhs)], rhs[tuple(index_rhs)]),
             ax_contraction
         ),
         tuple(target_shape),
-        order='F'
     )
