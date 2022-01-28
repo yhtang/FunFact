@@ -220,13 +220,13 @@ class TypeDeducer(RewritingTranscriber):
             repeated = ordered_intersect(src_live.lhs, src_live.rhs)
             bound = ordered_setminus(keep, free)
             lone_keep = ordered_setminus(keep, repeated)
+            lone_kron = ordered_setminus(kron, repeated)
             implied_survival = free_l + bound + free_r
             live_indices, keep_indices, kron_indices = (
-                implied_survival, lone_keep, kron
+                implied_survival, lone_keep, lone_kron
             )
         else:
             explicit_survival = outidx.live_indices
-            explicit_kron = ordered_union(kron, outidx.kron_indices)
             for i in keep:
                 if i not in explicit_survival:
                     raise SyntaxError(
@@ -239,15 +239,17 @@ class TypeDeducer(RewritingTranscriber):
                         f'Explicitly specified index {i} does not'
                         f'existing in the operand indices list {live}.'
                     )
+            lone_keep = ordered_setminus(keep, explicit_survival)
+            lone_kron = ordered_setminus(kron, explicit_survival)
             live_indices, keep_indices, kron_indices = (
-                explicit_survival, [], explicit_kron
+                explicit_survival, lone_keep, lone_kron
             )
 
         dict_lhs = dict(zip(src_live.lhs, lhs.shape))
         dict_rhs = dict(zip(src_live.rhs, rhs.shape))
 
         for i in src_live.lhs:
-            if i in src_live.rhs and i not in kron_indices:
+            if i in src_live.rhs and i not in kron:
                 if dict_lhs[i] != dict_rhs[i]:
                     raise SyntaxError(
                         f'Dimension of elementwise index {i} on left-hand side'
@@ -258,7 +260,7 @@ class TypeDeducer(RewritingTranscriber):
         shape = []
         for i in live_indices:
             if i in src_live.lhs and i in src_live.rhs:
-                if i in kron_indices:
+                if i in kron:
                     shape.append(dict_lhs[i]*dict_rhs[i])
                 else:
                     shape.append(dict_lhs[i])
