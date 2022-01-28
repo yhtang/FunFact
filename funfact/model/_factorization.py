@@ -3,7 +3,7 @@
 from numbers import Integral
 from funfact.lang.interpreter import (
     dfs_filter,
-    Compiler,
+    TypeDeducer,
     EinsteinSpecGenerator,
     Evaluator,
     IndexnessAnalyzer,
@@ -39,7 +39,7 @@ class Factorization:
     def __init__(self, tsrex, **extra_attributes):
         self._tsrex = (tsrex
                        | IndexnessAnalyzer()
-                       | Compiler()
+                       | TypeDeducer()
                        | EinsteinSpecGenerator())
         self.__dict__.update(**extra_attributes)
 

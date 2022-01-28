@@ -20,7 +20,7 @@ def _add_attr(node, **kwargs):
     return node
 
 
-class Compiler(RewritingTranscriber):
+class TypeDeducer(RewritingTranscriber):
     '''Analyzes which of the indices survive in a tensor operations and does
     AST rewrite to replace certain operations with specialized Einstein
     operations and index renaming operations.'''
