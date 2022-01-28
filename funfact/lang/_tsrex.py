@@ -13,7 +13,7 @@ from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
     ASCIIRenderer,
     TypeDeducer,
-    EinsteinSpecGenerator,
+    EinopCompiler,
     IndexnessAnalyzer,
     LatexRenderer,
 )
@@ -96,7 +96,7 @@ class _BaseEx(_AST):
     _latex_intr = LatexRenderer()
     _asciitree_factory = ASCIITreeFactory()
     _type_deducer = TypeDeducer()
-    _einspec_generator = EinsteinSpecGenerator()
+    _einop_compiler = EinopCompiler()
     _indexness_analyzer = IndexnessAnalyzer()
 
     @functools.lru_cache()
@@ -154,7 +154,7 @@ class _BaseEx(_AST):
         return (self |
                 self._indexness_analyzer |
                 self._type_deducer |
-                self._einspec_generator).root
+                self._einop_compiler).root
 
     @property
     def shape(self):

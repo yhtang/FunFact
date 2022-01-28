@@ -4,7 +4,7 @@ from numbers import Integral
 from funfact.lang.interpreter import (
     dfs_filter,
     TypeDeducer,
-    EinsteinSpecGenerator,
+    EinopCompiler,
     Evaluator,
     IndexnessAnalyzer,
     LeafInitializer,
@@ -40,7 +40,7 @@ class Factorization:
         self._tsrex = (tsrex
                        | IndexnessAnalyzer()
                        | TypeDeducer()
-                       | EinsteinSpecGenerator())
+                       | EinopCompiler())
         self.__dict__.update(**extra_attributes)
 
     @classmethod

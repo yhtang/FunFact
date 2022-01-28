@@ -3,7 +3,7 @@
 from ._ascii import ASCIIRenderer
 from ._base import dfs, dfs_filter, PayloadMerger
 from ._evaluation import Evaluator
-from ._einspec import EinsteinSpecGenerator
+from ._einop_compiler import EinopCompiler
 from ._type_deduction import TypeDeducer
 from ._indexness import IndexnessAnalyzer
 from ._initialization import LeafInitializer
@@ -19,7 +19,7 @@ __all__ = [
     'ASCIIRenderer',
     'TypeDeducer',
     'Evaluator',
-    'EinsteinSpecGenerator',
+    'EinopCompiler',
     'IndexnessAnalyzer',
     'LeafInitializer',
     'LatexRenderer',

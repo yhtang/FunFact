@@ -24,7 +24,7 @@ class IndexMap:
             return self._map(ids)
 
 
-class EinsteinSpecGenerator(TranscribeInterpreter):
+class EinopCompiler(TranscribeInterpreter):
     '''The Einstein summation specification generator creates NumPy-style spec
     strings for tensor contraction operations.'''
 
