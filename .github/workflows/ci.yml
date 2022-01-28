@@ -7,6 +7,9 @@ on:
       - develop
   pull_request:
   workflow_dispatch:
+  create:
+    tags:
+      - 'v*'
 jobs:
   lint:
     runs-on: ubuntu-latest
