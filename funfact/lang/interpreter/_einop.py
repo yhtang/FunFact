@@ -46,74 +46,88 @@ def _einop(spec: str, lhs, rhs, reduction: str, pairwise: str):
     # determine all indices in alphabetical order
     indices_all = sorted(set(lhs_spec).union(rhs_spec))
 
-    # determine dimensions of lhs and rhs tensors,
+    # determine unsqueeze axes
     # contraction axis, Kronecker indices and remaining indices
-    j_l = 0
-    j_r = 0
-    dim_lhs = []
-    dim_rhs = []
-    con_ax = []
-    indices_rem = []
-    kron_res = []
+    ax_expand_lhs = []
+    ax_expand_rhs = []
+    ax_contraction = []
+    target_shape = []
 
-    colon = slice(None)
-    newaxis = None
+    p_out, p_lhs, p_rhs = 0, 0, 0
+    indices_rem = []
 
     for c in indices_all:
-        if c in out_spec:
+        if c not in out_spec:  # contracting index
+            ax_contraction.append(p_out)
+            p_lhs += 1
+            p_rhs += 1
+            p_out += 1
+        else:
             # non-contracting index
             indices_rem.append(c)
             if c in kron_spec:
-                dim_lhs += [newaxis, colon]
-                dim_rhs += [colon, newaxis]
-                kron_res.append(lhs.shape[j_l] * rhs.shape[j_r])
-                j_l += 1
-                j_r += 1
+                ax_expand_lhs.append(p_out)
+                ax_expand_rhs.append(p_out + 1)
+                target_shape.append(lhs.shape[p_lhs] * rhs.shape[p_rhs])
+                p_lhs += 1
+                p_rhs += 1
+                p_out += 2
             else:
                 if c in lhs_spec and c in rhs_spec:
-                    dim_lhs.append(colon)
-                    dim_rhs.append(colon)
-                    kron_res.append(max(lhs.shape[j_l], rhs.shape[j_r]))
-                    j_l += 1
-                    j_r += 1
+                    target_shape.append(
+                        *ab.broadcast_shapes(
+                            lhs.shape[p_lhs],
+                            rhs.shape[p_rhs]
+                        )
+                    )
+                    p_lhs += 1
+                    p_rhs += 1
+                    p_out += 1
                 elif c in lhs_spec:
-                    dim_lhs.append(colon)
-                    dim_rhs.append(newaxis)
-                    kron_res.append(lhs.shape[j_l])
-                    j_l += 1
+                    ax_expand_rhs.append(p_out)
+                    target_shape.append(lhs.shape[p_lhs])
+                    p_lhs += 1
+                    p_out += 1
                 elif c in rhs_spec:
-                    dim_lhs.append(newaxis)
-                    dim_rhs.append(colon)
-                    kron_res.append(rhs.shape[j_r])
-                    j_r += 1
-        else:
-            # contracting index
-            con_ax.append(len(dim_lhs))
-            dim_lhs.append(colon)
-            dim_rhs.append(colon)
-            j_l += 1
-            j_r += 1
+                    ax_expand_lhs.append(p_out)
+                    target_shape.append(rhs.shape[p_rhs])
+                    p_rhs += 1
+                    p_out += 1
+
+    # reorder contraction according to out_spec
+    final_perm = [indices_rem.index(p_out) for p_out in out_spec]
+
+    print('ax_contraction', ax_contraction)
+    print('ax_expand_lhs', ax_expand_lhs)
+    print('ax_expand_rhs', ax_expand_rhs)
+    print('target_shape', target_shape)
+    print('final_perm', final_perm)
 
     # compute the contraction in alphabetical order
     op_redu = getattr(ab, reduction)
     op_pair = getattr(ab, pairwise)
 
-    def op_redu_overload(tensor):
-        return op_redu(tensor, tuple(con_ax)) if con_ax else tensor
+    def op_reduce_if(tensor, ax_contraction):
+        if ax_contraction:
+            return op_redu(tensor, tuple(ax_contraction))
+        else:
+            return tensor
 
-    # reorder contraction according to out_spec
-    res_order = [indices_rem.index(i) for i in out_spec]
+    print(lhs.shape)
+    print(ab.expand_dims(lhs, ax_expand_lhs).shape)
+    print(ab.expand_dims(rhs, ax_expand_rhs).shape)
 
     return ab.transpose(
         ab.reshape(
-            op_redu_overload(
+            op_reduce_if(
                 op_pair(
-                    lhs[tuple(dim_lhs)],
-                    rhs[tuple(dim_rhs)]
+                    ab.expand_dims(lhs, ax_expand_lhs),
+                    ab.expand_dims(rhs, ax_expand_rhs),
                 ),
+                ax_contraction
             ),
-            tuple(kron_res),
+            tuple(target_shape),
             order='F'
         ),
-        res_order
+        final_perm
     )
