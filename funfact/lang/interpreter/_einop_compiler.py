@@ -1,27 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import Optional, Tuple
+import numpy as np
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.util.iterable import as_namedtuple
 from ._base import _as_payload, TranscribeInterpreter
-
-
-class IndexMap:
-    def __init__(self):
-        self._index_map = {}
-
-    def _map(self, idx):
-        try:
-            return self._index_map[idx]
-        except KeyError:
-            self._index_map[idx] = chr(97 + len(self._index_map))
-            return self._index_map[idx]
-
-    def __call__(self, ids):
-        try:
-            return ''.join([self._map(i) for i in ids or []])
-        except TypeError:
-            return self._map(ids)
 
 
 class EinopCompiler(TranscribeInterpreter):
@@ -79,14 +63,79 @@ class EinopCompiler(TranscribeInterpreter):
         pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,
         **kwargs
     ):
-        map = IndexMap()
-        return f'{map(lhs.live_indices)},{map(rhs.live_indices)}'\
-               f'->{map(live_indices)}|{map(kron_indices)}'
+        # move all surviving indices to the front and sort the rest
+        all_indices = live_indices + sorted(
+            (set(lhs.live_indices) | set(rhs.live_indices)) - set(live_indices)
+        )
+        kron_indices = set(lhs.kron_indices) | set(rhs.kron_indices)
 
-    @as_payload
+        # reorder lhs and rhs following the order in all indices
+        tran_lhs = np.argsort([all_indices.index(i) for i in lhs.live_indices])
+        tran_rhs = np.argsort([all_indices.index(i) for i in rhs.live_indices])
+
+        # Determine expansion positions to align the contraction, Kronecker,
+        # elementwise, and outer product indices
+        p_out, p_lhs, p_rhs = 0, 0, 0
+        index_lhs = []
+        index_rhs = []
+        ax_contraction = []
+        # target_shape = []
+        newaxis, colon = None, slice(None)
+
+        for i in all_indices:
+            if i not in live_indices:  # contracting index
+                ax_contraction.append(p_out)
+                index_lhs.append(colon)
+                index_rhs.append(colon)
+                p_lhs += 1
+                p_rhs += 1
+                p_out += 1
+            else:  # non-contracting index
+                if i in kron_indices:
+                    index_lhs += [colon, newaxis]
+                    index_rhs += [newaxis, colon]
+                    # target_shape.append(lhs.shape[p_lhs] * rhs.shape[p_rhs])
+                    p_lhs += 1
+                    p_rhs += 1
+                    p_out += 2
+                else:
+                    if i in lhs.live_indices and i in rhs.live_indices:
+                        # target_shape.append(
+                        #     *ab.broadcast_shapes(
+                        #         lhs.shape[p_lhs], rhs.shape[p_rhs]
+                        #     )
+                        # )
+                        index_lhs.append(colon)
+                        index_rhs.append(colon)
+                        p_lhs += 1
+                        p_rhs += 1
+                        p_out += 1
+                    elif i in lhs.live_indices:
+                        index_lhs.append(colon)
+                        index_rhs.append(newaxis)
+                        # target_shape.append(lhs.shape[p_lhs])
+                        p_lhs += 1
+                        p_out += 1
+                    elif i in rhs.live_indices:
+                        index_lhs.append(newaxis)
+                        index_rhs.append(colon)
+                        # target_shape.append(rhs.shape[p_rhs])
+                        p_rhs += 1
+                        p_out += 1
+
+        return as_namedtuple(
+            'einspec',
+            op_reduce=reduction,
+            op_elementwise=pairwise,
+            tran_lhs=tuple(tran_lhs),
+            tran_rhs=tuple(tran_rhs),
+            index_lhs=tuple(index_lhs),
+            index_rhs=tuple(index_rhs),
+            ax_contraction=tuple(ax_contraction)
+        )
+
     def tran(self, src: P.Numeric, indices: P.indices, live_indices, **kwargs):
-        map = IndexMap()
-        return f'{map(src.live_indices)}->{map(live_indices)}'
+        return []
 
     @as_payload
     def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
