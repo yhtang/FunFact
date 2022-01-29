@@ -65,12 +65,14 @@ class EinopCompiler(TranscribeInterpreter):
     ):
         lhs_live = lhs.live_indices or []
         rhs_live = rhs.live_indices or []
+        lhs_kron = lhs.kron_indices or []
+        rhs_kron = rhs.kron_indices or []
 
         # move all surviving indices to the front and sort the rest
         all_indices = live_indices + sorted(
             (set(lhs_live) | set(rhs_live)) - set(live_indices or [])
         )
-        kron_indices = set(lhs.kron_indices or []) | set(rhs.kron_indices or [])
+        kron_set = set(lhs_kron) | set(rhs_kron)
 
         # reorder lhs and rhs following the order in all indices
         tran_lhs = np.argsort([all_indices.index(i) for i in lhs_live])
@@ -93,7 +95,7 @@ class EinopCompiler(TranscribeInterpreter):
                 p_rhs += 1
                 p_out += 1
             else:  # non-contracting index
-                if i in kron_indices:
+                if i in kron_set:
                     index_lhs += [colon, newaxis]
                     index_rhs += [newaxis, colon]
                     p_lhs += 1
