@@ -9,10 +9,6 @@ class Evaluator(ROOFInterpreter):
     '''The evaluation interpreter evaluates an initialized tensor expression.
     '''
 
-    @staticmethod
-    def _binary_operator(reduction, pairwise, lhs, rhs, spec):
-        return _einop(spec, lhs, rhs, reduction, pairwise)
-
     def abstract_index_notation(self, tensor, indices, **kwargs):
         raise NotImplementedError()
 
@@ -44,8 +40,8 @@ class Evaluator(ROOFInterpreter):
         return getattr(ab, operator)(lhs, rhs)
 
     def ein(self, lhs, rhs, precedence, reduction, pairwise, outidx, einspec,
-            **kwargs):
-        return self._binary_operator(reduction, pairwise, lhs, rhs, einspec)
+            shape, **kwargs):
+        return _einop(lhs, rhs, einspec, shape)
 
     def tran(self, src, indices, einspec, **kwargs):
         in_spec, out_spec = einspec.split('->')
