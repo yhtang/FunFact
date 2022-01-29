@@ -77,6 +77,7 @@ class TypeDeducer(RewritingTranscriber):
         _0 = lambda node: self(node, depth=0)  # noqa: E731
         _X = lambda node: self(node)           # noqa: E731
         if operator == 'matmul':
+            # # TODO: check if tensors are 2D
             i, j, k = [
                 P.index(AbstractIndex(), bound=False, kron=False)
                 for _ in range(3)
@@ -93,14 +94,15 @@ class TypeDeducer(RewritingTranscriber):
                 indexed=indexed
             )
         elif operator == 'kron':
-            i, j = [
+            # # TODO: check if dimensionality of two tensors match
+            indices = [
                 P.index(AbstractIndex(), bound=False, kron=True)
-                for _ in range(2)
+                for _ in range(len(lhs.shape))
             ]
             return _add_attr(
                 P.ein(
-                    _0(P.abstract_index_notation(lhs, _X(P.indices([i, j])))),
-                    _0(P.abstract_index_notation(rhs, _X(P.indices([i, j])))),
+                    _0(P.abstract_index_notation(lhs, _X(P.indices(indices)))),
+                    _0(P.abstract_index_notation(rhs, _X(P.indices(indices)))),
                     precedence=precedence,
                     reduction='sum',
                     pairwise='multiply',
@@ -154,6 +156,13 @@ class TypeDeducer(RewritingTranscriber):
     def indexed_tensor(
         self, tensor: P.Numeric, indices: P.indices, **kwargs
     ):
+        # # TODO: check dimensionality match during multi dispatch of
+        # # abstract_index_notation
+        # if len(indices.live_indices) != len(tensor.shape):
+        #     raise SyntaxError(
+        #         f'Expects {len(tensor.shape)} indices, '
+        #         f'got {len(indices.live_indices)}'
+        #     )
         return (
             indices.live_indices,
             indices.keep_indices,
@@ -213,20 +222,25 @@ class TypeDeducer(RewritingTranscriber):
         live = ordered_union(src_live.lhs, src_live.rhs)
         keep = ordered_union(src_keep.lhs, src_keep.rhs)
         kron = ordered_union(src_kron.lhs, src_kron.rhs)
+        free_l = ordered_setminus(src_live.lhs, src_live.rhs)
+        free_r = ordered_setminus(src_live.rhs, src_live.lhs)
+        free = ordered_union(free_l, free_r)
+        bound = ordered_setminus(keep, free)
+        implied_survival = free_l + bound + free_r
         if outidx is None:
-            free_l = ordered_setminus(src_live.lhs, src_live.rhs)
-            free_r = ordered_setminus(src_live.rhs, src_live.lhs)
-            free = ordered_union(free_l, free_r)
             repeated = ordered_intersect(src_live.lhs, src_live.rhs)
-            bound = ordered_setminus(keep, free)
             lone_keep = ordered_setminus(keep, repeated)
             lone_kron = ordered_setminus(kron, repeated)
-            implied_survival = free_l + bound + free_r
             live_indices, keep_indices, kron_indices = (
                 implied_survival, lone_keep, lone_kron
             )
         else:
             explicit_survival = outidx.live_indices
+            if len(explicit_survival) < len(implied_survival):
+                raise SyntaxError(
+                    f'Expects at least {len(implied_survival)} explicit '
+                    f'indices, got only {len(explicit_survival)}.'
+                )
             for i in keep:
                 if i not in explicit_survival:
                     raise SyntaxError(
@@ -273,10 +287,6 @@ class TypeDeducer(RewritingTranscriber):
 
     @as_payload
     def tran(self, src: P.Numeric, indices: P.indices, **kwargs):
-        # if isinstance(node, P.tran) and isinstance(node.src, P.ein):
-        #     '''override the `>>` behavior for einop nodes'''
-        #     node.src.outidx = node.indices
-        #     node = node.src
         return (
             indices.live_indices,
             indices.keep_indices,
