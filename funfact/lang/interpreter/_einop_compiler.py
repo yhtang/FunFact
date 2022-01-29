@@ -63,15 +63,18 @@ class EinopCompiler(TranscribeInterpreter):
         pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,
         **kwargs
     ):
+        lhs_live = lhs.live_indices or []
+        rhs_live = rhs.live_indices or []
+
         # move all surviving indices to the front and sort the rest
         all_indices = live_indices + sorted(
-            (set(lhs.live_indices) | set(rhs.live_indices)) - set(live_indices)
+            (set(lhs_live) | set(rhs_live)) - set(live_indices or [])
         )
-        kron_indices = set(lhs.kron_indices) | set(rhs.kron_indices)
+        kron_indices = set(lhs.kron_indices or []) | set(rhs.kron_indices or [])
 
         # reorder lhs and rhs following the order in all indices
-        tran_lhs = np.argsort([all_indices.index(i) for i in lhs.live_indices])
-        tran_rhs = np.argsort([all_indices.index(i) for i in rhs.live_indices])
+        tran_lhs = np.argsort([all_indices.index(i) for i in lhs_live])
+        tran_rhs = np.argsort([all_indices.index(i) for i in rhs_live])
 
         # Determine expansion positions to align the contraction, Kronecker,
         # elementwise, and outer product indices
@@ -79,7 +82,6 @@ class EinopCompiler(TranscribeInterpreter):
         index_lhs = []
         index_rhs = []
         ax_contraction = []
-        # target_shape = []
         newaxis, colon = None, slice(None)
 
         for i in all_indices:
@@ -94,32 +96,24 @@ class EinopCompiler(TranscribeInterpreter):
                 if i in kron_indices:
                     index_lhs += [colon, newaxis]
                     index_rhs += [newaxis, colon]
-                    # target_shape.append(lhs.shape[p_lhs] * rhs.shape[p_rhs])
                     p_lhs += 1
                     p_rhs += 1
                     p_out += 2
                 else:
-                    if i in lhs.live_indices and i in rhs.live_indices:
-                        # target_shape.append(
-                        #     *ab.broadcast_shapes(
-                        #         lhs.shape[p_lhs], rhs.shape[p_rhs]
-                        #     )
-                        # )
+                    if i in lhs_live and i in rhs_live:
                         index_lhs.append(colon)
                         index_rhs.append(colon)
                         p_lhs += 1
                         p_rhs += 1
                         p_out += 1
-                    elif i in lhs.live_indices:
+                    elif i in lhs_live:
                         index_lhs.append(colon)
                         index_rhs.append(newaxis)
-                        # target_shape.append(lhs.shape[p_lhs])
                         p_lhs += 1
                         p_out += 1
-                    elif i in rhs.live_indices:
+                    elif i in rhs_live:
                         index_lhs.append(newaxis)
                         index_rhs.append(colon)
-                        # target_shape.append(rhs.shape[p_rhs])
                         p_rhs += 1
                         p_out += 1
 
