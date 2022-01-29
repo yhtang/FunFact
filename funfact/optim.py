@@ -22,7 +22,6 @@ class Optimizer(ABC):
             model (factors): factors from factorization model to be optimized.
             kwargs: (hyper)parameters for optimizer.
         '''
-        pass
 
     @abstractmethod
     def step(self, grad):
@@ -31,7 +30,6 @@ class Optimizer(ABC):
         Args:
             grad (factors): gradiemts of the factors
         '''
-        pass
 
 
 class Adam(Optimizer):
@@ -100,7 +98,7 @@ class RMSprop(Optimizer):
         for i, g in enumerate(grad):
             self.V[i] = self.alpha * self.V[i] + \
                         (1 - self.alpha) * g * g
-            vhat = self.V[i]
+            vhat = self.V[i] / (1 - self.alpha)
             if self.centered:
                 self.G[i] = self.alpha * self.G[i] + \
                             (1 - self.alpha) * g
@@ -112,4 +110,4 @@ class RMSprop(Optimizer):
                 self.X[i] -= self.lr * self.B[i]
             else:
                 self.X[i] -= self.lr * g * ab.reciprocal(
-                                  ab.sqrt(vhat) + self.epsilon)
+                                  ab.sqrt(vhat + self.epsilon))

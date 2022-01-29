@@ -1,6 +1,15 @@
-# Primary CI workflow\
+# Primary CI workflow
 name: CI
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+  workflow_dispatch:
+  create:
+    tags:
+      - 'v*'
 jobs:
   lint:
     runs-on: ubuntu-latest

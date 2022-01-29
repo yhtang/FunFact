@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from funfact.lang import index
-from funfact.lang.interpreter import IndexnessAnalyzer, Compiler, Vectorizer
+from funfact.lang.interpreter import (
+    IndexnessAnalyzer,
+    TypeDeducer,
+    Vectorizer
+)
 from funfact.model import Factorization
 
 
@@ -33,7 +37,12 @@ def vectorize(tsrex, n, append: bool = False):
             A vectorized tensor expression.
     '''
     i = index().root
-    return tsrex | IndexnessAnalyzer() | Compiler() | Vectorizer(n, i, append)
+    return (
+        tsrex |
+        IndexnessAnalyzer() |
+        TypeDeducer() |
+        Vectorizer(n, i, append)
+    )
 
 
 def view(fac, tsrex_scalar, instance: int, append: bool = False):

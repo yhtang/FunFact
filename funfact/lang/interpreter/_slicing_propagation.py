@@ -80,15 +80,15 @@ class SlicingPropagator(TranscribeInterpreter):
                 rhs_slices.append(slice_dict[i])
             except KeyError:
                 rhs_slices.append(slice(None))
-        lhs.slices = lhs_slices
-        rhs.slices = rhs_slices
+        lhs.slices = tuple(lhs_slices)
+        rhs.slices = tuple(rhs_slices)
         if outidx is not None:
             outidx.slices = None
 
     def tran(self, src: P.Numeric, indices: P.indices, slices, **kwargs):
-        src.slices = [
+        src.slices = tuple([
             slices[src.live_indices.index(i)] for i in indices.live_indices
-        ]
+        ])
 
     def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
         raise NotImplementedError()
