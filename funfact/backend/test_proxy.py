@@ -3,15 +3,10 @@
 import pytest
 import os
 from . import (
-    _use_default_backend,
     active_backend,
     available_backends,
     use,
 )
-
-
-# def test_import():
-#     assert _active_backend is None
 
 
 def test_available_backends():
