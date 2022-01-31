@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+'''Backend on top of [JAX](https://github.com/google/jax).
+
+Arguments:
+    enable_x64 (bool): Enable 64-bit floating point types.
+'''
 import os
 import contextlib
 import numpy as np
@@ -7,72 +12,77 @@ import jax.numpy as jnp
 import jax.random as jrn
 import jax
 from jax.tree_util import register_pytree_node_class
-from ._meta import BackendMeta
 
 
-class JAXBackend(metaclass=BackendMeta):
+__name__ = 'JAXBackend'
 
-    _nla = jnp
-    _key = jrn.PRNGKey(int.from_bytes(os.urandom(7), 'big'))
 
-    native_t = jnp.ndarray
-    tensor_t = (jnp.ndarray, np.ndarray)
+nla = jnp
+native_t = jnp.ndarray
+tensor_t = (jnp.ndarray, np.ndarray)
 
-    @classmethod
-    def tensor(cls, array, optimizable=False, **kwargs):
-        return jnp.asarray(array, **kwargs)
+_key = jrn.PRNGKey(int.from_bytes(os.urandom(7), 'big'))
 
-    @classmethod
-    def to_numpy(cls, tensor, **kwargs):
-        return np.asarray(tensor, **kwargs)
 
-    @classmethod
-    def seed(cls, key):
-        cls._key = jrn.PRNGKey(key)
+def tensor(array, optimizable=False, **kwargs):
+    return jnp.asarray(array, **kwargs)
 
-    @classmethod
-    def normal(cls, mean, std, shape, dtype=jnp.float32):
-        cls._key, subkey = jrn.split(cls._key)
-        return mean + std * jrn.normal(subkey, shape, dtype)
 
-    @classmethod
-    def uniform(cls, low, high, shape, dtype=jnp.float32):
-        cls._key, subkey = jrn.split(cls._key)
-        return jrn.uniform(subkey, shape, dtype, minval=low, maxval=high)
+def to_numpy(tensor, **kwargs):
+    return np.asarray(tensor, **kwargs)
 
-    @staticmethod
-    def loss_and_grad(loss_fn, example_model, example_target, **kwargs):
-        loss_and_grad_fn = jax.jit(
-            jax.value_and_grad(
-                lambda model, target: loss_fn(model, target, **kwargs)
-            )
+
+def seed(key):
+    global _key
+    _key = jrn.PRNGKey(key)
+
+
+def normal(mean, std, shape, dtype=jnp.float32):
+    global _key
+    _key, subkey = jrn.split(_key)
+    return mean + std * jrn.normal(subkey, shape, dtype)
+
+
+def uniform(low, high, shape, dtype=jnp.float32):
+    global _key
+    _key, subkey = jrn.split(_key)
+    return jrn.uniform(subkey, shape, dtype, minval=low, maxval=high)
+
+
+def loss_and_grad(loss_fn, example_model, example_target, **kwargs):
+    loss_and_grad_fn = jax.jit(
+        jax.value_and_grad(
+            lambda model, target: loss_fn(model, target, **kwargs)
         )
+    )
 
-        def wrapper(model, target):
-            loss, dmodel = loss_and_grad_fn(model, target)
-            return loss, [jnp.conjugate(df) for df in dmodel.factors]
-        return wrapper
+    def wrapper(model, target):
+        loss, dmodel = loss_and_grad_fn(model, target)
+        return loss, [jnp.conjugate(df) for df in dmodel.factors]
+    return wrapper
 
-    def add_autograd(cls):
 
-        class AutoGradMixin():
-            def tree_flatten(self):
-                return list(self.factors), (self.tsrex,)
+def add_autograd(cls):
 
-            @classmethod
-            def tree_unflatten(cls, metadata, children):
-                unflatten = cls(*metadata, initialize=False)
-                unflatten.factors = children
-                return unflatten
+    class AutoGradMixin():
+        def tree_flatten(self):
+            return list(self.factors), (self.tsrex,)
 
-        class cls_with_autograd(cls, AutoGradMixin):
-            pass
+        @classmethod
+        def tree_unflatten(metadata, children):
+            unflatten = cls(*metadata, initialize=False)
+            unflatten.factors = children
+            return unflatten
 
-        return register_pytree_node_class(cls_with_autograd)
+    class cls_with_autograd(AutoGradMixin):
+        pass
 
-    def no_grad():
-        return contextlib.nullcontext()
+    return register_pytree_node_class(cls_with_autograd)
 
-    @classmethod
-    def set_optimizable(self, x: native_t, optimizable: bool):
-        return x
+
+def no_grad():
+    return contextlib.nullcontext()
+
+
+def set_optimizable(self, x: native_t, optimizable: bool):
+    return x
