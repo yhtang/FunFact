@@ -15,7 +15,7 @@ from . import (
 
 
 def test_available_backends():
-    for backend, clsname in available_backends.items():
+    for backend in available_backends:
         assert os.path.exists(
             os.path.join(
                 os.path.dirname(__file__),
@@ -26,15 +26,10 @@ def test_available_backends():
 
 def test_use():
     use('numpy')
-    assert 'NumPy' in active_backend._get_active_backend().__qualname__
+    assert 'NumPy' in repr(active_backend)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ModuleNotFoundError):
         use('non-existing backend')
-
-
-def test_use_default():
-    with pytest.raises(RuntimeError):
-        _use_default_backend({'none': None})
 
 
 def test_active_backend():

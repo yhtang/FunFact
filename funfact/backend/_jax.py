@@ -69,7 +69,7 @@ def add_autograd(cls):
             return list(self.factors), (self.tsrex,)
 
         @classmethod
-        def tree_unflatten(metadata, children):
+        def tree_unflatten(cls, metadata, children):
             unflatten = cls(*metadata, initialize=False)
             unflatten.factors = children
             return unflatten
@@ -81,5 +81,5 @@ def no_grad():
     return contextlib.nullcontext()
 
 
-def set_optimizable(self, x: native_t, optimizable: bool):
+def set_optimizable(x: native_t, optimizable: bool):
     return x
