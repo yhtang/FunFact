@@ -64,7 +64,7 @@ def loss_and_grad(loss_fn, example_model, example_target, **kwargs):
 
 def add_autograd(cls):
 
-    class AutoGradMixin():
+    class AddAutoGrad(cls):
         def tree_flatten(self):
             return list(self.factors), (self.tsrex,)
 
@@ -74,10 +74,7 @@ def add_autograd(cls):
             unflatten.factors = children
             return unflatten
 
-    class cls_with_autograd(AutoGradMixin):
-        pass
-
-    return register_pytree_node_class(cls_with_autograd)
+    return register_pytree_node_class(AddAutoGrad)
 
 
 def no_grad():
