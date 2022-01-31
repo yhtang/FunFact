@@ -128,6 +128,10 @@ class ROOFInterpreter(ABC):
     def tran(self, src: Any, indices: Iterable[Any]):
         pass
 
+    @abstractmethod
+    def abstract_dest(self, src: Any, indices: P.indices):
+        pass
+
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         fields_fixed = {
             name: _deep_apply(self, value, node)
@@ -213,6 +217,10 @@ class TranscribeInterpreter(ABC):
     def tran(self, src: P.Numeric, indices: P.indices):
         pass
 
+    @abstractmethod
+    def abstract_dest(self, src: P.Numeric, indices: P.indices):
+        pass
+
     def _eval(self, node):
         return getattr(self, node.name)(**node.fields)
 
@@ -295,7 +303,8 @@ def dfs(node: _ASNode):
     ):
         if isinstance(child, _ASNode):
             yield from dfs(child)
-        yield node
+
+    yield node
 
 
 def dfs_filter(function: Callable[[_ASNode], bool], node: _ASNode):

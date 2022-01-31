@@ -1,0 +1,1 @@
+::: funfact.ones

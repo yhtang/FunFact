@@ -12,8 +12,8 @@ from funfact.util.iterable import as_namedtuple, as_tuple, flatten_if
 from ._ast import _AST, _ASNode, Primitives as P
 from .interpreter import (
     ASCIIRenderer,
-    Compiler,
-    EinsteinSpecGenerator,
+    TypeDeducer,
+    EinopCompiler,
     IndexnessAnalyzer,
     LatexRenderer,
 )
@@ -95,8 +95,8 @@ class _BaseEx(_AST):
 
     _latex_intr = LatexRenderer()
     _asciitree_factory = ASCIITreeFactory()
-    _compiler = Compiler()
-    _einspec_generator = EinsteinSpecGenerator()
+    _type_deducer = TypeDeducer()
+    _einop_compiler = EinopCompiler()
     _indexness_analyzer = IndexnessAnalyzer()
 
     @functools.lru_cache()
@@ -153,8 +153,8 @@ class _BaseEx(_AST):
     def _static_analyzed(self):
         return (self |
                 self._indexness_analyzer |
-                self._compiler |
-                self._einspec_generator).root
+                self._type_deducer |
+                self._einop_compiler).root
 
     @property
     def shape(self):
