@@ -170,7 +170,7 @@ class Factorization:
             if axis != -1:
                 return slice(axis, axis + 1)
             else:
-                return slice(axis)
+                return slice(axis, None)
         elif hasattr(axis, '__iter__'):
             return tuple(axis)
         elif axis is Ellipsis:
@@ -182,9 +182,9 @@ class Factorization:
 
     def _get_elements(self, key):
         '''Get elements at index of tensor expression.'''
-
         # Generate full index list
-        indices = tuple([self._as_slice(i, axis) for i, axis in enumerate(key)])
+        indices = tuple([self._as_slice(i, axis) for i, axis in
+                        enumerate(key)])
         try:
             i = key.index(Ellipsis)
             indices = tuple([
