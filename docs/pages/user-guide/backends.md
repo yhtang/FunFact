@@ -1,14 +1,14 @@
 # Backends and Acceleration
 
-FunFact is built on top of numerical backends that handle the model evaluation,
-automatic differentiation, and hardware acceleration. Currently,
-[JAX](https://jax.readthedocs.io/), [PyTorch](https://pytorch.org), and
-[NumPy](https://numpy.org) are supported as a numerical backend. 
+FunFact delegates numerical linear algebra operations, automatic differentiation,
+and hardware acceleration to external linear algebra packages that conforms to the
+NumPy API. Currently supported backends include [JAX](../../../api/backend/_jax),
+[PyTorch](../../../api/backend/_torch), and [NumPy](../../../api/backend/_numpy).
 
 !!! note
     The NumPy backend only supports forward evaluation.
 
-The available backends can be listed as:
+The list of available backends can be query by:
 
 === "Command"
     ```py
@@ -18,12 +18,12 @@ The available backends can be listed as:
 
 === "Result"
     ```bash
-    {'jax': 'JAXBackend', 'torch': 'PyTorchBackend', 'numpy': 'NumPyBackend'}
+    ['jax', 'torch', 'numpy']
     ```
 
-The backend can be selected with the [`use`](../../../api/use) command
-and the backend that is currently in use can be retrieved through the
-`active_backend` command:
+The backend can be selected with the [`use`](../../../api/use) method.
+The backend that is currently in use can be retrieved through the
+`active_backend` method:
 
 === "NumPy"
     ```py
@@ -55,25 +55,28 @@ and the backend that is currently in use can be retrieved through the
     <backend 'PyTorchBackend'>
     ```
 
-The FunFact active backend can be imported and used as any other NLA package:
+The active backend can be imported and used as if it is the underlyinng NLA package:
 
 ```py
 from funfact import active_backend as ab
-ab.method(...)          # uses `method` from the active_backend (np, jnp, torch)
+ab.eye(...)
+ab.zeros(...)
+# uses any method already defined by the underlying package (np, jnp, torch)
+ab.*method*(...)
 ```
 
-Besides this, there are a few other functions implemented for all backends:
+Besides this, a FunFact backend implements a few additional methods such as:
 
 ```py
-ab.tensor(...)          # native tensor array from NumPy array
-ab.to_numpy(...)        # from native tensor to NumPy array
+ab.tensor(...)          # create native tensor from array-like data
+ab.to_numpy(...)        # convert native tensor to NumPy array
 ab.normal(...)          # normally distributed random data
 ab.uniform(...)         # uniformly distributed random data
 ```
 
 ## Switching backends
 
-Backends can be switched dynamically during usage:
+Backends maybe be switched dynamically during the lifetime of a process:
 
 ```py
 ff.use('numpy')
@@ -88,18 +91,18 @@ tsrex = a & b           # tensor expression with JAX backend
 ```
 
 !!! warning
-    Dynamic switching of backends does not port over previously created indices,
-    tensors, and tensor expressions to the new backend. Only newly created
-    expressions use the new backend.
+    Dynamic switching of the backends will not automatically port the data
+    in an existing tensor expression/model to the new backend.
 
 !!! note
     Some properties of the backend can only be set once when that backend is
-    initially loaded. For example, with the JAX backend, the `enable_x64` flag:
+    loaded for the first time in a process. For example, with the JAX backend,
+    the `enable_x64` flag:
     ```py
     ff.use('jax', enable_x64=True)
     ```
-    can only be set once. Running `use` a second time will not affect the
-    behavior of the backend.
+    can only be set once. Running `use` a second time will not affect this
+    behavior.
 
 ## Hardware acceleration
 
