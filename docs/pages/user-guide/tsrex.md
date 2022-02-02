@@ -386,16 +386,18 @@ The following operations happen in `tsrex`:
 The result `tsrex` is thus an indexless $3 \times 4 \times 6$ tensor.
 
 !!! note
-    Hybrid tensor expression adhere to the following standard. In a *binary
-    operation* with:
+    The indexness of any binary subexpression of a hybrid tensor expression is determined
+    by the following rule:
+    
+    * `@` and `&` are always **indexless** matrix product and Kronecker product operations
+    between 2D tensors.
 
-    * both the left-hand side and right-hand side an indexed expression:
-        - the binary operation is always a generalized Einstein operation,
-        - the result is an indexed expression,
+    * If both the left-hand side and right-hand side are indexed, then
+        - the binary operation is regarded as a generalized Einstein operation, and
+        - the result is an indexed expression.
 
-    * either the left-hand side, right-hand side or both operands an indexless
-    expression:
-        - the binary operation is always an elementwise operation,
+    * If either the left-hand side, right-hand side or both operands are indexless, then
+        - the binary operation is regarded as an elementwise operation, and
         - the result is an indexless expression.
 
 ## Non-linearities
