@@ -18,5 +18,5 @@ def logsumexp(lhs: TsrEx, rhs: TsrEx):
 
 def viterbi(lhs: TsrEx, rhs: TsrEx):
     return TsrEx(
-        P.ein(_as_node(lhs), _as_node(rhs), 6, 'max', 'log_add_exp', None)
+        P.ein(_as_node(lhs), _as_node(rhs), 6, 'max', 'logaddexp', None)
     )
