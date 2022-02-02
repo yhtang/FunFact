@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+'''[NumPy](https://numpy.org/)'''
 import numpy as np
 
 
@@ -7,7 +8,9 @@ __name__ = 'NumPyBackend'
 
 nla = np
 native_t = np.ndarray
+'''The native type for tensor data used by the backend.'''
 tensor_t = (np.ndarray,)
+'''Types acceptable by the backend API as 'tensors'.'''
 
 _rng = np.random.default_rng()
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+'''[PyTorch](https://pytorch.org/).'''
 import numpy as np
 import torch
 from funfact.util.iterable import as_tuple
@@ -10,7 +11,9 @@ __name__ = 'PyTorchBackend'
 
 nla = torch
 native_t = torch.Tensor
+'''The native type for tensor data used by the backend.'''
 tensor_t = (torch.Tensor, np.ndarray)
+'''Types acceptable by the backend API as 'tensors'.'''
 
 _device = torch.device(context.get('device', 'cpu'))
 _gen = torch.Generator()

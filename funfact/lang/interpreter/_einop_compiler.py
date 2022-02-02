@@ -50,7 +50,6 @@ class EinopCompiler(TranscribeInterpreter):
     def neg(self, x: P.Numeric, **kwargs):
         return []
 
-    @as_payload
     def elem(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, operator: str,
         **kwargs
@@ -133,6 +132,5 @@ class EinopCompiler(TranscribeInterpreter):
     def tran(self, src: P.Numeric, indices: P.indices, live_indices, **kwargs):
         return []
 
-    @as_payload
     def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
         raise NotImplementedError()

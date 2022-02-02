@@ -25,7 +25,9 @@ __name__ = 'JAXBackend'
 
 nla = jnp
 native_t = jnp.ndarray
+'''The native type for tensor data used by the backend.'''
 tensor_t = (jnp.ndarray, np.ndarray)
+'''Types acceptable by the backend API as 'tensors'.'''
 
 _key = jrn.PRNGKey(int.from_bytes(os.urandom(7), 'big'))
 

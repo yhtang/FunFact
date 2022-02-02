@@ -32,20 +32,17 @@ def use(backend: str, **context):
         backend (str):
             Currently implemented backends are:
 
-            - `'numpy'`: the [NumPy](https://numpy.org/) backend only supports
+            - `'numpy'`: the [NumPy backend](../backend/_numpy) only supports
             forward calculations but no automatic differentiation.
-            - `'jax'`: [JAX](../JAXBackend).
-            - `'torch'`: [PyTorch](https://pytorch.org/).
+            - `'jax'`: [JAX backend](../backend/_jax).
+            - `'torch'`: [PyTorch backend](../backend/_torch).
 
             Dynamic switching betwewen backends is allowed. However, tensors
             created by the previous backend will not be automatically ported to
             the new backend.
 
         context (kwargs): Backend-specific additional arguments.
-            For details, refer to the individual backends, e.g. [JAX]
-
-        context (kwargs):
-            Additional context to be passed on to the specified backend.
+            For details, refer to the individual backends.
 
     Examples:
         >>> from funfact import use, active_backend as ab
