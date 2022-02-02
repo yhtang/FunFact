@@ -55,6 +55,13 @@ def transpose(a, axes):
     return torch.permute(a, (*axes,))
 
 
+def sum(a, axis=None):
+    if axis:
+        return torch.sum(a, axis)
+    else:
+        return torch.sum(a)
+
+
 def reshape(a, newshape, order='C'):
     if order == 'C':
         return torch.reshape(a, (*newshape,))
