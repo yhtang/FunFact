@@ -11,7 +11,7 @@ _required_properties = [
 ]
 
 _required_methods = [
-    # type conversion
+    # creation
     'tensor'  # Convert array-like data to a tensor
     # operators
     'add',
