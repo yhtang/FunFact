@@ -120,11 +120,20 @@ class ActiveBackendProxy:
         '''Determine if the argument is one of tensor_t.'''
         return isinstance(array, self.tensor_t)
 
-    def log_add_exp(self, lhs, rhs):
-        return self.log(self.add(self.exp(lhs), self.exp(rhs)))
-
     def log_sum_exp(self, data, axis=None):
         return self.log(self.sum(self.exp(data), axis=axis))
+
+    def relu(self, x):
+        return self.maximum(x, self.tensor(0))
+
+    def celu(self, x, alpha=1.0):
+        return self.maximum(x, self.tensor(0)) +\
+            self.minimum(
+                alpha * self.exp(x / alpha) - self.tensor(1), self.tensor(0)
+            )
+
+    def sigmoid(self, x):
+        return self.tensor(1) / (self.tensor(1) + self.exp(-x))
 
 
 active_backend = ActiveBackendProxy()
