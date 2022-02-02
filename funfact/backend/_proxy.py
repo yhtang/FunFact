@@ -68,9 +68,6 @@ def use(backend: str, **context):
     '''
     global _active_backend
     try:
-        if backend == 'jax':
-            enable_x64 = context.pop('enable_x64', False)
-            os.environ['JAX_ENABLE_X64'] = 'True' if enable_x64 else 'False'
         with set_context(**context):
             _active_backend = importlib.import_module(
                 f'funfact.backend._{backend}'

@@ -8,14 +8,20 @@ Arguments:
 import os
 import contextlib
 import numpy as np
+from ._context import context
+
+
+# must happen before importing JAX
+if context.pop('enable_x64', False):
+    os.environ['JAX_ENABLE_X64'] = 'True'
+
+
 import jax.numpy as jnp
 import jax.random as jrn
 import jax
 from jax.tree_util import register_pytree_node_class
 
-
 __name__ = 'JAXBackend'
-
 
 nla = jnp
 native_t = jnp.ndarray
