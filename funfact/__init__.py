@@ -12,6 +12,7 @@ from .vectorization import vectorize, view
 from .context import is_grad_on, enable_grad
 from . import initializers
 from . import conditions
+from .lang._semiring import minplus, logsumexp, viterbi
 
 
 __all__ = [
@@ -33,7 +34,10 @@ __all__ = [
     'is_grad_on',
     'enable_grad',
     'initializers',
-    'conditions'
+    'conditions',
+    'minplus',
+    'logsumexp',
+    'viterbi'
 ]
 
 
