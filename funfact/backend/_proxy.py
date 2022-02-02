@@ -3,6 +3,7 @@
 import os
 import sys
 import importlib
+from ._context import set_context
 
 
 available_backends = ['jax', 'torch', 'numpy']
@@ -70,9 +71,10 @@ def use(backend: str, **context):
         if backend == 'jax':
             enable_x64 = context.pop('enable_x64', False)
             os.environ['JAX_ENABLE_X64'] = 'True' if enable_x64 else 'False'
-        _active_backend = importlib.import_module(
-            f'funfact.backend._{backend}'
-        )
+        with set_context(**context):
+            _active_backend = importlib.import_module(
+                f'funfact.backend._{backend}'
+            )
     except KeyError:
         raise RuntimeError(f'Backend {backend} cannot be imported.')
 

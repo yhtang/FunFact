@@ -2,33 +2,30 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import torch
+from ._context import context
 
 
 __name__ = 'PyTorchBackend'
 
 
-nla = torch
 native_t = torch.Tensor
 tensor_t = (torch.Tensor, np.ndarray)
 
-_gen = torch.Generator()
-
-
-def set_context(**context):
-    pass
+_device = torch.device(context.get('device', 'cpu'))
+_gen = torch.Generator(_device)
 
 
 def tensor(array, optimizable=False, **kwargs):
     if type(array) is native_t:
-        t = array.clone().detach()
+        t = array.clone().detach().to(_device)
     else:
-        t = torch.tensor(array, **kwargs)
+        t = torch.tensor(array, **kwargs, device=_device)
     return set_optimizable(t, optimizable)
 
 
 def to_numpy(tensor, **kwargs):
     if tensor.requires_grad:
-        tensor = tensor.detach()
+        tensor = tensor.detach().cpu()
     return np.asarray(tensor.numpy(), **kwargs)
 
 
