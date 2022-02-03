@@ -45,6 +45,14 @@ plugins:
         - funfact
       handlers:
         python:
+          setup_commands:
+            - import sys
+            - from unittest.mock import MagicMock as M
+            - sys.modules["torch"] = M()
+            - sys.modules["jax"] = M()
+            - sys.modules["jax.numpy"] = M()
+            - sys.modules["jax.random"] = M()
+            - sys.modules["jax.tree_util"] = M()
           rendering:
             show_root_heading: True
             show_root_full_path: False
