@@ -58,8 +58,11 @@ plugins:
             show_root_full_path: False
             # show_signature_annotations: True
             # show_root_members_full_path: True
-            members_order: "source"
+            members_order: source
             heading_level: 1
+            show_bases: true
+            show_category_heading: false
+            # show_if_no_docstring: true
             # show_root_toc_entry: True
 markdown_extensions:
   - admonition

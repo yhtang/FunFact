@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import io
 import sys
 import re
 from setuptools import setup, find_packages
@@ -53,7 +52,7 @@ setup(
             'mkdocs-literate-nav==0.4.1',
             'mkdocs-section-index==0.3.2',
             'mkdocs-jupyter==0.19.0',
-            'mkdocstrings==0.16.2',
+            'mkdocstrings==0.17.0',
         ],
         'devel': [
             'expectexception>=0.1.1',
