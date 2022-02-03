@@ -146,10 +146,6 @@ tsrex = a[i, j] / b[j, k]       # elementwise division,    reduction by summatio
 tsrex = a[i, j] - b[j, k]       # elementwise subtraction, reduction by summation
 ```
 
-!!! warning
-    TODO: describe how to change the reduction operation, 
-    refer to semiring operators.
-
 In contrast to an indexless matrix inner product, indexed expressions can be 
 extended to higher-order tensors as illustrated in the following example.
 
@@ -178,8 +174,15 @@ extended to higher-order tensors as illustrated in the following example.
 
 #### Semiring Operators
 
-!!! warning
-    TODO: update the semiring implementation. Add brief description here.
+Alternative [semiring reduction operations](https://bdusell.github.io/semiring-
+einsum/index.html) such as `minplus`, `logsumexp` and `viterbi` 
+are available in FunFact:
+```py
+from funfact import minplus, logsumexp, viterbi
+tsrex = minplus(a[i, j], b[j, k])   # elementwise min, reduction by summation
+tsrex = logsumexp(a[i, j], b[j, k]) # elementwise log_sum_exp, reduction by summation
+tsrex = viterbi(a[i, j], b[j, k])   # elementwise max, reduction by logg_add_exp
+```
 
 #### Explicitly Non-Reducing Indices
 
@@ -382,8 +385,20 @@ The following operations happen in `tsrex`:
 
 The result `tsrex` is thus an indexless $3 \times 4 \times 6$ tensor.
 
-!!! warning
-    TODO: add explanation about rules for hybrid expressions.
+!!! note
+    The indexness of any binary subexpression of a hybrid tensor expression is determined
+    by the following rule:
+    
+    * `@` and `&` are always **indexless** matrix product and Kronecker product operations
+    between 2D tensors.
+
+    * If both the left-hand side and right-hand side are indexed, then
+        - the binary operation is regarded as a generalized Einstein operation, and
+        - the result is an indexed expression.
+
+    * If either the left-hand side, right-hand side or both operands are indexless, then
+        - the binary operation is regarded as an elementwise operation, and
+        - the result is an indexless expression.
 
 ## Non-linearities
 

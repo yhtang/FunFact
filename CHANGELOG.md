@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.0rc2 (2022-01-29)
+
+- Allow targeting CPU or GPU when using the PyTorch backend.
+
 ## 1.0rc1 (2022-01-29)
 
 - Precompile einop to improve performance for complex tensor expressions.

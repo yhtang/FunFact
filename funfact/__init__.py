@@ -12,6 +12,7 @@ from .vectorization import vectorize, view
 from .context import is_grad_on, enable_grad
 from . import initializers
 from . import conditions
+from .lang._semiring import minplus, logsumexp, viterbi
 
 
 __all__ = [
@@ -33,11 +34,14 @@ __all__ = [
     'is_grad_on',
     'enable_grad',
     'initializers',
-    'conditions'
+    'conditions',
+    'minplus',
+    'logsumexp',
+    'viterbi'
 ]
 
 
-__version__ = '1.0rc1'
+__version__ = '1.0rc2'
 __author__ = '''Yu-Hang "Maxin" Tang, Daan Camps, Elizaveta Rebrova'''
 __maintainer__ = 'Yu-Hang "Maxin" Tang'
 __email__ = 'Tang.Maxin@gmail.com'

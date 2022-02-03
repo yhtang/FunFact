@@ -73,7 +73,7 @@ setup(
     platforms='any',
     classifiers=[
         'Programming Language :: Python',
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Environment :: Console',
         'Intended Audience :: End Users/Desktop',

@@ -160,9 +160,9 @@ def factorize(
                 best_loss = np.minimum(best_loss, curr_loss)
                 for b, o in zip(best_factors, fac.factors):
                     if append:
-                        b[..., better] = o[..., better]
+                        b[..., better] = ab.to_numpy(o[..., better])
                     else:
-                        b[better, ...] = o[better, ...]
+                        b[better, ...] = ab.to_numpy(o[better, ...])
 
                 converged |= np.where(curr_loss < tol, True, False)
                 if stop_by is not None:
