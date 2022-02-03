@@ -1,35 +1,60 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+'''[PyTorch](https://pytorch.org/).'''
 import numpy as np
 import torch
+from funfact.util.iterable import as_tuple
+from ._context import context
 
 
 __name__ = 'PyTorchBackend'
 
-
 nla = torch
 native_t = torch.Tensor
+'''The native type for tensor data used by the backend.'''
 tensor_t = (torch.Tensor, np.ndarray)
+'''Types acceptable by the backend API as 'tensors'.'''
 
+_device = torch.device(context.get('device', 'cpu'))
 _gen = torch.Generator()
-
-
-def set_context(**context):
-    pass
 
 
 def tensor(array, optimizable=False, **kwargs):
     if type(array) is native_t:
-        t = array.clone().detach()
+        t = array.clone().detach().to(_device)
     else:
-        t = torch.tensor(array, **kwargs)
+        t = torch.tensor(array, **kwargs, device=_device)
     return set_optimizable(t, optimizable)
 
 
 def to_numpy(tensor, **kwargs):
     if tensor.requires_grad:
         tensor = tensor.detach()
+    if _device.type != 'cpu':
+        tensor = tensor.cpu()
     return np.asarray(tensor.numpy(), **kwargs)
+
+
+def _add_device(f):
+    def wrapped(*args, **kwargs):
+        return f(*args, **kwargs, device=_device)
+    return wrapped
+
+
+zeros = _add_device(torch.zeros)
+zeros_like = _add_device(torch.zeros_like)
+ones = _add_device(torch.ones)
+ones_like = _add_device(torch.ones_like)
+arange = _add_device(torch.arange)
+linspace = _add_device(torch.linspace)
+logspace = _add_device(torch.logspace)
+eye = _add_device(torch.eye)
+empty = _add_device(torch.empty)
+empty_like = _add_device(torch.empty_like)
+empty_strided = _add_device(torch.empty_strided)
+full = _add_device(torch.full)
+full_like = _add_device(torch.full_like)
+complex = _add_device(torch.complex)
 
 
 def seed(key):
@@ -39,15 +64,15 @@ def seed(key):
 def normal(mean, std, shape, dtype=torch.float32):
     with torch.no_grad():
         return torch.normal(
-            mean, std, shape, dtype=dtype, generator=_gen
-        )
+            mean, std, as_tuple(shape), dtype=dtype, generator=_gen
+        ).to(_device)
 
 
 def uniform(low, high, shape, dtype=torch.float32):
     with torch.no_grad():
         return torch.rand(
-            shape, dtype=dtype, generator=_gen
-        ) * (high - low) + low
+            as_tuple(shape), dtype=dtype, generator=_gen
+        ).to(_device) * (high - low) + low
 
 
 def transpose(a, axes):
