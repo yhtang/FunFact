@@ -114,8 +114,8 @@ nav:
         - "<b>Factorization</b>":
           - "funfact.factorize": api/factorize.md
           - "funfact.Factorization": api/factorization.md
-          - "funfact.Optimizer": api/optim.md
-          - "funfact.Loss": api/loss.md
+          - "funfact.optim": api/optim.md
+          - "funfact.loss": api/loss.md
           - "funfact.vectorize": api/vectorize.md
           - "funfact.view": api/view.md
         - "<b>Special tensors</b>":
