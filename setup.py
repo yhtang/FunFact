@@ -48,7 +48,7 @@ setup(
         'docs': [
             'mkdocs==1.2.3',
             'mkdocs-gen-files==0.3.3',
-            'mkdocs-material==8.0.5',
+            'mkdocs-material==8.1.9',
             'mkdocs-literate-nav==0.4.1',
             'mkdocs-section-index==0.3.2',
             'mkdocs-jupyter==0.20.0',
