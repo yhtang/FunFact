@@ -12,3 +12,5 @@ python:
       path: .
       extra_requirements:
         - docs
+        - jax
+        - torch

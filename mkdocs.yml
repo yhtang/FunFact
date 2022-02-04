@@ -97,19 +97,25 @@ nav:
         - "funfact.index": api/index_.md
         - "funfact.indices": api/indices.md
         - "funfact.tensor": api/tensor.md
-        - "funfact.zeros": api/zeros.md
-        - "funfact.ones": api/ones.md
-        - "funfact.eye": api/eye.md
+        - "funfact.TsrEx": api/tsrex.md
         - "funfact.initializers": api/initializers.md
         - "funfact.conditions": api/conditions.md
-        - "funfact.TsrEx": api/tsrex.md
-        - "funfact.Factorization": api/factorization.md
-        - "funfact.factorize": api/factorize.md
-        - "funfact.Optimizer": api/optim.md
-        - "funfact.Loss": api/loss.md
-        - "funfact.vectorize": api/vectorize.md
-        - "funfact.view": api/view.md
-        - "funfact.active_backend": api/active_backend.md
-        - "funfact.available_backends": api/available_backends.md
-        - "funfact.use": api/use.md/
+        - "<b>Factorization</b>":
+          - "funfact.factorize": api/factorize.md
+          - "funfact.Factorization": api/factorization.md
+          - "funfact.Optimizer": api/optim.md
+          - "funfact.Loss": api/loss.md
+          - "funfact.vectorize": api/vectorize.md
+          - "funfact.view": api/view.md
+        - "<b>Special tensors</b>":
+          - "funfact.zeros": api/zeros.md
+          - "funfact.ones": api/ones.md
+          - "funfact.eye": api/eye.md
+        - "<b>Backend selection</b>":
+          - "funfact.available_backends": api/available_backends.md
+          - "funfact.use": api/use.md/
+          - "funfact.active_backend": api/active_backend.md
+          - "backend 'jax'": api/backend/_jax.md
+          - "backend 'torch'": api/backend/_torch.md
+          - "backend 'numpy'": api/backend/_numpy.md
     - pages/contribute.md  # contribution guide

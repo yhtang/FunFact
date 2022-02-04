@@ -187,9 +187,7 @@ class NonNegative(_Condition):
     '''
 
     def _condition(self, data):
-        negative = data[data < 0.0]
-        return negative if ab.any(negative) else \
-            ab.tensor(0.0)
+        return ab.relu(-data)
 
 
 class NoCondition(_Condition):

@@ -219,6 +219,7 @@ class TypeDeducer(RewritingTranscriber):
             'src_kron', lhs=lhs.kron_indices or [], rhs=rhs.kron_indices or []
         )
 
+        '''deduce survived indices'''
         live = ordered_union(src_live.lhs, src_live.rhs)
         keep = ordered_union(src_keep.lhs, src_keep.rhs)
         kron = ordered_union(src_kron.lhs, src_kron.rhs)
@@ -259,29 +260,32 @@ class TypeDeducer(RewritingTranscriber):
                 explicit_survival, lone_keep, lone_kron
             )
 
-        dict_lhs = dict(zip(src_live.lhs, lhs.shape))
-        dict_rhs = dict(zip(src_live.rhs, rhs.shape))
+        '''deduce shape of result tensor'''
+        lhs_shape = dict(zip(src_live.lhs, lhs.shape))
+        rhs_shape = dict(zip(src_live.rhs, rhs.shape))
 
         for i in src_live.lhs:
             if i in src_live.rhs and i not in kron:
-                if dict_lhs[i] != dict_rhs[i]:
+                if lhs_shape[i] != rhs_shape[i]:
                     raise SyntaxError(
                         f'Dimension of elementwise index {i} on left-hand side'
-                        f' ({dict_lhs[i]}) does not match dimension of '
-                        f'right-hand side ({dict_rhs[i]}).'
+                        f' ({lhs_shape[i]}) does not match dimension of '
+                        f'right-hand side ({rhs_shape[i]}).'
                     )
 
         shape = []
         for i in live_indices:
             if i in src_live.lhs and i in src_live.rhs:
                 if i in kron:
-                    shape.append(dict_lhs[i]*dict_rhs[i])
+                    shape.append(lhs_shape[i] * rhs_shape[i])
                 else:
-                    shape.append(dict_lhs[i])
+                    shape.append(
+                        *np.broadcast_shapes(lhs_shape[i], rhs_shape[i])
+                    )
             elif i in src_live.lhs:
-                shape.append(dict_lhs[i])
+                shape.append(lhs_shape[i])
             else:
-                shape.append(dict_rhs[i])
+                shape.append(rhs_shape[i])
 
         return live_indices, keep_indices, kron_indices, tuple(shape)
 

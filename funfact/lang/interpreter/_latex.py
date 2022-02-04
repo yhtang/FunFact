@@ -17,7 +17,7 @@ _omap = dict(
     min=r'\min',
     max=r'\max',
     log_sum_exp='LSE',
-    log_add_exp='LAE'
+    logaddexp='LAE'
 )
 
 
