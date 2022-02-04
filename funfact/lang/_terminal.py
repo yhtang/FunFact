@@ -75,6 +75,9 @@ class Identifiable(ABC):
     def __eq__(self, other):
         return self.uuid == other.uuid
 
+    def __lt__(self, other):
+        return self.uuid < other.uuid
+
 
 class LaTexReprMixin(ABC):
     @abstractmethod
