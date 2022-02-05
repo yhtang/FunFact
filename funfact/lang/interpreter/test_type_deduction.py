@@ -73,6 +73,12 @@ def as_payload(live_indices, keep_indices, kron_indices, shape):
      as_payload(None, None, None, (2, 3))),
 
     (P.elem(
+        M(shape=(1, 10)),
+        M(shape=(3, 1)),
+        '', ''),
+     as_payload(None, None, None, (3, 10))),
+
+    (P.elem(
         M(shape=(2, 3, 1)),
         M(shape=(1, 3, 5)),
         '', ''),
@@ -82,13 +88,13 @@ def as_payload(live_indices, keep_indices, kron_indices, shape):
         M(shape=(2, 3)),
         M(shape=(2, 4)),
         '', ''),
-     ValueError),
+     SyntaxError),
 
     (P.elem(
         M(shape=(2, 3)),
         M(shape=(2, 3, 1)),
         '', ''),
-     ValueError),
+     SyntaxError),
 
     # i,i
     (P.ein(
@@ -107,6 +113,15 @@ def as_payload(live_indices, keep_indices, kron_indices, shape):
         None
      ),
      as_payload(['i', 'j'], [], [], (5, 2))),
+
+    # ~i~j,ij
+    (P.ein(
+        M(**as_payload(['i', 'j'], ['i', 'j'], None, (1, 10))),
+        M(**as_payload(['i', 'j'], None, None, (3, 1))),
+        '', '', '',
+        None
+     ),
+     as_payload(['i', 'j'], [], [], (3, 10))),
 
     # ij,jk
     (P.ein(
