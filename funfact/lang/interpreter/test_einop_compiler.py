@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import pytest  # noqa: F401
 from unittest.mock import MagicMock as M
-from funfact.lang._ast import Primitives as P
 from funfact.util.iterable import as_namedtuple
 from ._einop_compiler import EinopCompiler
 
