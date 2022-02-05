@@ -85,8 +85,8 @@ class ASCIITreeFactory:
                 self._ascii_intr(self._root)
             )
 
-        def __call__(self, *fields, stdout=True):
-            ascii = self._factory(*fields)(
+        def __call__(self, *fields, stdout=True, hide_empty=True):
+            ascii = self._factory(*fields, hide_empty=hide_empty)(
                 self._ascii_intr(self._root)
             )
             if stdout:
