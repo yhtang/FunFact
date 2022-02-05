@@ -63,8 +63,9 @@ def test_asciitree():
     a = tensor('a', 2, 3)
     assert hasattr(a, 'asciitree')
     assert 'a' in str(a.asciitree)
-    assert 'None' in str(a.asciitree('null'))
-    assert 'None' in a.asciitree('null', stdout=False)
+    assert 'None' in str(a.asciitree('null', hide_empty=False))
+    assert 'None' in a.asciitree('null', stdout=False, hide_empty=False)
+    assert 'None' not in a.asciitree('null', stdout=False, hide_empty=True)
 
 
 def test_html_repr():
