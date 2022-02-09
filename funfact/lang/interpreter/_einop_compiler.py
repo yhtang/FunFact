@@ -12,7 +12,7 @@ class EinopCompiler(TranscribeInterpreter):
     '''The Einstein summation specification generator creates NumPy-style spec
     strings for tensor contraction operations.'''
 
-    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+    _traversal_order = TranscribeInterpreter.TraversalOrder.DEPTH
 
     as_payload = _as_payload('einspec')
 
@@ -76,6 +76,10 @@ class EinopCompiler(TranscribeInterpreter):
         # reorder lhs and rhs following the order in all indices
         tran_lhs = np.argsort([all_indices.index(i) for i in lhs_live])
         tran_rhs = np.argsort([all_indices.index(i) for i in rhs_live])
+        if np.all(tran_lhs == np.arange(len(lhs_live))):
+            tran_lhs = []
+        if np.all(tran_rhs == np.arange(len(rhs_live))):
+            tran_rhs = []
 
         # Determine expansion positions to align the contraction, Kronecker,
         # elementwise, and outer product indices

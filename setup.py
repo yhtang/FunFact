@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import io
 import sys
 import re
 from setuptools import setup, find_packages
@@ -31,7 +30,7 @@ setup(
     author='Yu-Hang Tang',
     tests_require=['tox'],
     install_requires=[
-        'numpy>=1.17',
+        'numpy>=1.20',
         'tqdm>=4.55',
         'dill>=0.3.3',
         'matplotlib>=3.2',
@@ -49,11 +48,11 @@ setup(
         'docs': [
             'mkdocs==1.2.3',
             'mkdocs-gen-files==0.3.3',
-            'mkdocs-material==8.0.5',
+            'mkdocs-material==8.1.9',
             'mkdocs-literate-nav==0.4.1',
             'mkdocs-section-index==0.3.2',
-            'mkdocs-jupyter==0.19.0',
-            'mkdocstrings==0.16.2',
+            'mkdocs-jupyter==0.20.0',
+            'mkdocstrings==0.17.0',
         ],
         'devel': [
             'expectexception>=0.1.1',
@@ -73,7 +72,7 @@ setup(
     platforms='any',
     classifiers=[
         'Programming Language :: Python',
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Natural Language :: English',
         'Environment :: Console',
         'Intended Audience :: End Users/Desktop',

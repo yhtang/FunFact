@@ -24,12 +24,22 @@ from funfact.conditions import NoCondition
 class ASCIITreeFactory:
 
     @staticmethod
-    def _make_printer(*extra_fields):
+    def _make_printer(*extra_fields, hide_empty=True):
         def _getattr_safe(obj, attr):
             try:
                 return getattr(obj, attr)
             except AttributeError:
                 return None
+
+        def _format_field(f, s):
+            if hide_empty and s is None:
+                return ''
+            else:
+                return '({f}: {s}) '.format(
+                    f=f,
+                    s=re.sub('\n', '', str(s))
+                )
+
         return asciitree.LeftAligned(
             traverse=as_namedtuple(
                 'TsrExTraversal',
@@ -45,11 +55,9 @@ class ASCIITreeFactory:
                 ),
                 get_text=lambda node: '{}: {} '.format(
                     node.name, node.ascii
-                ) + ' '.join([
-                    '({f}: {s})'.format(
-                        f=f,
-                        s=re.sub('\n', '', str(_getattr_safe(node, f)))
-                    ) for f in extra_fields
+                ) + ''.join([
+                    _format_field(f, _getattr_safe(node, f))
+                    for f in extra_fields
                 ])
             ),
             draw=asciitree.drawing.BoxStyle(
@@ -77,8 +85,8 @@ class ASCIITreeFactory:
                 self._ascii_intr(self._root)
             )
 
-        def __call__(self, *fields, stdout=True):
-            ascii = self._factory(*fields)(
+        def __call__(self, *fields, stdout=True, hide_empty=True):
+            ascii = self._factory(*fields, hide_empty=hide_empty)(
                 self._ascii_intr(self._root)
             )
             if stdout:

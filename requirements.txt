@@ -1,4 +1,0 @@
-pycuda>=2021.1
-torch
-torchvision
-torchaudio

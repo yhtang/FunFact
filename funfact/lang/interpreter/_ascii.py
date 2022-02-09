@@ -6,7 +6,7 @@ from ._base import _as_payload, TranscribeInterpreter
 class ASCIIRenderer(TranscribeInterpreter):
     '''Creates ASCII representations for tensor expressions.'''
 
-    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+    _traversal_order = TranscribeInterpreter.TraversalOrder.DEPTH
 
     as_payload = _as_payload('ascii')
 

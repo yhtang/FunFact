@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.0 (2022-02-09)
+
+- Formal release of version 1.0!
+
 ## 1.0rc2 (2022-01-29)
 
 - Allow targeting CPU or GPU when using the PyTorch backend.

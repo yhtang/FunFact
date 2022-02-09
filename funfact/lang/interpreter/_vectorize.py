@@ -9,7 +9,7 @@ from ._base import _as_payload, TranscribeInterpreter
 
 class Vectorizer(TranscribeInterpreter):
 
-    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+    _traversal_order = TranscribeInterpreter.TraversalOrder.DEPTH
 
     def __init__(self, replicas: int, vec_index: P.index,
                  append: bool = False):

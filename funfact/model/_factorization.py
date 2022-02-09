@@ -187,13 +187,14 @@ class Factorization:
                         enumerate(key)])
         try:
             i = key.index(Ellipsis)
+        except ValueError:
+            pass
+        else:
             indices = tuple([
                 *indices[:i],
                 *[slice(None)] * (self.ndim - len(indices) + 1),
                 *indices[i + 1:]
             ])
-        except ValueError:
-            pass
 
         # Validate full index list
         if len(indices) != self.ndim:
