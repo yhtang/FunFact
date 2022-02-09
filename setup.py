@@ -30,7 +30,7 @@ setup(
     author='Yu-Hang Tang',
     tests_require=['tox'],
     install_requires=[
-        'numpy>=1.17',
+        'numpy>=1.20',
         'tqdm>=4.55',
         'dill>=0.3.3',
         'matplotlib>=3.2',
