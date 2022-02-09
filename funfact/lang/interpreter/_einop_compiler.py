@@ -12,7 +12,7 @@ class EinopCompiler(TranscribeInterpreter):
     '''The Einstein summation specification generator creates NumPy-style spec
     strings for tensor contraction operations.'''
 
-    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+    _traversal_order = TranscribeInterpreter.TraversalOrder.DEPTH
 
     as_payload = _as_payload('einspec')
 

@@ -11,7 +11,7 @@ class SlicingPropagator(TranscribeInterpreter):
     and intermediate nodes should be computed to get the desired
     output at the root.'''
 
-    _traversal_order = TranscribeInterpreter.TraversalOrder.PRE
+    _traversal_order = TranscribeInterpreter.TraversalOrder.BREADTH
 
     def __init__(self, slices):
         self.slices = slices
