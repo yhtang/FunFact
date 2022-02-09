@@ -12,7 +12,7 @@ from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
 class IndexnessAnalyzer(TranscribeInterpreter):
     '''Determines indexness inheritance.'''
 
-    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+    _traversal_order = TranscribeInterpreter.TraversalOrder.DEPTH
 
     as_payload = _as_payload(
         'indexed'
