@@ -6,113 +6,179 @@ from .._ast import Primitives as P
 from ._slicing_propagation import SlicingPropagator
 
 
-@pytest.mark.parametrize('test_case', [
-    (P.abstract_index_notation('', M(ascii='indices')),
-     NotImplementedError),
+_colon = slice(None)
 
-    (P.abstract_binary('', '', '', "operator"),
-     NotImplementedError),
 
-    (P.literal(''),
-     None),
+class T:
+    pass
 
-    (P.tensor(M()),
-     None),
 
-    (P.indices([]),
-     None),
+def test_simple():
 
-    (P.indexed_tensor('', ''),
-     'slices'),
-
-    (P.call('fun', ''),
-     'slices'),
-
-    (P.neg(''),
-     'slices'),
-
-    (P.elem('', '', '', 'operator'),
-     'slices'),
-
-    # (P.ein('', '', '', 'red', 'pair', M(ascii='outidx')),
-    #  'red:pair -> outidx'),
-
-    # (P.ein('', '', '', 'red', 'pair', None),
-    #  'red:pair'),
-
-    # (P.tran('', M(ascii='indices')),
-    #  '-> [indices]'),
-
-    (P.abstract_dest('', M(ascii='indices')),
-     NotImplementedError),
-])
-def test_simple(test_case):
     intr = SlicingPropagator('slices')
-    node, result = test_case
-    if result is NotImplementedError:
-        with pytest.raises(result):
-            intr(node)
-    else:
-        assert intr(node).slices == result
+
+    with pytest.raises(NotImplementedError):
+        node = intr(P.abstract_index_notation(M(), M()))
+
+    with pytest.raises(NotImplementedError):
+        node = intr(P.abstract_binary(M(), M(), M(), 'operator'))
+
+    node = intr(P.literal(T()))
+    assert not hasattr(node.value, 'slices')
+
+    node = intr(P.tensor(T()))
+    assert not hasattr(node.decl, 'slices')
+
+    node = intr(P.index(T(), False, False))
+    assert not hasattr(node.item, 'slices')
+
+    node = intr(P.indices([T(), T()]))
+    assert not hasattr(node.items[0], 'slices')
+    assert not hasattr(node.items[1], 'slices')
+
+    node = intr(P.indexed_tensor(T(), T()))
+    assert node.tensor.slices == 'slices'
+    assert not hasattr(node.indices, 'slices')
+
+    node = intr(P.call('fun', M()))
+    assert node.x.slices == 'slices'
+
+    node = intr(P.neg(M()))
+    assert node.x.slices == 'slices'
+
+    node = intr(P.elem(M(), M(), 0, ''))
+    assert node.lhs.slices == 'slices'
+    assert node.rhs.slices == 'slices'
+
+    with pytest.raises(NotImplementedError):
+        node = intr(P.abstract_dest(M(), M()))
 
 
-# @pytest.fixture
-# def intr():
-#     return SlicingPropagator()
+@pytest.mark.parametrize('test_case', [
+    (
+        ['i', 'j', 'k'], ['i', 'j', 'k'], (1, 2, 3), (1, 2, 3)
+    ),
+    (
+        ['i', 'j', 'k'], ['i', 'k', 'j'], (1, 2, 3), (1, 3, 2)
+    ),
+    (
+        ['i', 'j', 'k'], ['k', 'j', 'i'], (1, 2, 3), (3, 2, 1)
+    ),
+    (
+        ['i', 'j', 'k'], ['k', 'i', 'j'], (1, 2, 3), (3, 1, 2)
+    ),
+])
+def test_tran(test_case):
+
+    indices_src, indices_dst, slices_in, slices_out = test_case
+
+    intr = SlicingPropagator(slices_in)
+
+    node = intr(
+        P.tran(
+            M(live_indices=indices_src),
+            M(live_indices=indices_dst)
+        )
+    )
+
+    assert node.src.slices == slices_out
 
 
-# @pytest.mark.parametrize('test_case', [
-#     (P.abstract_index_notation('', M(ascii='indices')),
-#      NotImplementedError),
+@pytest.mark.parametrize('test_case', [
+    (
+        ['i'], ['j'], ['i', 'j'],
+        (2,), (3,), (2, 3)
+    ),
+    (
+        ['i'], ['j'], [],
+        (_colon,), (_colon,), ()
+    ),
+    (
+        ['i', 'j'], ['j'], ['i'],
+        (2, _colon), (_colon,), (2,)
+    ),
+    (
+        ['i', 'j'], ['j'], ['i'],
+        (_colon, _colon), (_colon,), (_colon,)
+    ),
+    (
+        ['i', 'j'], ['i'], ['j'],
+        (_colon, 2), (_colon,), (2,)
+    ),
+    (
+        ['i'], ['i', 'j'], ['j'],
+        (_colon,), (_colon, 2), (2,)
+    ),
+    (
+        ['i', 'j'], ['j', 'k'], ['i', 'k'],
+        (2, _colon), (_colon, 3), (2, 3)
+    ),
+    (
+        ['i', 'j'], ['j', 'k'], ['i', 'k'],
+        (2, _colon), (_colon, _colon), (2, _colon)
+    ),
+    (
+        ['i', 'j'], ['j', 'k'], ['i', 'j', 'k'],
+        (2, 3), (3, 4), (2, 3, 4)
+    ),
+    (
+        ['i', 'j'], ['j', 'k'], ['k', 'j', 'i'],
+        (4, 3), (3, 2), (2, 3, 4)
+    ),
+    (
+        ['i', 'j'], ['j', 'k'], ['k', 'i', 'j'],
+        (3, 4), (4, 2), (2, 3, 4)
+    ),
+    (
+        ['i', 'j'], ['j', 'k'], ['i', 'j', 'k'],
+        (_colon, 3), (3, 4), (_colon, 3, 4)
+    ),
+    (
+        ['i', 'j'], ['j', 'k'], ['k', 'j', 'i'],
+        (4, _colon), (_colon, 2), (2, _colon, 4)
+    ),
+    (
+        ['i', 'j'], ['j', 'k'], ['k', 'i', 'j'],
+        (3, 4), (4, _colon), (_colon, 3, 4)
+    ),
+    (
+        ['i', 'j'], ['j', 'k'], ['i', 'j', 'k'],
+        (_colon, _colon), (_colon, 4), (_colon, _colon, 4)
+    ),
+    (
+        ['i', 'j', 'k'], ['k', 'm', 'n'], ['i', 'j', 'm', 'n'],
+        (2, 3, _colon), (_colon, 4, 5), (2, 3, 4, 5)
+    ),
+    (
+        ['i', 'j', 'k'], ['m', 'n', 'k'], ['i', 'j', 'm', 'n'],
+        (2, 3, _colon), (4, 5, _colon), (2, 3, 4, 5)
+    ),
+    (
+        ['i', 'j', 'k'], ['n', 'm', 'k'], ['i', 'j', 'm', 'n'],
+        (2, 3, _colon), (5, 4, _colon), (2, 3, 4, 5)
+    ),
+    (
+        ['i', 'j', 'k'], ['k', 'm', 'j'], ['i', 'm'],
+        (2, _colon, _colon), (_colon, 3, _colon), (2, 3)
+    ),
+])
+def test_ein(test_case):
 
-#     (P.abstract_binary('', '', '', "operator"),
-#      NotImplementedError),
+    (
+        indices_lhs, indices_rhs, live_indices,
+        slices_lhs, slices_rhs, slices_in
+    ) = test_case
 
-#     (P.literal('value'),
-#      'value'),
+    intr = SlicingPropagator(slices_in)
 
-#     # (P.tensor(M(symbol='symbol')),
-#     #  'symbol'),
+    node = P.ein(
+        M(live_indices=indices_lhs),
+        M(live_indices=indices_rhs),
+        0, '', '', None,
+    )
+    node.live_indices = live_indices
 
-#     # (P.index(M(symbol='symbol'), False, False),
-#     #  'symbol'),
+    node = intr(node)
 
-#     # (P.index(M(symbol='symbol'), True, False),
-#     #  '~symbol'),
-
-#     # (P.index(M(symbol='symbol'), False, True),
-#     #  '*symbol'),
-
-#     # (P.indices([M(ascii='i'), M(ascii='j')]),
-#     #  'i,j'),
-
-#     # (P.indexed_tensor('', M(ascii='indices')),
-#     #  '[indices]'),
-
-#     # (P.call('fun', ''),
-#     #  'fun'),
-
-#     # (P.neg(''),
-#     #  ''),
-
-#     # (P.elem('', '', '', 'operator'),
-#     #  'operator'),
-
-#     # (P.ein('', '', '', 'red', 'pair', M(ascii='outidx')),
-#     #  'red:pair -> outidx'),
-
-#     # (P.ein('', '', '', 'red', 'pair', None),
-#     #  'red:pair'),
-
-#     # (P.tran('', M(ascii='indices')),
-#     #  '-> [indices]'),
-
-#     (P.abstract_dest('', M(ascii='indices')),
-#      NotImplementedError),
-# ])
-# def test_intr(test_case, intr):
-#     node, result = test_case
-#     if result is NotImplementedError:
-#         with pytest.raises(result):
-#             intr(node)
-#     # assert intr(node).slices == result
+    assert node.lhs.slices == slices_lhs
+    assert node.rhs.slices == slices_rhs

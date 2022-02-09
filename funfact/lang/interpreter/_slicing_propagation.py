@@ -82,8 +82,6 @@ class SlicingPropagator(TranscribeInterpreter):
                 rhs_slices.append(slice(None))
         lhs.slices = tuple(lhs_slices)
         rhs.slices = tuple(rhs_slices)
-        if outidx is not None:
-            outidx.slices = None
 
     def tran(self, src: P.Numeric, indices: P.indices, slices, **kwargs):
         src.slices = tuple([
