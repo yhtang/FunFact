@@ -9,7 +9,7 @@ from ._base import _as_payload, TranscribeInterpreter
 class LeafInitializer(TranscribeInterpreter):
     '''Creates numeric tensors for the leaf nodes in an AST.'''
 
-    _traversal_order = TranscribeInterpreter.TraversalOrder.POST
+    _traversal_order = TranscribeInterpreter.TraversalOrder.DEPTH
 
     def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32

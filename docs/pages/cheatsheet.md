@@ -12,7 +12,9 @@ from funfact import active_backend as ab  # use it like numpy!
 | **Syntax** | **Description** |
 | ------------------- | -------------------------------------------------------------------- |
 | `ff.use('jax')` | Use JAX as backend |
+| `ff.use('jax', enable_x64=True)` | JAX with 64-bit floating points as default |
 | `ff.use('torch')` | Use PyTorch as backend |
+| `ff.use('torch', device='cuda')` | Use PyTorch on CUDA devices |
 | `ff.use('numpy')` | Use NumPy as backend, forward calculations only |
 
 

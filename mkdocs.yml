@@ -34,7 +34,7 @@ plugins:
   #       - docs/copy_readme.py
   #     - docs/gen_ref_nav.py
   #     - docs/gen_credits.py
-  - section-index
+  # - section-index
   - literate-nav:
       nav_file: SUMMARY.md
   - autorefs
@@ -45,13 +45,24 @@ plugins:
         - funfact
       handlers:
         python:
+          setup_commands:
+            - import sys
+            - from unittest.mock import MagicMock as M
+            - sys.modules["torch"] = M()
+            - sys.modules["jax"] = M()
+            - sys.modules["jax.numpy"] = M()
+            - sys.modules["jax.random"] = M()
+            - sys.modules["jax.tree_util"] = M()
           rendering:
             show_root_heading: True
             show_root_full_path: False
             # show_signature_annotations: True
             # show_root_members_full_path: True
-            members_order: "source"
+            members_order: source
             heading_level: 1
+            show_bases: true
+            show_category_heading: false
+            # show_if_no_docstring: true
             # show_root_toc_entry: True
 markdown_extensions:
   - admonition
@@ -87,7 +98,7 @@ nav:
       - Quantum circuit compilation: examples/quantum-compilation.ipynb
     - pages/cheatsheet.md
     - User Guide:
-        - "Tensors and Indices": pages/user-guide/tensor-and-indices.md
+        - pages/user-guide/tensor-and-indices.md
         - pages/user-guide/tsrex.md
         - pages/user-guide/eval.md
         - pages/user-guide/factorize.md
@@ -103,8 +114,8 @@ nav:
         - "<b>Factorization</b>":
           - "funfact.factorize": api/factorize.md
           - "funfact.Factorization": api/factorization.md
-          - "funfact.Optimizer": api/optim.md
-          - "funfact.Loss": api/loss.md
+          - "funfact.optim": api/optim.md
+          - "funfact.loss": api/loss.md
           - "funfact.vectorize": api/vectorize.md
           - "funfact.view": api/view.md
         - "<b>Special tensors</b>":

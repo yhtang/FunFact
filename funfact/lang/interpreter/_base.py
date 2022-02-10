@@ -151,8 +151,8 @@ class TranscribeInterpreter(ABC):
     class TraversalOrder(Enum):
         '''A post-order transcriber acts on the children of a node before
         acting on the node itself.'''
-        PRE = 0
-        POST = 1
+        DEPTH = 0
+        BREADTH = 1
 
     _traversal_order: TraversalOrder
 
@@ -227,20 +227,20 @@ class TranscribeInterpreter(ABC):
     def __call__(self, node: _ASNode, parent: _ASNode = None):
         node = copy.copy(node)
 
-        def _do_node():
+        def _eval_node():
             payload = self._eval(node)
             _emplace(node, payload)
 
-        def _do_children():
+        def _eval_children():
             for name, value in node.fields_fixed.items():
                 setattr(node, name, _deep_apply(self, value, node))
 
-        if self._traversal_order == self.TraversalOrder.PRE:
-            _do_node()
-            _do_children()
-        elif self._traversal_order == self.TraversalOrder.POST:
-            _do_children()
-            _do_node()
+        if self._traversal_order == self.TraversalOrder.BREADTH:
+            _eval_node()
+            _eval_children()
+        elif self._traversal_order == self.TraversalOrder.DEPTH:
+            _eval_children()
+            _eval_node()
         return node
 
     def __ror__(self, tsrex: _AST):

@@ -185,11 +185,11 @@ class TypeDeducer(RewritingTranscriber):
     ):
         try:
             return None, None, None, np.broadcast_shapes(lhs.shape, rhs.shape)
-        except RuntimeError:
-            raise ValueError(
+        except ValueError:
+            raise SyntaxError(
                 f'Cannot perform elementwise operations on '
                 f'tensors of incompatible shape {lhs.shape} and {rhs.shape}.'
-            )
+            ) from None
 
     @as_payload
     def ein(
@@ -266,12 +266,14 @@ class TypeDeducer(RewritingTranscriber):
 
         for i in src_live.lhs:
             if i in src_live.rhs and i not in kron:
-                if lhs_shape[i] != rhs_shape[i]:
+                try:
+                    np.broadcast_shapes(lhs_shape[i], rhs_shape[i])
+                except ValueError:
                     raise SyntaxError(
                         f'Dimension of elementwise index {i} on left-hand side'
-                        f' ({lhs_shape[i]}) does not match dimension of '
-                        f'right-hand side ({rhs_shape[i]}).'
-                    )
+                        f' ({lhs_shape[i]}) cannot broadcast to that of '
+                        f'the right-hand side ({rhs_shape[i]}).'
+                    ) from None
 
         shape = []
         for i in live_indices:
