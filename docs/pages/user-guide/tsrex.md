@@ -315,8 +315,8 @@ tsrex = a[[*i, *j]] *b[i, j]   # Kronecker product of a and b with shape 10 x 6
 
 #### Explicit output indices
 
-Indices of indexed tensor expressions can be explicitly set as an output index
-by means of the `>>` operator. This operator has two closely related use cases
+The output indices of an indexed tensor expression can be explicitly set
+using the `>>` operator. This operator has two closely related interpretations
 depending on whether it is added to a binary expression (Einstein operation) or
 not:
 
@@ -326,31 +326,31 @@ the output dimensions but also to force/disable reduction over specified
 indices. In this case, the indices in `[]` must be a subset of the union of live
 indices of the left-hand side and the right-hand side.
 
-=== "index permutation"
+=== "output axis permutation"
     ```py
     tsrex = a[i, k] * b[j, k] >> [j, i]
     ```
-    *Result:* The indices `i, j` are permuted to `j, i`.
+    *Result:* The axes associated with indices `i, j` are permuted to `j, i`.
 
-=== "explicit non-reducing index"
+=== "suppress reduction along $k$"
     ```py
     tsrex = a[i, k] * b[j, k] >> [k, j, i]
     ```
     *Result:* The repeated index `k` is explicitly marked as non-reducing.
 
-=== "explicit reducing index"
+=== "force reduction along $i$"
     ```py
     tsrex = a[i, k] * b[j, k] >> [j]
     ```
-    *Result:* The lone index `i` is explicitly marked as reducing.
+    *Result:* The axis corresponding to the lone index `i` is explicitly marked as reducing.
 
 * If `>> [indices...]` follows an indexed expression that is, however, not an
-einop, then it will specify an axes permutation, the order of which will be
-deduced by the indices in `[]` as well as the live indices of the indexed
+einop, then it will specify an axes permutation operation. The order of the permutation will be
+deduced by the order of the indices in `[]` as well as in the live indices of the indexed
 expression. The two sets of indices here must have the same elements.
 
 ```py
-tsrex = ff.exp(a[i, j, k, ~m] * b[k, i, l, m]) # has indices j, m, l
+tsrex = ff.exp(a[i, j, k, ~m] * b[k, i, l, m]) # result has indices j, m, l
 tsrex = tsrex >> [j, l, m]                     # transpose to j, l, m
 ```
 
