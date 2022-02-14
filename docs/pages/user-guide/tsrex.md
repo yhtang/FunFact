@@ -313,33 +313,45 @@ tsrex = a[[*i, *j]] *b[i, j]   # Kronecker product of a and b with shape 10 x 6
     tsrex = a[i, ~j] * b[k, ~j]     # 5 x 2 x 3 tensor
     ```
 
-#### Index transposition
+#### Explicit output indices
 
-Indexed tensor expressions can be transposed with the `>>` operator.
-Consider the following indexed tensor expression:
+The output indices of an indexed tensor expression can be explicitly set
+using the `>>` operator. This operator has two closely related interpretations
+depending on whether it is added to a binary expression (Einstein operation) or
+not:
+
+* If `>> [indices...]` is used immediately after a binary operation, then the
+`indices` will be used in the NumPy convention to specify not only the order of 
+the output dimensions but also to force/disable reduction over specified 
+indices. In this case, the indices in `[]` must be a subset of the union of live
+indices of the left-hand side and the right-hand side.
+
+=== "output axis permutation"
+    ```py
+    tsrex = a[i, k] * b[j, k] >> [j, i]
+    ```
+    *Result:* The axes associated with indices `i, j` are permuted to `j, i`.
+
+=== "suppress reduction along $k$"
+    ```py
+    tsrex = a[i, k] * b[j, k] >> [k, j, i]
+    ```
+    *Result:* The repeated index `k` is explicitly marked as non-reducing.
+
+=== "force reduction along $i$"
+    ```py
+    tsrex = a[i, k] * b[j, k] >> [j]
+    ```
+    *Result:* The axis corresponding to the lone index `i` is explicitly marked as reducing.
+
+* If `>> [indices...]` follows an indexed expression that is, however, not an
+einop, then it will specify an axes permutation operation. The order of the permutation will be
+deduced by the order of the indices in `[]` as well as in the live indices of the indexed
+expression. The two sets of indices here must have the same elements.
 
 ```py
-import funfact as ff
-a = ff.tensor('a', 4, 3, 2, 6)
-b = ff.tensor('b', 2, 4, 5, 6)
-i, j, k, l, m = ff.indices('i, j, k, l, m')
-tsrex = a[i, j, k, ~m] * b[k, i, l, m]
-```
-
-In `tsrex` the `i` and `k` indices are contracted as they are repeated on both
-sides; the `m` index is also repeated but is decorated with `~` to indicate
-that is not reduced over. Thus `tsrex` has indices `j, m, l` in that order.
-If we want to reorder the indices and transpose `tsrex`, we can use the `>>`
-operation:
-
-```py
-tsrex = tsrex >> [j, l, m]
-```
-
-This can also be written in a single line
-
-```py
-tsrex = a[i, j, k, ~m] * b[k, i, l, m] >> [j, l, m]
+tsrex = ff.exp(a[i, j, k, ~m] * b[k, i, l, m]) # result has indices j, m, l
+tsrex = tsrex >> [j, l, m]                     # transpose to j, l, m
 ```
 
 #### Index reassignment
