@@ -6,14 +6,14 @@ tags:
   - machine learning
   - quantum computing
 authors:
-  - name: Yu-Hang Tang
-    orcid: 0000-0001-7424-5439
-    affiliation: "1"
-    email: tang@lbl.gov
   - name: Daan Camps
     orcid: 0000-0003-0236-4353
     affiliation: "1"
     email: dcamps@lbl.gov
+  - name: Yu-Hang Tang^[corresponding author]
+    orcid: 0000-0001-7424-5439
+    affiliation: "1"
+    email: Tang.Maxin@gmail.com
 affiliations:
  - name: Applied Mathematics and Computational Research Division, Lawrence Berkeley National Laboratory, Berkeley, CA 94720, USA
    index: 1
