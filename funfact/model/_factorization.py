@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from numbers import Integral
+from funfact import active_backend as ab
 from funfact.lang.interpreter import (
     dfs_filter,
     TypeDeducer,
@@ -11,7 +12,7 @@ from funfact.lang.interpreter import (
     ElementwiseEvaluator,
     SlicingPropagator,
 )
-from funfact import active_backend as ab
+from funfact.util.iterable import unique
 
 
 class Factorization:
@@ -37,10 +38,7 @@ class Factorization:
     '''
 
     def __init__(self, tsrex, **extra_attributes):
-        self._tsrex = (tsrex
-                       | IndexnessAnalyzer()
-                       | TypeDeducer()
-                       | EinopCompiler())
+        self._tsrex = tsrex
         self.__dict__.update(**extra_attributes)
 
     @classmethod
@@ -53,6 +51,10 @@ class Factorization:
             initialize (bool):
                 Whether or not to fill abstract tensors with actual data.
         '''
+        tsrex = (tsrex
+                 | IndexnessAnalyzer()
+                 | TypeDeducer()
+                 | EinopCompiler())
         if initialize:
             tsrex = tsrex | LeafInitializer(dtype)
         return cls(tsrex)
@@ -80,16 +82,18 @@ class Factorization:
         '''
         return self._NodeView(
             'data',
-            list(dfs_filter(lambda n: n.name == 'tensor' and
-                            n.decl.optimizable, self.tsrex.root))
+            list(unique(dfs_filter(
+                lambda n: n.name == 'tensor' and n.decl.optimizable,
+                self.tsrex.root
+            )))
         )
 
     @factors.setter
     def factors(self, tensors):
-        for i, n in enumerate(
+        for i, n in enumerate(unique(
             dfs_filter(lambda n: n.name == 'tensor' and
                        n.decl.optimizable, self.tsrex.root)
-        ):
+        )):
             n.data = tensors[i]
 
     @property
@@ -117,7 +121,9 @@ class Factorization:
         '''
         return self._NodeView(
             'data',
-            list(dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root))
+            list(unique(dfs_filter(
+                lambda n: n.name == 'tensor', self.tsrex.root
+            )))
         )
 
     @property
@@ -135,7 +141,7 @@ class Factorization:
         '''The dimensionality of the result tensor.'''
         return self.tsrex.ndim
 
-    def penalty(self, sum_leafs: bool = True, sum_vec=None):
+    def penalty(self, sum_leafs: bool = True, sum_vec=False):
         '''The penalty of the result tensor.
 
         Args:
@@ -143,16 +149,18 @@ class Factorization:
             sum_vec (bool): sum the penalties over the vectorization dimension.
         '''
 
-        factors = list(dfs_filter(
+        factors = list(unique(dfs_filter(
                 lambda n: n.name == 'tensor' and n.decl.optimizable,
-                self.tsrex.root)
-        )
+                self.tsrex.root
+        )))
         penalties = ab.stack(
             [f.decl.prefer(f.data, sum_vec) for f in factors],
             0 if sum_vec else -1
         )
-        return ab.sum(penalties, 0 if sum_vec else -1) if sum_leafs else \
-            penalties
+        if sum_leafs:
+            return ab.sum(penalties, 0 if sum_vec else -1)
+        else:
+            return penalties
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''
@@ -211,10 +219,10 @@ class Factorization:
         '''Implements attribute-based access of factor tensors or output
         elements.'''
         if isinstance(idx, str):
-            for n in dfs_filter(
+            for n in unique(dfs_filter(
                 lambda n: n.name == 'tensor' and str(n.decl.symbol) == idx,
                 self.tsrex.root
-            ):
+            )):
                 return n.data
             raise AttributeError(f'No factor tensor named {idx}.')
         else:
@@ -222,10 +230,10 @@ class Factorization:
 
     def __setitem__(self, name, data):
         '''Implements attribute-based access of factor tensors.'''
-        for n in dfs_filter(
+        for n in unique(dfs_filter(
             lambda n: n.name == 'tensor' and str(n.decl.symbol) == name,
             self.tsrex.root
-        ):
+        )):
             return setattr(n, 'data', data)
         raise AttributeError(f'No factor tensor named {name}.')
 
