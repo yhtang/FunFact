@@ -27,20 +27,21 @@ bibliography: paper.bib
 
 # Statement of Need
 
-Tensor factorizations have found numerous applications in a variety of domains [@tbook, @treview]. Among the most prominent are tensor networks in quantum physics [@tnetwork], tensor decompositions in machine learning [@tensorly] and signal processing [@tml, @bss], and quantum computation [@qc].
+Tensor factorizations have found numerous applications in a variety of domains [@tbook], [@treview]. Among the most prominent are tensor networks in quantum physics [@tnetwork], tensor decompositions in machine learning [@tensorly] and signal processing [@tml], [@bss], and quantum computation [@qc].
 
-Thus far most tensor factorization models require special purpose algorithms that are designed to factor the target data into a model with a prescribed structure. Furthermore, the models that are being used are mostly limited to linear contractions between the factor tensors such as standard inner and outer products, elementwise multiplications, and matrix Kronecker products. Extending such a special-purpose solver to more generalized models can be a daunting task, especially if nonlinear operations are considered.
+Thus far, most tensor factorization models are solved by special purpose algorithms designed to factor the target data into a model with the prescribed structure. Furthermore, the models that are being used are often limited to linear contractions between the factor tensors such as standard inner and outer products, elementwise multiplications, and matrix Kronecker products. Extending such a special-purpose solver to more generalized models can be a daunting task, especially if nonlinear operations are considered.
 
-`FunFact` solves this problem and fills the gap. It offers an embedded Domain Specific Language (eDSL) in Python for creating nonlinear tensor algebra expressions that are based on generalized Einstein operations. User-defined tensor expressions can be immediately used to solve the corresponding factorization problem. `FunFact` solves this inverse problem by combining stochastic gradient descent, automatic differentiation, and model vectorization for multi-replica learning. This combination achieves instanteous time-to-algorithm for all conceivable tensor factorization models and allows the user to explore the full universe of nonlinear tensor factorization models. 
+`FunFact` solves this problem and fills the gap. It offers an embedded Domain Specific Language (eDSL) in Python for creating nonlinear tensor algebra expressions that are based on generalized Einstein operations. User-defined tensor expressions can be immediately used to solve the corresponding factorization problem. `FunFact` solves this inverse problem by combining stochastic gradient descent, automatic differentiation, and model vectorization for multi-replica learning. This combination achieves instantaneous time-to-algorithm for all conceivable tensor factorization models and allows the user to explore the full universe of nonlinear tensor factorization models. 
 
 ![FunFact is able to solve the inverse optimization problem for a target data tensor based on a nonlinear tensor expression that only defines the forward computation.](funfact.jpeg)
 
 # Functionality
 
 `FunFact`'s core functionality consists of three parts:
-1. A rich and flexible eDSL to express complicated tensor factorization models with a concise expression.
-2. Forward evaluation of user-defined tensor expressions.
-3. Backpropagation and automatic differentiation to compute the model gradients and optimize the factorization model to a target tensor via stochastic gradient descent.
+
+1.  A rich and flexible eDSL to express complicated tensor factorization models with a concise expression.
+2.  Forward evaluation of user-defined tensor expressions.
+3.  Backpropagation and automatic differentiation to compute the model gradients and optimize the factorization model to a target tensor via stochastic gradient descent.
 
 
 ## eDSL for tensor expressions
@@ -74,7 +75,7 @@ We illustrate the use and flexibility of `FunFact` by providing reference tensor
 
 # Related research and software
 
-`FunFact` is closely related to a few other software packages that provide Einstein notations and Domain Specific Languages (DSL) for tensor algebra. Notable examples are `TensorOperations.jl` [@to] that provide Einstein index notation in julia, `Tensor Comprehensions` [@tc] that provides a DSL to automatically synthesize high-performance machine learning kernels, `einops` [@einops] that enables tensor operations through readable and reliable code, TACO [@TACO]: the tensor algebra compiler, and COMET [@comet] that is designed to handle contractions for different sparse tensor representations. `FunFact` has the unique advantage over all of these that it can solve the inverse decomposition problem based on the model description in the form of a nonlinear tensor algebra expression. In this sense, `FunFact` also offers more generality compared to other tensor decomposition software libraries such as `Tensorly` [@tensorly], `Tensor Toolbox` [@ttoolbox] or `Tensorlab` [@tlab] which only provide specialized implementations for computing well-known tensor decompositions such as Tucker or tensor rank decomposition.
+`FunFact` is closely related to a few other software packages that provide Einstein notations and Domain Specific Languages (DSL) for tensor algebra. Notable examples are `TensorOperations.jl` [@to] that provide Einstein index notation in julia, `Tensor Comprehensions` [@tc] that provides a DSL to automatically synthesize high-performance machine learning kernels, `einops` [@einops] that enables tensor operations through readable and reliable code, `TACO` [@TACO]: the tensor algebra compiler, and `COMET` [@comet] which is designed to handle contractions for different sparse tensor representations. `FunFact` has the unique advantage over all of these that it can solve the inverse decomposition problem based on the model description in the form of a nonlinear tensor algebra expression. In this sense, `FunFact` also offers more generality compared to other tensor decomposition software libraries such as `Tensorly` [@tensorly], `Tensor Toolbox` [@ttoolbox] or `Tensorlab` [@tlab] which only provide specialized implementations for computing well-known tensor decompositions such as Tucker or tensor rank decomposition.
 
 # Acknowledgement
 
