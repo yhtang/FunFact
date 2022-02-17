@@ -6,7 +6,7 @@ import funfact.optim
 import funfact.loss
 from funfact import Factorization
 from funfact.backend import active_backend as ab
-from funfact.vectorization import vectorize, view
+from funfact.vectorization import view
 
 
 def factorize(
