@@ -13,6 +13,7 @@ from funfact.lang.interpreter import (
     SlicingPropagator,
 )
 from funfact.util.iterable import unique
+from funfact.vectorization import vectorize
 
 
 class Factorization:
@@ -37,27 +38,49 @@ class Factorization:
         <funfact.model._factorization.Factorization object at 0x7f5838105ee0>
     '''
 
-    def __init__(self, tsrex, **extra_attributes):
-        self._tsrex = tsrex
+    def __init__(self, tsrex, _secret=None, **extra_attributes):
+        if _secret != '50A-2117':
+            raise RuntimeError(
+                'Please use one of the `from_*` methods to create a '
+                'factorization from a tensor expression'
+            )
+        self.tsrex = tsrex
         self.__dict__.update(**extra_attributes)
 
     @classmethod
-    def from_tsrex(cls, tsrex, dtype=None, initialize=True):
+    def from_tsrex(
+        cls, tsrex, dtype=None, vec_size=None, vec_axis=0, initialize=True
+    ):
         '''Construct a factorization model from a tensor expresson.
 
         Args:
             tsrex (TsrEx): The tensor expression.
             dtype: numerical data type, defaults to float32.
+            vec_size (int):
+                Whether to vectorize the tensor expression with parallel
+                instances.
+            vec_axis (0 or -1): The position of the vectorization dimension.
             initialize (bool):
                 Whether or not to fill abstract tensors with actual data.
         '''
-        tsrex = (tsrex
-                 | IndexnessAnalyzer()
-                 | TypeDeducer()
-                 | EinopCompiler())
+        tsrex = tsrex | IndexnessAnalyzer() | TypeDeducer()
+        if vec_size:
+            tsrex = vectorize(
+                tsrex, vec_size, append=True if vec_axis == -1 else False
+            )
         if initialize:
             tsrex = tsrex | LeafInitializer(dtype)
-        return cls(tsrex)
+        tsrex = tsrex | EinopCompiler() | IndexnessAnalyzer()
+        return cls(tsrex, _secret='50A-2117')
+
+    @classmethod
+    def _from_jax_flatten(cls, tsrex, factors):
+        '''
+        '''
+        tsrex = tsrex | IndexnessAnalyzer()
+        fac = cls(tsrex, _secret='50A-2117')
+        fac.factors = factors
+        return fac
 
     @property
     def factors(self):
@@ -130,6 +153,11 @@ class Factorization:
     def tsrex(self):
         '''The underlying tensor expression.'''
         return self._tsrex
+
+    @tsrex.setter
+    def tsrex(self, tsrex):
+        '''Setting the underlying tensor expression.'''
+        self._tsrex = tsrex
 
     @property
     def shape(self):

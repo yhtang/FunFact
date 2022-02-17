@@ -73,11 +73,11 @@ def test_exception():
 
 
 @pytest.mark.parametrize('stop_by', ['first', 2, None])
-@pytest.mark.parametrize('append', [True, False])
-def test_kwargs(stop_by, append):
+@pytest.mark.parametrize('vec_axis', [0, -1])
+def test_kwargs(stop_by, vec_axis):
 
     fac = factorize(
-        tensor(2), ab.ones(2), nvec=4, stop_by=stop_by, append=append,
+        tensor(2), ab.ones(2), vec_size=4, stop_by=stop_by, vec_axis=vec_axis,
         max_steps=100
     )
 
@@ -87,17 +87,17 @@ def test_kwargs(stop_by, append):
 def test_returns():
 
     fac = factorize(
-        tensor(2), ab.ones(2), nvec=4, max_steps=100, returns='best'
+        tensor(2), ab.ones(2), vec_size=4, max_steps=100, returns='best'
     )
     assert not isinstance(fac, list)
 
     fac = factorize(
-        tensor(2), ab.ones(2), nvec=4, max_steps=100, returns=2
+        tensor(2), ab.ones(2), vec_size=4, max_steps=100, returns=2
     )
     assert isinstance(fac, list)
 
     fac = factorize(
-        tensor(2), ab.ones(2), nvec=4, max_steps=100, returns='all'
+        tensor(2), ab.ones(2), vec_size=4, max_steps=100, returns='all'
     )
     assert isinstance(fac, list)
 
