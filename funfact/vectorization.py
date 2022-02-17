@@ -69,7 +69,7 @@ def view(fac, tsrex_scalar, instance: int, append: bool = False):
             f'Only {nvec} vector instances exist, '
             f'index {instance} out of range.'
         )
-    fac_scalar = Factorization(tsrex_scalar)
+    fac_scalar = Factorization.from_tsrex(tsrex_scalar)
     instance = [..., instance] if append else [instance, ...]
     for i, f in enumerate(fac.all_factors):
         fac_scalar.all_factors[i] = f[tuple(instance)]
