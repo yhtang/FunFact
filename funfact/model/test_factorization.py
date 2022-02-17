@@ -3,6 +3,7 @@
 import pytest
 from unittest.mock import MagicMock as M
 from funfact import active_backend as ab
+from funfact.lang._ast import Primitives as P
 from ._factorization import Factorization
 
 
@@ -104,3 +105,22 @@ def test_get_set_item():
         fac[0, 0]
     with pytest.raises(IndexError):
         fac[0, ...]
+
+
+def test_duplicate_factors():
+    a = P.tensor(decl=M(symbol='a', optimizable=True, prefer=lambda *_: 0))
+    b = P.tensor(decl=M(symbol='b', optimizable=True, prefer=lambda *_: 0))
+
+    fac1 = Factorization(M(root=P.elem(a, a, 0, 'add')))
+    fac2 = Factorization(M(root=P.elem(a, b, 0, 'add')))
+
+    assert len(fac1.factors) == 1
+    assert len(fac2.factors) == 2
+
+    fac1.factors = [None]
+    with pytest.raises(IndexError):
+        fac2.factors = [None]
+    fac2.factors = [None, None]
+
+    assert len(fac1.penalty(sum_leafs=False)) == 1
+    assert len(fac2.penalty(sum_leafs=False)) == 2
