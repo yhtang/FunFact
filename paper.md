@@ -41,7 +41,7 @@ Thus far, most tensor factorization models are solved by special purpose algorit
 
 1.  A rich and flexible eDSL to express complicated tensor factorization models with a concise expression.
 2.  Forward evaluation of user-defined tensor expressions.
-3.  Backpropagation and automatic differentiation to compute the model gradients and optimize the factorization model to a target tensor via stochastic gradient descent.
+3.  Backpropagation and automatic differentiation to compute the model gradients and optimize the factorization model for a target tensor using stochastic gradient descent.
 
 
 ## eDSL for tensor expressions
@@ -75,11 +75,11 @@ We illustrate the use and flexibility of `FunFact` by providing reference tensor
 
 # Related research and software
 
-`FunFact` is closely related to a few other software packages that provide Einstein notations and Domain Specific Languages (DSL) for tensor algebra. Notable examples are `TensorOperations.jl` [@to] that provide Einstein index notation in julia, `Tensor Comprehensions` [@tc] that provides a DSL to automatically synthesize high-performance machine learning kernels, `einops` [@einops] that enables tensor operations through readable and reliable code, `TACO` [@TACO]: the tensor algebra compiler, and `COMET` [@comet] which is designed to handle contractions for different sparse tensor representations. `FunFact` has the unique advantage over all of these that it can solve the inverse decomposition problem based on the model description in the form of a nonlinear tensor algebra expression. In this sense, `FunFact` also offers more generality compared to other tensor decomposition software libraries such as `Tensorly` [@tensorly], `Tensor Toolbox` [@ttoolbox] or `Tensorlab` [@tlab] which only provide specialized implementations for computing well-known tensor decompositions such as Tucker or tensor rank decomposition.
+`FunFact` is closely related to a few other software packages that provide Einstein notations and Domain Specific Languages (DSL) for tensor algebra. Notable examples are `TensorOperations.jl` [@to] that provides Einstein index notations in julia, `Tensor Comprehensions` [@tc] that provides a DSL to automatically synthesize high-performance machine learning kernels, `einops` [@einops] that enables tensor operations through readable and reliable code, `TACO` [@TACO]: the tensor algebra compiler, and `COMET` [@comet] which is designed for high-performance contractions of sparse tensors. `FunFact` has the unique advantage over all aforementioned projects that it can solve the inverse decomposition problem from the model description as a nonlinear tensor algebra expression. Additionally, `FunFact` offers increased generality compared to other tensor decomposition software libraries such as `Tensorly` [@tensorly], `Tensor Toolbox` [@ttoolbox] or `Tensorlab` [@tlab] which only provide specialized implementations for computing fixed-form tensor decompositions such as Tucker or tensor rank decompositions.
 
 # Acknowledgement
 
-The authors thank Liza Rebrova for their input on this work.
+The authors thank Liza Rebrova for input on this work.
 This work was supported by the Laboratory Directed Research and Development 
 Program of Lawrence Berkeley National Laboratory under U.S. Department of 
 Energy Contract No. DE-AC02-05CH11231.
