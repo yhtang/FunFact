@@ -72,10 +72,10 @@ def test_view_concrete(append):
     fac = Factorization.from_tsrex(tsrex)
     vfac = Factorization.from_tsrex(tsrex_vector)
     for i in range(nvec):
-        fac = view(vfac.all_factors, fac, i, append)
+        fac = view(vfac.factors, fac, i, append)
         assert fac.ndim == tsrex.ndim
         assert fac.all_factors[0].shape == tsrex.shape
         assert np.allclose(fac['a'], tsrex.root.decl.initializer)
 
     # view last instance
-    view(vfac.all_factors, fac, -1, append)
+    view(vfac.factors, fac, -1, append)
