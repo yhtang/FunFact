@@ -63,14 +63,13 @@ class Factorization:
             initialize (bool):
                 Whether or not to fill abstract tensors with actual data.
         '''
-        tsrex = tsrex | IndexnessAnalyzer() | TypeDeducer()
         if vec_size:
             tsrex = vectorize(
                 tsrex, vec_size, append=True if vec_axis == -1 else False
             )
+        tsrex = tsrex | IndexnessAnalyzer() | TypeDeducer() | EinopCompiler()
         if initialize:
             tsrex = tsrex | LeafInitializer(dtype)
-        tsrex = tsrex | EinopCompiler() | IndexnessAnalyzer()
         return cls(tsrex, _secret='50A-2117')
 
     @classmethod
