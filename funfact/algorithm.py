@@ -172,12 +172,12 @@ def factorize(
                     if np.count_nonzero(converged) >= stop_by:
                         break
 
-    all_factors = [ab.tensor(x) for x in best_factors]
+    best_factors = [ab.tensor(x) for x in best_factors]
 
     if returns == 'best':
         return view(
-            all_factors,
-            Factorization.from_tsrex(tsrex, initialize=False),
+            best_factors,
+            Factorization.from_tsrex(tsrex, dtype=dtype),
             np.argmin(best_loss), append
         )
     else:
@@ -187,8 +187,8 @@ def factorize(
             instances = np.argsort(best_loss)
         return [
             view(
-                all_factors,
-                Factorization.from_tsrex(tsrex, initialize=False),
+                best_factors,
+                Factorization.from_tsrex(tsrex, dtype=dtype),
                 i, append
             ) for i in instances
         ]

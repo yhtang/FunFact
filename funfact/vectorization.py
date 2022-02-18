@@ -61,5 +61,5 @@ def view(factors, fac_scalar, instance: int, append: bool = False):
     '''
     indices = tuple([..., instance] if append else [instance, ...])
     for i, f in enumerate(factors):
-        fac_scalar.all_factors[i] = f[indices]
+        fac_scalar.factors[i] = f[indices]
     return fac_scalar
