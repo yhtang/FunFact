@@ -8,6 +8,7 @@ from .iterable import (
     flatten_if,
     flatten_dict,
     map_or_call,
+    unique
 )
 
 
@@ -63,3 +64,14 @@ def test_as_tuple():
     assert as_tuple(1.5) == (1.5,)
     assert as_tuple([1, 2, 3]) == (1, 2, 3)
     assert as_tuple((1, 2, 3)) == (1, 2, 3)
+
+
+def test_unique():
+    assert list(unique([1])) == [1]
+    assert list(unique([1, 2, 3])) == [1, 2, 3]
+    assert list(unique([3, 2, 1])) == [3, 2, 1]
+    assert list(unique([1, 1])) == [1]
+    assert list(unique([1, 2, 1])) == [1, 2]
+    assert list(unique([2, 1, 2, 3])) == [2, 1, 3]
+    assert list(unique([1, 'X'])) == [1, 'X']
+    assert list(unique([1, -1, 2], key=lambda i: i**2)) == [1, 2]

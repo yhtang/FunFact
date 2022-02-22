@@ -6,12 +6,12 @@ import funfact.optim
 import funfact.loss
 from funfact import Factorization
 from funfact.backend import active_backend as ab
-from funfact.vectorization import vectorize, view
+from funfact.vectorization import view
 
 
 def factorize(
     tsrex, target, optimizer='Adam', loss='MSE', lr=0.1, tol=1e-6,
-    max_steps=10000, nvec=1, append=False, stop_by='first', returns='best',
+    max_steps=10000, vec_size=1, vec_axis=0, stop_by='first', returns='best',
     checkpoint_freq=50, dtype=None, penalty_weight=1.0
 ):
     '''Factorize a target tensor using the given tensor expression. The
@@ -38,8 +38,8 @@ def factorize(
         lr (float): SGD learning rate.
         tol (float):  convergence tolerance.
         max_steps (int): maximum number of SGD steps to run.
-        nvec (int): Number of parallel instances to compute.
-        append (bool): If vectorizing axis is appended or prepended.
+        vec_size (int): Number of parallel instances to compute.
+        vec_axis (0 or -1): The position of the vectorization dimension.
         stop_by ('first', int >= 1, or None):
 
             - If 'first', stop optimization as soon as one solution is
@@ -75,15 +75,18 @@ def factorize(
             that represents all the solutions.
     '''
 
-    tsrex_vec = vectorize(tsrex, nvec, append=append)
-
-    fac = ab.add_autograd(Factorization).from_tsrex(tsrex_vec, dtype=dtype)
+    assert vec_axis in [0, -1], "Vectorization axis must be either 0 or -1."
+    append = True if vec_axis == -1 else False
 
     if dtype is None:
         target = ab.tensor(target)
         dtype = target.dtype
     else:
         target = ab.tensor(target, dtype=dtype)
+
+    fac = ab.add_autograd(Factorization).from_tsrex(
+        tsrex, dtype=dtype, vec_size=vec_size, vec_axis=vec_axis
+    )
 
     if isinstance(optimizer, str):
         try:
@@ -143,8 +146,8 @@ def factorize(
 
     # bookkeeping
     best_factors = [np.zeros_like(ab.to_numpy(x)) for x in fac.factors]
-    best_loss = np.ones(nvec) * np.inf
-    converged = np.zeros(nvec, dtype=np.bool_)
+    best_loss = np.ones(vec_size) * np.inf
+    converged = np.zeros(vec_size, dtype=np.bool_)
 
     for step in tqdm.trange(max_steps):
         _, grad = loss_and_grad(fac, target)
@@ -169,16 +172,23 @@ def factorize(
                     if np.count_nonzero(converged) >= stop_by:
                         break
 
-    best_fac = Factorization.from_tsrex(tsrex_vec, dtype=dtype)
-    best_fac.factors = [ab.tensor(x) for x in best_factors]
+    best_factors = [ab.tensor(x) for x in best_factors]
+
     if returns == 'best':
-        return view(best_fac, tsrex, np.argmin(best_loss), append)
-    elif isinstance(returns, int):
+        return view(
+            best_factors,
+            Factorization.from_tsrex(tsrex, dtype=dtype),
+            np.argmin(best_loss), append
+        )
+    else:
+        if isinstance(returns, int):
+            instances = np.argsort(best_loss)[:returns]
+        elif returns == 'all':
+            instances = np.argsort(best_loss)
         return [
-            view(best_fac, tsrex, i, append) for i in
-            np.argsort(best_loss)[:returns]
-        ]
-    elif returns == 'all':
-        return [
-            view(best_fac, tsrex, i, append) for i in np.argsort(best_loss)
+            view(
+                best_factors,
+                Factorization.from_tsrex(tsrex, dtype=dtype),
+                i, append
+            ) for i in instances
         ]

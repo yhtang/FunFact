@@ -1,7 +1,7 @@
 # FunFact: Build Your Own Tensor Decomposition Model in a Breeze
 
-[![CI](https://github.com/yhtang/FunFact/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/yhtang/FunFact/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/yhtang/839011f3f7a6bab680b18cbd9a45d2d3/raw/coverage-develop.json)](https://badge.fury.io/py/funfact)
+[![CI](https://github.com/yhtang/FunFact/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/yhtang/FunFact/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/yhtang/839011f3f7a6bab680b18cbd9a45d2d3/raw/coverage-master.json)](https://badge.fury.io/py/funfact)
 [![PyPI version](https://badge.fury.io/py/funfact.svg)](https://badge.fury.io/py/funfact)
 [![Documentation Status](https://readthedocs.org/projects/funfact/badge/?version=latest)](https://funfact.readthedocs.io/en/latest/?badge=latest)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)

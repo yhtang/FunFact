@@ -6,7 +6,6 @@ from funfact.lang.interpreter import (
     TypeDeducer,
     Vectorizer
 )
-from funfact.model import Factorization
 
 
 def vectorize(tsrex, n, append: bool = False):
@@ -36,23 +35,20 @@ def vectorize(tsrex, n, append: bool = False):
         TsrEx:
             A vectorized tensor expression.
     '''
-    i = index().root
-    return (
-        tsrex |
-        IndexnessAnalyzer() |
-        TypeDeducer() |
-        Vectorizer(n, i, append)
-    )
+    return tsrex | IndexnessAnalyzer() \
+                 | TypeDeducer() \
+                 | Vectorizer(n, index().root, append)
 
 
-def view(fac, tsrex_scalar, instance: int, append: bool = False):
+def view(factors, fac_scalar, instance: int, append: bool = False):
     '''Obtain a zero-copy instance from a vectorized factorization model.
 
     Args:
-        fac (Factorization):
-            A factorization model created from a vectorized tensor expresion.
-        tsrex_scalar (TsrEx):
-            The original, un-vectorized tensor expression.
+        factors (list):
+            Factor tensors in the vectorized factorization model.
+        fac_scalar (Factorization):
+            A factorization model created from the original, un-vectorized
+            tensor expression
         instance (int):
             Index along the vectorization dimension.
         append (bool):
@@ -63,14 +59,7 @@ def view(fac, tsrex_scalar, instance: int, append: bool = False):
         Factorization:
             A factorization model.
     '''
-    nvec = fac.shape[-1] if append else fac.shape[0]
-    if instance >= nvec:
-        raise IndexError(
-            f'Only {nvec} vector instances exist, '
-            f'index {instance} out of range.'
-        )
-    fac_scalar = Factorization(tsrex_scalar)
-    instance = [..., instance] if append else [instance, ...]
-    for i, f in enumerate(fac.all_factors):
-        fac_scalar.all_factors[i] = f[tuple(instance)]
+    indices = tuple([..., instance] if append else [instance, ...])
+    for i, f in enumerate(factors):
+        fac_scalar.factors[i] = f[indices]
     return fac_scalar

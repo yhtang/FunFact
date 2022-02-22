@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from numbers import Integral
+from funfact import active_backend as ab
 from funfact.lang.interpreter import (
     dfs_filter,
     TypeDeducer,
@@ -11,7 +12,8 @@ from funfact.lang.interpreter import (
     ElementwiseEvaluator,
     SlicingPropagator,
 )
-from funfact import active_backend as ab
+from funfact.util.iterable import unique
+from funfact.vectorization import vectorize
 
 
 class Factorization:
@@ -36,26 +38,48 @@ class Factorization:
         <funfact.model._factorization.Factorization object at 0x7f5838105ee0>
     '''
 
-    def __init__(self, tsrex, **extra_attributes):
-        self._tsrex = (tsrex
-                       | IndexnessAnalyzer()
-                       | TypeDeducer()
-                       | EinopCompiler())
+    def __init__(self, tsrex, _secret=None, **extra_attributes):
+        if _secret != '50A-2117':
+            raise RuntimeError(
+                'Please use one of the `from_*` methods to create a '
+                'factorization from a tensor expression'
+            )
+        self.tsrex = tsrex
         self.__dict__.update(**extra_attributes)
 
     @classmethod
-    def from_tsrex(cls, tsrex, dtype=None, initialize=True):
+    def from_tsrex(
+        cls, tsrex, dtype=None, vec_size=None, vec_axis=0, initialize=True
+    ):
         '''Construct a factorization model from a tensor expresson.
 
         Args:
             tsrex (TsrEx): The tensor expression.
             dtype: numerical data type, defaults to float32.
+            vec_size (int):
+                Whether to vectorize the tensor expression with parallel
+                instances.
+            vec_axis (0 or -1): The position of the vectorization dimension.
             initialize (bool):
                 Whether or not to fill abstract tensors with actual data.
         '''
+        if vec_size:
+            tsrex = vectorize(
+                tsrex, vec_size, append=True if vec_axis == -1 else False
+            )
+        tsrex = tsrex | IndexnessAnalyzer() | TypeDeducer() | EinopCompiler()
         if initialize:
             tsrex = tsrex | LeafInitializer(dtype)
-        return cls(tsrex)
+        return cls(tsrex, _secret='50A-2117')
+
+    @classmethod
+    def _from_jax_flatten(cls, tsrex, factors):
+        '''
+        '''
+        tsrex = tsrex | IndexnessAnalyzer()
+        fac = cls(tsrex, _secret='50A-2117')
+        fac.factors = factors
+        return fac
 
     @property
     def factors(self):
@@ -80,16 +104,18 @@ class Factorization:
         '''
         return self._NodeView(
             'data',
-            list(dfs_filter(lambda n: n.name == 'tensor' and
-                            n.decl.optimizable, self.tsrex.root))
+            list(unique(dfs_filter(
+                lambda n: n.name == 'tensor' and n.decl.optimizable,
+                self.tsrex.root
+            )))
         )
 
     @factors.setter
     def factors(self, tensors):
-        for i, n in enumerate(
+        for i, n in enumerate(unique(
             dfs_filter(lambda n: n.name == 'tensor' and
                        n.decl.optimizable, self.tsrex.root)
-        ):
+        )):
             n.data = tensors[i]
 
     @property
@@ -117,13 +143,20 @@ class Factorization:
         '''
         return self._NodeView(
             'data',
-            list(dfs_filter(lambda n: n.name == 'tensor', self.tsrex.root))
+            list(unique(dfs_filter(
+                lambda n: n.name == 'tensor', self.tsrex.root
+            )))
         )
 
     @property
     def tsrex(self):
         '''The underlying tensor expression.'''
         return self._tsrex
+
+    @tsrex.setter
+    def tsrex(self, tsrex):
+        '''Setting the underlying tensor expression.'''
+        self._tsrex = tsrex
 
     @property
     def shape(self):
@@ -135,7 +168,7 @@ class Factorization:
         '''The dimensionality of the result tensor.'''
         return self.tsrex.ndim
 
-    def penalty(self, sum_leafs: bool = True, sum_vec=None):
+    def penalty(self, sum_leafs: bool = True, sum_vec=False):
         '''The penalty of the result tensor.
 
         Args:
@@ -143,16 +176,18 @@ class Factorization:
             sum_vec (bool): sum the penalties over the vectorization dimension.
         '''
 
-        factors = list(dfs_filter(
+        factors = list(unique(dfs_filter(
                 lambda n: n.name == 'tensor' and n.decl.optimizable,
-                self.tsrex.root)
-        )
+                self.tsrex.root
+        )))
         penalties = ab.stack(
             [f.decl.prefer(f.data, sum_vec) for f in factors],
             0 if sum_vec else -1
         )
-        return ab.sum(penalties, 0 if sum_vec else -1) if sum_leafs else \
-            penalties
+        if sum_leafs:
+            return ab.sum(penalties, 0 if sum_vec else -1)
+        else:
+            return penalties
 
     def __call__(self):
         '''Shorthand for :py:meth:`forward`.'''
@@ -211,10 +246,10 @@ class Factorization:
         '''Implements attribute-based access of factor tensors or output
         elements.'''
         if isinstance(idx, str):
-            for n in dfs_filter(
+            for n in unique(dfs_filter(
                 lambda n: n.name == 'tensor' and str(n.decl.symbol) == idx,
                 self.tsrex.root
-            ):
+            )):
                 return n.data
             raise AttributeError(f'No factor tensor named {idx}.')
         else:
@@ -222,10 +257,10 @@ class Factorization:
 
     def __setitem__(self, name, data):
         '''Implements attribute-based access of factor tensors.'''
-        for n in dfs_filter(
+        for n in unique(dfs_filter(
             lambda n: n.name == 'tensor' and str(n.decl.symbol) == name,
             self.tsrex.root
-        ):
+        )):
             return setattr(n, 'data', data)
         raise AttributeError(f'No factor tensor named {name}.')
 
