@@ -23,7 +23,7 @@ bibliography: paper.bib
 
 # Summary
 
-`FunFact` is a Python package that aims to simplify the design of matrix and tensor factorization algorithms. It features a powerful programming interface that augments the NumPy API with Einstein notations for writing concise tensor expressions. Given an arbitrary forward calculation scheme, the package will solve the corresponding inverse problem using stochastic gradient descent, automatic differentiation, and multi-replica vectorization. Its application areas include tensor decomposition, quantum circuit synthesis, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra (NLA) backends such as `JAX` [@jax] and `PyTorch` [@pytorch].
+`FunFact` is a Python package that aims to simplify the design of matrix and tensor factorization algorithms. It features a powerful programming interface that augments the NumPy API with Einstein notations for writing concise tensor expressions. Given an arbitrary forward calculation scheme, the package will solve the corresponding inverse problem using stochastic gradient descent, automatic differentiation, and multi-replica vectorization. Its application areas include tensor decomposition, quantum circuit synthesis, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra backends such as `JAX` [@jax] and `PyTorch` [@pytorch].
 
 # Statement of Need
 
@@ -39,9 +39,9 @@ Thus far, most tensor factorization models are solved by special-purpose algorit
 
 `FunFact`'s core functionality consists of three parts:
 
-1. A rich and flexible eDSL to express complicated tensor factorization models with a concise notation.
-2. Forward evaluation of user-defined tensor expressions.
-3. Using backpropagation and automatic differentiation to compute the model gradients and to optimize the factorization model for a target tensor using stochastic gradient descent.
+1. a rich and flexible eDSL to express complicated tensor factorization models with a concise notation,
+2. an interpreter for forward evaluation of user-defined tensor expressions, and
+3. algorithms that use backpropagation and automatic differentiation to compute the model gradients and to optimize the factorization model for a target tensor using stochastic gradient descent.
 
 
 ## eDSL for tensor expressions
@@ -59,11 +59,11 @@ Tensor expressions can be indexed, indexless, or hybrid. `FunFact` implements a 
 
 ## Forward evaluation
 
-In `FunFact`, tensor expressions are handled by a lazy evaluation model. Only basic analyses are performed after the user defines a tensor expression, such as shape and dimensionality checking. After that, the computational graph of the expression is stored for later use. A tensor expression can be explicitly evaluated in the forward direction, *i.e.,* from leaf tensors to the result, using the `Factorization` class, which serves as an interpreter of tensor expression.
+In `FunFact`, tensor expressions are handled by a lazy evaluation model. Only basic analyses are performed after the user defines a tensor expression, such as shape and dimensionality checking. After that, the computational graph of the expression is stored for later use. A tensor expression can be explicitly evaluated in the forward direction, *i.e.,* from leaf tensors to the result, using the `Factorization` class, which serves as an interpreter for tensor expressions.
  
 ## Optimizing for a target tensor
 
-The central capability of `FunFact` is implemented in the `factorize` method, which:
+The central capability of `FunFact` is implemented in the `factorize` method, which can:
 
 1. run the model in the forward direction, and then
 2. run a backpropagation pass with automatic differentiation to find the gradients of a given cost function with regard to the leaf tensors in the tensor expression, and then
@@ -77,11 +77,11 @@ We illustrate the use and flexibility of `FunFact` by providing reference tensor
 
 | Tensor Expression | Description |
 | ----------------- | ----------- |
-| `U[i, r] * V[j, r]` | Rank-$r$ decomposition of $(i, j)$ matrix |
-| `Z[r1, r2, r3] * S1[r1, i1] * S2[r2, i2] * S3[r3, i3]` | Rank-$(r_1, r_2, r_3)$ Tucker decomposition of $(i_1, i_2, i_3)$ tensor [@treview] |
-| `(A[i1, ~r] * B[i2, r]) * C[i3, r]` | Rank-$r$ tensor rank decomposition of $(i_1, i_2, i_3)$ tensor [@treview] |
-| `G1[i1, r1] * G2[i2, r1, r2] * G3[i3, r2, r3] * G4[i4, r3]` | Tensor train decomposition of $(i_1, i_2, i_3, i_4)$ tensor [@ttd] |
-| `ff.exp(-(U[i, ~k] - V[j, ~k])**2) * A[k] + B[[]]` | RBF kernel decomposition with $r$ terms of $(i, j)$ matrix [@rbf] |
+| `U[i, r] * V[j, r]` | Rank-$r$ decomposition of matrix $A(i, j)$ |
+| `Z[r1, r2, r3] * S1[r1, i1] * S2[r2, i2] * S3[r3, i3]` | Tucker decomposition of tensor $T_{i_1 i_2 i_3}$ [@treview] |
+| `(A[i1, ~r] * B[i2, r]) * C[i3, r]` | Tensor rank decomposition of tensor $T_{i_1 i_2 i_3}$ [@treview] |
+| `G1[i1, r1] * G2[i2, r1, r2] * G3[i3, r2, r3] * G4[i4, r3]` | Tensor train decomposition of tensor $T_{i_1 i_2 i_3 i_4}$ [@ttd] |
+| `ff.exp(-(U[i, ~k] - V[j, ~k])**2) * A[k] + B[[]]` | RBF kernel decomposition of matrix $A(i, j)$ [@rbf] |
 | `ff.eye(2**i) & ff.tensor(4, 4, prefer=cond.Unitary)` | Two-qubit unitary quantum gate [@nc] |
 
 # Related research and software

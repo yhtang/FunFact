@@ -235,9 +235,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.6272349"
-     inkscape:cx="474.33967"
-     inkscape:cy="787.82429"
+     inkscape:zoom="7.0963528"
+     inkscape:cx="378.72055"
+     inkscape:cy="833.81351"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -447,7 +447,7 @@
            x="-36.918488"
            y="205.86853"
            style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-size:4.23333px;line-height:1;font-family:'Fira Code';-inkscape-font-specification:'Fira Code Light';text-align:center;letter-spacing:0.264583px;text-anchor:middle;fill:#666666;fill-opacity:1;stroke-width:0.264583"
-           id="tspan952">DSL</tspan></text>
+           id="tspan952">eDSL</tspan></text>
     </g>
     <text
        xml:space="preserve"
