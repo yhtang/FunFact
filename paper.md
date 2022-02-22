@@ -77,12 +77,12 @@ We illustrate the use and flexibility of `FunFact` by providing reference tensor
 
 | Tensor Expression | Description |
 | ----------------- | ----------- |
-| `low_rank = U[i, r] * V[j, r]` | Rank-$r$ decomposition of $(i, j)$ matrix |
-| `tucker = Z[r1, r2, r3] * S1[r1, i1] * S2[r2, i2] * S3[r3, i3]` | Rank-$(r_1, r_2, r_3)$ Tucker decomposition of $(i_1, i_2, i_3)$ tensor [@treview] |
-| `tensor_rank = (A[i1, ~r] * B[i2, r]) * C[i3, r]` | Rank-$r$ tensor rank decomposition of $(i_1, i_2, i_3)$ tensor [@treview] |
-| `tensor_train = G1[i1, r1] * G2[i2, r1, r2] * G3[i3, r2, r3] * G4[i4, r3]` | Tensor train decomposition of $(i_1, i_2, i_3, i_4)$ tensor [@ttd] |
-| `rbf = ff.exp(-(U[i, ~k] - V[j, ~k])**2) * A[k] + B[[]]` | RBF kernel decomposition with $r$ terms of $(i, j)$ matrix [@rbf] |
-| `quantum_gate = ff.eye(2**i) & ff.tensor(4, 4, prefer=cond.Unitary)` | Two-qubit unitary quantum gate [@nc] |
+| `U[i, r] * V[j, r]` | Rank-$r$ decomposition of $(i, j)$ matrix |
+| `Z[r1, r2, r3] * S1[r1, i1] * S2[r2, i2] * S3[r3, i3]` | Rank-$(r_1, r_2, r_3)$ Tucker decomposition of $(i_1, i_2, i_3)$ tensor [@treview] |
+| `(A[i1, ~r] * B[i2, r]) * C[i3, r]` | Rank-$r$ tensor rank decomposition of $(i_1, i_2, i_3)$ tensor [@treview] |
+| `G1[i1, r1] * G2[i2, r1, r2] * G3[i3, r2, r3] * G4[i4, r3]` | Tensor train decomposition of $(i_1, i_2, i_3, i_4)$ tensor [@ttd] |
+| `ff.exp(-(U[i, ~k] - V[j, ~k])**2) * A[k] + B[[]]` | RBF kernel decomposition with $r$ terms of $(i, j)$ matrix [@rbf] |
+| `ff.eye(2**i) & ff.tensor(4, 4, prefer=cond.Unitary)` | Two-qubit unitary quantum gate [@nc] |
 
 # Related research and software
 
