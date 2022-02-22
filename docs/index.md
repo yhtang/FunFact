@@ -168,6 +168,14 @@
                     [-3.548,  2.855]], dtype=float32)
         ```
     
+## Statement of Need
+
+Tensor factorizations have found numerous applications in a variety of domains [@tbook], [@treview]. Among the most prominent are tensor networks in quantum physics [@tnetwork], tensor decompositions in machine learning [@tensorly] and signal processing [@tml], [@bss], and quantum computation [@qc].
+
+Thus far, most tensor factorization models are solved by special purpose algorithms designed to factor the target data into a model with the prescribed structure. Furthermore, the models that are being used are often limited to linear contractions between the factor tensors such as standard inner and outer products, elementwise multiplications, and matrix Kronecker products. Extending such a special-purpose solver to more generalized models can be a daunting task, especially if nonlinear operations are considered.
+
+`FunFact` solves this problem and fills the gap. It offers an embedded Domain Specific Language (eDSL) in Python for creating nonlinear tensor algebra expressions that are based on generalized Einstein operations. User-defined tensor expressions can be immediately used to solve the corresponding factorization problem. `FunFact` solves this inverse problem by combining stochastic gradient descent, automatic differentiation, and model vectorization for multi-replica learning. This combination achieves instantaneous time-to-algorithm for all conceivable tensor factorization models and allows the user to explore the full universe of nonlinear tensor factorization models.
+
 ## How to cite
 
 If you use this package for a publication (either in-paper or electronically), please cite it using the following DOI: [https://doi.org/10.11578/dc.20210922.1](https://doi.org/10.11578/dc.20210922.1)

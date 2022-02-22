@@ -23,50 +23,63 @@ bibliography: paper.bib
 
 # Summary
 
-`FunFact` is a Python package that aims to simplify the design of matrix and tensor factorization algorithms. It features a powerful programming interface that augments the NumPy API with Einstein notations for writing concise tensor expressions. Given an arbitrary forward calculation scheme, the package will solve the corresponding inverse problem using stochastic gradient descent, automatic differentiation, and multi-replica vectorization. Its application areas include quantum circuit synthesis, tensor decomposition, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra (NLA) backends such as `JAX` [@jax] and `PyTorch` [@pytorch].
+`FunFact` is a Python package that aims to simplify the design of matrix and tensor factorization algorithms. It features a powerful programming interface that augments the NumPy API with Einstein notations for writing concise tensor expressions. Given an arbitrary forward calculation scheme, the package will solve the corresponding inverse problem using stochastic gradient descent, automatic differentiation, and multi-replica vectorization. Its application areas include tensor decomposition, quantum circuit synthesis, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra (NLA) backends such as `JAX` [@jax] and `PyTorch` [@pytorch].
 
 # Statement of Need
 
-Tensor factorizations have found numerous applications in a variety of domains [@tbook, @treview]. Among the most prominent are tensor networks in quantum physics [@tnetwork], tensor decompositions in machine learning [@tensorly] and signal processing [@tml, @bss], and quantum computation [@qc].
+Tensor factorizations have found numerous applications in a variety of domains [@tbook], [@treview]. Among the most prominent are tensor networks in quantum physics [@tnetwork], tensor decompositions in machine learning [@tensorly] and signal processing [@tml], [@bss], and quantum computation [@qc].
 
-These applications share a few characteristcs. Firstly, they are often solved with a special purpose algorithms that are designed for the prescribed structure of the decomposition problem at hand. Secondly, the underlying models are limited to linear contractions between the factor tensors such as standard inner and outer products, elementwise multiplications, and matrix Kronecker products. Extending such a special-purpose solver to more generalized models can be a daunting task.
+Thus far, most tensor factorization models are solved by special purpose algorithms designed to factor the target data into a model with the prescribed structure. Furthermore, the models that are being used are often limited to linear contractions between the factor tensors such as standard inner and outer products, elementwise multiplications, and matrix Kronecker products. Extending such a special-purpose solver to more generalized models can be a daunting task, especially if nonlinear operations are considered.
 
-`FunFact` solves this problem and fills the gap. It offers an embedded Domain Specific Language (eDSL) in Python for creating nonlinear tensor algebra expressions that are based on generalized Einstein operations. User-defined tensor expressions can be immediately used to solve the corresponding factorization problem. `FunFact` solves the inverse problem by combining stochastic gradient descent, automatic differentiation, and model vectorization for multi-replica learning. This combination achieves instanteous time-to-algorithm for all conceivable tensor factorization models and allows the user to explore the full universe of nonlinear tensor factorization models. 
+`FunFact` solves this problem and fills the gap. It offers an embedded Domain Specific Language (eDSL) in Python for creating nonlinear tensor algebra expressions that are based on generalized Einstein operations. User-defined tensor expressions can be immediately used to solve the corresponding factorization problem. `FunFact` solves this inverse problem by combining stochastic gradient descent, automatic differentiation, and model vectorization for multi-replica learning. This combination achieves instantaneous time-to-algorithm for all conceivable tensor factorization models and allows the user to explore the full universe of nonlinear tensor factorization models. 
 
 ![FunFact is able to solve the inverse optimization problem for a target data tensor based on a nonlinear tensor expression that only defines the forward computation.](funfact.jpeg)
 
 # Functionality
 
-`FunFact`'s eDSL offers users a rich and flexible tool to express complicated tensor factorization models in a concise expression. The base objects of the language are `FunFact` `tensor` and `index` objects that can be used to construct tensor expressions.
+`FunFact`'s core functionality consists of three parts:
 
-Indices label the dimensions of `tensor` expressions. In an Einstein operation between two `tensor` expressions, repeated indices are contracted. Abstract `tensor` objects can be initialized with a label, shape, `initializer`, and `condition`. An `initializer` can be a concrete data tensor or a generator of a particular distribution. In the former case, by default the `tensor` is considered as not optimizable, while in the latter case it is assumed to be optimizable. The default behavior can be overridden by the `optimizable` flag. Nonnegativity is an example of a `condition` prescribed for a `tensor` object. The condition is added as a soft constraint (penalty term) during the optimization process.
+1.  A rich and flexible eDSL to express complicated tensor factorization models with a concise expression.
+2.  Forward evaluation of user-defined tensor expressions.
+3.  Backpropagation and automatic differentiation to compute the model gradients and optimize the factorization model for a target tensor using stochastic gradient descent.
 
-Tensors and indices can be used to write indexed, indexless or hybrid tensor expressions, which are a combination of both. `FunFact` implements a tensor algebra language model based on a (context-free grammar)[https://funfact.readthedocs.io/en/latest/pages/user-guide/cfg/]. Index ndex decorators, explicit output index specification, generalized contractions with semiring operations, nonlinearities, and other features make the `FunFact` language both rich and flexible.
 
-`FunFact` adopts a lazy evaluation model for tensor expressions. When the user defines their expression only basic analysis is performed without evaluating the full expression. The Abstract Syntax Tree (AST) of the expression is stored for later use. Forward evaluation occurs when a `Factorization` object is evaluated for a tensor expression. The `factorize` method implements the optimization algorithm that allows `FunFact` to solve the inverse problem and optimize the leaf tensors of the input tensor expression for a target data tensor. The `factorize` method can be fine-tuned by the user to adapt its performance for the data at hand. The user can define set the learning rate, change the optimization algorithm or cost function, adjust the weights of the penalty terms, or modify any of the numerous other hyper parameters.
+## eDSL for tensor expressions
+
+The central notions in the `FunFact` eDSL are `tensor` and `index` objects that can be used to construct tensor expressions.
+Indices are used to label the dimensions of tensor expressions. In an Einstein operation between two tensor expressions, repeated indices are contracted over. Abstract `tensor` objects can be initialized in a two ways: (1) based on their shape, (2) from concrete numerical data.
+Optional arguments for `tensor` objects include a label, an `initializer` that provides a generator for a particular distribution, a `condition` that the tensor is expected to satisfy such as nonnegativity and an `optimizable` flag that indicates if the tensor is updated during the optimization process. The `condition` is added as a soft constraint (penalty term) during the optimization process.
+
+Tensor expressions can be indexed, indexless, or hybrid. `FunFact` implements a tensor algebra language model based on a [context-free grammar](https://funfact.readthedocs.io/en/latest/pages/user-guide/cfg/). Index decorators, explicit output index specification, generalized contractions with semiring operations, nonlinearities, and other features make the `FunFact` language both rich and flexible. 
+
+## Forward evaluation
+
+In `FunFact` tensor expressions are handled with a lazy evaluation model: after the user defines their tensor expression, only basic analysis is performed such as shape and dimensionality checking. Instead, the Abstract Syntax Tree (AST) of the expression is stored for later use. Tensor expressions can be explicitly evaluated in the forward direction (from leaf tensors to result tensor) by using the `Factorization` class in `FunFact` which runs the required interpretation on the AST of the input tensor expression to evelatuate it in the forward direction s.
+ 
+## Optimizing for a target tensor
+
+The full capabilities of `FunFact` are used in its `factorize` method, which can use either the `JAX` or `PyTorch` backend to: (1) run the model in the forward direction, (2) run a backpropagation pass with automatic differentiation to find the gradients with respect to a given cost function of the leaf tensors in the AST of the tensor expression model, and (3) update the leaf tensors in a stochastic gradient descent algorithm. The `factorize` method allows the user to optimize a model with its structure defined by a tensor expression for a target data tensor, thereby solving the inverse problem. The algorithm can be fine-tuned by the user to optimizer its performance for the problem at hand: the learning rate, the optimization algorithm or cost function, the weights of the penalty terms, or any of the other numerous hyper parameters can be set by the user.
 
 # Example
 
-We illustrate the use and flexibility of `FunFact` by providing reference tensor expressions for a variety of well-known matrix and tensor decompositions. Upper-case symbols are assumed to be tensors of the appropriate dimensions, lower-case symbols are the corresponding indices.
+We illustrate the use and flexibility of `FunFact` by providing reference tensor expressions for a few matrix and tensor decomposition models. Upper-case symbols are assumed to be `FunFact` tensors of the appropriate dimensions, lower-case symbols are the corresponding `FunFact` indices.
 
 | Tensor Expression | Description |
 | ----------------- | ----------- |
 | `low_rank = U[i, r] * V[j, r]` | Rank-$r$ decomposition of $(i, j)$ matrix |
 | `tucker = Z[r1, r2, r3] * S1[r1, i1] * S2[r2, i2] * S3[r3, i3]` | Rank-$(r_1, r_2, r_3)$ Tucker decomposition of $(i_1, i_2, i_3)$ tensor [@treview] |
-| `tensor_rank = (A[i1, ~r] * B[i2, r]) * C[i3, r]` | Rank-$r$ tensor rank of $(i_1, i_2, i_3)$ tensor [@treview] |
+| `tensor_rank = (A[i1, ~r] * B[i2, r]) * C[i3, r]` | Rank-$r$ tensor rank decomposition of $(i_1, i_2, i_3)$ tensor [@treview] |
 | `tensor_train = G1[i1, r1] * G2[i2, r1, r2] * G3[i3, r2, r3] * G4[i4, r3]` | Tensor train decomposition of $(i_1, i_2, i_3, i_4)$ tensor [@ttd] |
 | `rbf = ff.exp(-(U[i, ~k] - V[j, ~k])**2) * A[k] + B[[]]` | RBF kernel decomposition with $r$ terms of $(i, j)$ matrix [@rbf] |
 | `quantum_gate = ff.eye(2**i) & ff.tensor(4, 4, prefer=cond.Unitary)` | Two-qubit unitary quantum gate [@nc] |
 
 # Related research and software
 
-TACO [@TACO], Tensorly [@tensorly] and COMET [@comet] are closely related packages that define tensor algebra languages to specify and optimize tensor contractions. `FunFact` has the distinct feature that it is able to solve the inverse model for a very general, nonlinear tensor algebra expressions by building on top of modern NLA frameworks [@jax, @pytorch].
-This has the key advantage over other tensor decomposition frameworks such as Tensor Toolbox [@ttoolbox] or Tensorlab [@tlab] that the user can easily try out their own decomposition models instead of being constrained by the methods the software implements.
-
+`FunFact` is closely related to a few other software packages that provide Einstein notations and Domain Specific Languages (DSL) for tensor algebra. Notable examples are `TensorOperations.jl` [@to] that provides Einstein index notations in julia, `Tensor Comprehensions` [@tc] that provides a DSL to automatically synthesize high-performance machine learning kernels, `einops` [@einops] that enables tensor operations through readable and reliable code, `TACO` [@TACO]: the tensor algebra compiler, and `COMET` [@comet] which is designed for high-performance contractions of sparse tensors. `FunFact` has the unique advantage over all aforementioned projects that it can solve the inverse decomposition problem from the model description as a nonlinear tensor algebra expression. Additionally, `FunFact` offers increased generality compared to other tensor decomposition software libraries such as `Tensorly` [@tensorly], `Tensor Toolbox` [@ttoolbox] or `Tensorlab` [@tlab] which only provide specialized implementations for computing fixed-form tensor decompositions such as Tucker or tensor rank decompositions.
 
 # Acknowledgement
 
-The authors thank Liza Rebrova for their input on this work.
+The authors thank Liza Rebrova for input on this work.
 This work was supported by the Laboratory Directed Research and Development 
 Program of Lawrence Berkeley National Laboratory under U.S. Department of 
 Energy Contract No. DE-AC02-05CH11231.
