@@ -78,9 +78,7 @@ def add_autograd(cls):
 
         @classmethod
         def tree_unflatten(cls, metadata, children):
-            unflatten = cls(*metadata, initialize=False)
-            unflatten.factors = children
-            return unflatten
+            return cls._from_jax_flatten(*metadata, children)
 
     return register_pytree_node_class(AddAutoGrad)
 

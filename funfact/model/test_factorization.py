@@ -3,6 +3,7 @@
 import pytest
 from unittest.mock import MagicMock as M
 from funfact import active_backend as ab
+from funfact.lang._ast import Primitives as P
 from ._factorization import Factorization
 
 
@@ -21,7 +22,7 @@ def _test_factorization_props(fac):
 
 
 def test_init_factory():
-    fac = Factorization(M())
+    fac = Factorization(M(), _secret='50A-2117')
     _test_factorization_props(fac)
     fac = Factorization.from_tsrex(M(), dtype=M(), initialize=M())
     _test_factorization_props(fac)
@@ -61,7 +62,7 @@ def test_as_slice(test_case):
 def _gen_factors_mock(data, optimizable=True):
     root = M(data=data, decl=M(optimizable=optimizable))
     root.name = 'tensor'
-    return Factorization(M(), _tsrex=M(root=root))
+    return Factorization(M(root=root), _secret='50A-2117')
 
 
 def test_factors():
@@ -85,14 +86,14 @@ def test_penalties():
     root = M(data=ab.tensor([1, 2, 3]),
              decl=M(optimizable=True, prefer=_prefer))
     root.name = 'tensor'
-    fac = Factorization(M(), _tsrex=M(root=root))
+    fac = Factorization(M(root=root), _secret='50A-2117')
     assert fac.penalty() == 6
 
 
 def test_get_set_item():
     root = M(data=1, decl=M(symbol='a', optimizable=True), ndim=1)
     root.name = 'tensor'
-    fac = Factorization(M(), _tsrex=M(root=root))
+    fac = Factorization(M(root=root), _secret='50A-2117')
     assert fac['a'] == 1
     fac['a'] = 2
     assert fac['a'] == 2
@@ -104,3 +105,22 @@ def test_get_set_item():
         fac[0, 0]
     with pytest.raises(IndexError):
         fac[0, ...]
+
+
+def test_duplicate_factors():
+    a = P.tensor(decl=M(symbol='a', optimizable=True, prefer=lambda *_: 0))
+    b = P.tensor(decl=M(symbol='b', optimizable=True, prefer=lambda *_: 0))
+
+    fac1 = Factorization(M(root=P.elem(a, a, 0, 'add')), _secret='50A-2117')
+    fac2 = Factorization(M(root=P.elem(a, b, 0, 'add')), _secret='50A-2117')
+
+    assert len(fac1.factors) == 1
+    assert len(fac2.factors) == 2
+
+    fac1.factors = [None]
+    with pytest.raises(IndexError):
+        fac2.factors = [None]
+    fac2.factors = [None, None]
+
+    assert len(fac1.penalty(sum_leafs=False)) == 1
+    assert len(fac2.penalty(sum_leafs=False)) == 2

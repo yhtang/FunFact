@@ -98,3 +98,12 @@ def as_tuple(elements):
         return tuple(elements)
     else:
         return (elements,)
+
+
+def unique(iterable, key=None):
+    existing = []
+    for i in iterable:
+        k = key(i) if key is not None else i
+        if k not in existing:
+            existing.append(k)
+            yield i
