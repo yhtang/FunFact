@@ -135,6 +135,10 @@ class TypeDeducer(RewritingTranscriber):
         return None, None, None, decl.shape
 
     @as_payload
+    def ellipsis(self, **payload):
+        return [P.ellipsis()], [P.ellipsis()], [], None
+
+    @as_payload
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
         return (
             [item],
@@ -145,6 +149,15 @@ class TypeDeducer(RewritingTranscriber):
 
     @as_payload
     def indices(self, items: AbstractIndex, **kwargs):
+        found_ell = False
+        for i in items.live_indices:
+            if isinstance(i, P.ellipsis):
+                if found_ell:
+                    raise SyntaxError(
+                        'At most one Ellipsis (...) can be used for every set '
+                        'of indices.'
+                    )
+                found_ell = True
         return (
             list(it.chain.from_iterable([i.live_indices for i in items])),
             list(it.chain.from_iterable([i.keep_indices for i in items])),
@@ -208,17 +221,27 @@ class TypeDeducer(RewritingTranscriber):
         ╚═════╬══════╝     ║
               ╚════════════╝
         '''
+        # handle Ellipsis
+        _e = AbstractIndex()
+        def _repl_uniq_ell(indices):
+            return [_e if isinstance(i, P.ellipsis) else i for i in indices]
+
         # indices marked as keep on either side should stay
         src_live = as_namedtuple(
-            'src_live', lhs=lhs.live_indices or [], rhs=rhs.live_indices or []
+            'src_live', lhs=_repl_uniq_ell(lhs.live_indices) or [], 
+                        rhs=_repl_uniq_ell(rhs.live_indices) or []
         )
         src_keep = as_namedtuple(
-            'src_keep', lhs=lhs.keep_indices or [], rhs=rhs.keep_indices or []
+            'src_keep', lhs=_repl_uniq_ell(lhs.keep_indices) or [],
+                        rhs=_repl_uniq_ell(rhs.keep_indices) or []
         )
         src_kron = as_namedtuple(
             'src_kron', lhs=lhs.kron_indices or [], rhs=rhs.kron_indices or []
         )
-
+        print(f'src_live: {src_live}')
+        print(f'src_keep: {src_keep}')
+        print(f'src_kron: {src_kron}')
+        
         '''deduce survived indices'''
         live = ordered_union(src_live.lhs, src_live.rhs)
         keep = ordered_union(src_keep.lhs, src_keep.rhs)

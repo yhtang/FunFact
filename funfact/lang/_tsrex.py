@@ -186,6 +186,17 @@ class _BaseEx(_AST):
         return self._static_analyzed.einspec
 
 
+def _as_index(i):
+    if i is Ellipsis:
+        return P.ellipsis()
+    elif isinstance(i.root, P.index):
+        return i.root
+    else:
+        raise TypeError(
+            f'Cannot use {i} of type {type(i)} as an index.'
+        )
+
+
 def _as_node(x):
     if isinstance(x, _ASNode):
         return x
@@ -339,15 +350,6 @@ def _iter(node: P.index):
 @_dispatch
 def _getitem(node: _ASNode, indices):  # noqa: F811
     '''create index notation'''
-    def _as_index(i):
-        if i is Ellipsis:
-            return P.ellipsis()
-        elif isinstance(i.root, P.index):
-            return i.root
-        else:
-            raise TypeError(
-                f'Input of type {type(i)} cannot be interpreted as an index.'
-            )
     return P.abstract_index_notation(
         node,
         P.indices(tuple([_as_index(i) for i in as_tuple(indices or [])]))
@@ -359,7 +361,7 @@ def _rshift(node: _ASNode, indices):  # noqa: F811
     '''transpose or einsum output specification'''
     return P.abstract_dest(
         node,
-        P.indices(tuple([i.root for i in as_tuple(indices)]))
+        P.indices(tuple([_as_index(i) for i in as_tuple(indices)]))
     )
 
 
