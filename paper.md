@@ -33,7 +33,7 @@ Thus far, most tensor factorization models are solved by special purpose algorit
 
 `FunFact` solves this problem and fills the gap. It offers an embedded Domain Specific Language (eDSL) in Python for creating nonlinear tensor algebra expressions that are based on generalized Einstein operations. User-defined tensor expressions can be immediately used to solve the corresponding factorization problem. `FunFact` solves this inverse problem by combining stochastic gradient descent, automatic differentiation, and model vectorization for multi-replica learning. This combination achieves instantaneous time-to-algorithm for all conceivable tensor factorization models and allows the user to explore the full universe of nonlinear tensor factorization models. 
 
-![FunFact is able to solve the inverse optimization problem for a target data tensor based on a nonlinear tensor expression that only defines the forward computation.](docs/assets/overview.pdf)
+![Tensor rank, Tucker, tensor network, and singular value decompositions are among the most popular factorization models that have found numerous applications. However, all the models being considered in the literature only form a small subset of all factorizations that can be constructed from generalized contractions, semiring operations, nonlinearities, and more. `FunFact` allows a user to probe this vastly larger universe of models by providing an eDSL for tensor expressions. From the forward computation defined by the tensor expression, `FunFact` can solve the inverse factorization problem by combining backpropagation, automatic differentiation, and stochastic gradient descent.](docs/assets/overview.pdf)
 
 # Functionality
 
