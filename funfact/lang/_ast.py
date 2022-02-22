@@ -56,6 +56,10 @@ class Primitives:
     @primitive(precedence=0)
     def tensor(decl: AbstractTensor):
         '''an abstract tensor'''
+    
+    @primitive(precedence=0)
+    def ellipsis():
+        '''an ellipsis'''
 
     @primitive(precedence=0)
     def index(item: AbstractIndex, bound: bool, kron: bool):
@@ -64,7 +68,7 @@ class Primitives:
         same index.'''
 
     @primitive(precedence=0)
-    def indices(items: Tuple[index]):
+    def indices(items: Tuple[index, Ellipsis]):
         '''a tuple of indices'''
 
     @primitive(precedence=1)

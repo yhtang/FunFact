@@ -339,9 +339,18 @@ def _iter(node: P.index):
 @_dispatch
 def _getitem(node: _ASNode, indices):  # noqa: F811
     '''create index notation'''
+    def _as_index(i):
+        if i is Ellipsis:
+            return P.ellipsis()
+        elif isinstance(i.root, P.index):
+            return i.root
+        else:
+            raise TypeError(
+                f'Input of type {type(i)} cannot be interpreted as an index.'
+            )
     return P.abstract_index_notation(
         node,
-        P.indices(tuple([i.root for i in as_tuple(indices or [])]))
+        P.indices(tuple([_as_index(i) for i in as_tuple(indices or [])]))
     )
 
 
