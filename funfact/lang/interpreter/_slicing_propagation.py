@@ -38,6 +38,9 @@ class SlicingPropagator(TranscribeInterpreter):
     def tensor(self, decl: AbstractTensor, **kwargs):
         pass
 
+    def ellipsis(self, **kwargs):
+        pass
+
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
         pass
 

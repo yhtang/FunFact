@@ -149,15 +149,6 @@ class TypeDeducer(RewritingTranscriber):
 
     @as_payload
     def indices(self, items: AbstractIndex, **kwargs):
-        found_ell = False
-        for i in items.live_indices:
-            if isinstance(i, P.ellipsis):
-                if found_ell:
-                    raise SyntaxError(
-                        'At most one Ellipsis (...) can be used for every set '
-                        'of indices.'
-                    )
-                found_ell = True
         return (
             list(it.chain.from_iterable([i.live_indices for i in items])),
             list(it.chain.from_iterable([i.keep_indices for i in items])),
@@ -221,19 +212,39 @@ class TypeDeducer(RewritingTranscriber):
         ╚═════╬══════╝     ║
               ╚════════════╝
         '''
-        # handle Ellipsis
-        _e = AbstractIndex()
-        def _repl_uniq_ell(indices):
-            return [_e if isinstance(i, P.ellipsis) else i for i in indices]
+        # Ellipsis are temporarily replaced by anonymous indices
+        def _repl_ell(tensor, ell_indices=None):
+            i = -1
+            for idx, element in enumerate(tensor.live_indices):
+                if isinstance(element, P.ellipsis):
+                    i = idx
+            if i > -1:
+                if ell_indices is None:
+                    ell_indices = [AbstractIndex() for i in 
+                        range(len(tensor.shape) - len(tensor.live_indices) + 1)]
+                tensor.live_indices =  [*tensor.live_indices[:i], 
+                                        *ell_indices, 
+                                        *tensor.live_indices[i + 1:]]
+                # todo: this OK?
+                i = tensor.keep_indices.index(P.ellipsis())
+                tensor.keep_indices =  [*tensor.keep_indices[:i], 
+                                        *ell_indices, 
+                                        *tensor.keep_indices[i + 1:]]
+            return tensor, ell_indices
+        lhs, ell_indices = _repl_ell(lhs)
+        rhs, _ = _repl_ell(rhs, ell_indices)
+
+    
+        print(f'ell_indices: {ell_indices}')
 
         # indices marked as keep on either side should stay
         src_live = as_namedtuple(
-            'src_live', lhs=_repl_uniq_ell(lhs.live_indices) or [], 
-                        rhs=_repl_uniq_ell(rhs.live_indices) or []
+            'src_live', lhs=lhs.live_indices or [], 
+                        rhs=rhs.live_indices or []
         )
         src_keep = as_namedtuple(
-            'src_keep', lhs=_repl_uniq_ell(lhs.keep_indices) or [],
-                        rhs=_repl_uniq_ell(rhs.keep_indices) or []
+            'src_keep', lhs=lhs.keep_indices or [],
+                        rhs=rhs.keep_indices or []
         )
         src_kron = as_namedtuple(
             'src_kron', lhs=lhs.kron_indices or [], rhs=rhs.kron_indices or []
@@ -311,9 +322,25 @@ class TypeDeducer(RewritingTranscriber):
                 shape.append(lhs_shape[i])
             else:
                 shape.append(rhs_shape[i])
-
+        '''
+        # TODO: we can also just leave the anonymous indices for internal use?
+        # set ellipsis back in l/rhs live + keep AND live_indices
+        def _restore_ell(indices, ell_indices):
+            print(f'indices: {indices}')
+            print(f'ell_indices: {ell_indices}')
+            i = indices.index(ell_indices[0])
+            return [*indices[:i],
+                    P.ellipsis(),
+                    *indices[i+len(ell_indices):]]
+        if ell_indices is not None:
+            lhs.live_indices = _restore_ell(lhs.live_indices, ell_indices)
+            lhs.keep_indices = _restore_ell(lhs.keep_indices, ell_indices)
+            rhs.live_indices = _restore_ell(rhs.live_indices, ell_indices)
+            rhs.keep_indices = _restore_ell(rhs.keep_indices, ell_indices)
+            live_indices = _restore_ell(live_indices, ell_indices)
+        '''
         return live_indices, keep_indices, kron_indices, tuple(shape)
-
+    # TODO ellipsis in tran, abstract_dest
     @as_payload
     def tran(self, src: P.Numeric, indices: P.indices, **kwargs):
         return (
