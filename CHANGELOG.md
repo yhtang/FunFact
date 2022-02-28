@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.0.1 (2022-02-28)
+
+- Bug fixes: #217, #210.
+
 ## 1.0 (2022-02-09)
 
 - Formal release of version 1.0!
