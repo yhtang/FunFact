@@ -9,12 +9,10 @@ from ._base import _as_payload, TranscribeInterpreter
 
 
 class EinopCompiler(TranscribeInterpreter):
-    '''The Einstein summation specification generator creates NumPy-style spec
-    strings for tensor contraction operations.'''
+    '''The EinopCompiler generates the specifications to run the binary Einstein
+    operations and single tensor transpositions in the Evaluator.'''
 
     _traversal_order = TranscribeInterpreter.TraversalOrder.DEPTH
-
-    as_payload = _as_payload('einspec')
 
     def abstract_index_notation(
         self, tensor: P.Tensorial, indices: P.indices,  **kwargs
@@ -56,7 +54,7 @@ class EinopCompiler(TranscribeInterpreter):
     ):
         return []
 
-    @as_payload
+    @_as_payload('einspec')
     def ein(
         self, lhs: P.Numeric, rhs: P.Numeric, precedence: int, reduction: str,
         pairwise: str, outidx: Optional[P.indices], live_indices, kron_indices,
@@ -133,8 +131,12 @@ class EinopCompiler(TranscribeInterpreter):
             ax_contraction=tuple(ax_contraction)
         )
 
+    @_as_payload('transpec')
     def tran(self, src: P.Numeric, indices: P.indices, live_indices, **kwargs):
-        return []
+        return as_namedtuple(
+            'transpec',
+            order=[src.live_indices.index(i) for i in indices.live_indices]
+        )
 
     def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):
         raise NotImplementedError()
