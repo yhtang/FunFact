@@ -46,7 +46,7 @@ class LatexRenderer(ROOFInterpreter):
         return decl._repr_tex_()
 
     def ellipsis(self, **kwargs):
-        return '...'
+        return r'\dots'
 
     def index(self, item, bound, kron, **kwargs):
         if bound:

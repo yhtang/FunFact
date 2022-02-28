@@ -352,7 +352,7 @@ def _getitem(node: _ASNode, indices):  # noqa: F811
     '''create index notation'''
     return P.abstract_index_notation(
         node,
-        P.indices(tuple([_as_index(i) for i in as_tuple(indices or [])]))
+        P.indices(tuple(map(_as_index, as_tuple(indices or []))))
     )
 
 
@@ -361,7 +361,7 @@ def _rshift(node: _ASNode, indices):  # noqa: F811
     '''transpose or einsum output specification'''
     return P.abstract_dest(
         node,
-        P.indices(tuple([_as_index(i) for i in as_tuple(indices)]))
+        P.indices(tuple(map(_as_index, as_tuple(indices or []))))
     )
 
 
