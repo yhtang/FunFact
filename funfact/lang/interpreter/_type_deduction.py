@@ -20,6 +20,14 @@ def _add_attr(node, **kwargs):
     return node
 
 
+def _repl_ellipsis(indices, ell_indices):
+    '''Replace ellipsis primitive by indices.'''
+    for i, idx in enumerate(indices):
+        if isinstance(idx,  P.ellipsis):
+            return [*indices[:i], *ell_indices, *indices[i + 1:]]
+    return indices
+
+
 class TypeDeducer(RewritingTranscriber):
     '''Analyzes which of the indices survive in a tensor operations and does
     AST rewrite to replace certain operations with specialized Einstein
@@ -212,47 +220,28 @@ class TypeDeducer(RewritingTranscriber):
         ╚═════╬══════╝     ║
               ╚════════════╝
         '''
-        # Ellipsis are temporarily replaced by anonymous indices
-        def _repl_ell(tensor, ell_indices=None):
-            i = -1
-            for idx, element in enumerate(tensor.live_indices):
-                if isinstance(element, P.ellipsis):
-                    i = idx
-            if i > -1:
-                if ell_indices is None:
-                    ell_indices = [AbstractIndex() for i in 
-                        range(len(tensor.shape) - len(tensor.live_indices) + 1)]
-                tensor.live_indices =  [*tensor.live_indices[:i], 
-                                        *ell_indices, 
-                                        *tensor.live_indices[i + 1:]]
-                # todo: this OK?
-                i = tensor.keep_indices.index(P.ellipsis())
-                tensor.keep_indices =  [*tensor.keep_indices[:i], 
-                                        *ell_indices, 
-                                        *tensor.keep_indices[i + 1:]]
-            return tensor, ell_indices
-        lhs, ell_indices = _repl_ell(lhs)
-        rhs, _ = _repl_ell(rhs, ell_indices)
-
-    
-        print(f'ell_indices: {ell_indices}')
+        # replace ellipsis by anonymous indices
+        num_ell = max(
+            len(lhs.shape) - len(lhs.live_indices),
+            len(rhs.shape) - len(rhs.live_indices),
+        )
+        ell_indices = [AbstractIndex() for i in range(num_ell + 1)]
+        lhs.live_indices = _repl_ellipsis(lhs.live_indices, ell_indices)
+        lhs.keep_indices = _repl_ellipsis(lhs.keep_indices, ell_indices)
+        rhs.live_indices = _repl_ellipsis(rhs.live_indices, ell_indices)
+        rhs.keep_indices = _repl_ellipsis(rhs.keep_indices, ell_indices)
 
         # indices marked as keep on either side should stay
         src_live = as_namedtuple(
-            'src_live', lhs=lhs.live_indices or [], 
-                        rhs=rhs.live_indices or []
+            'src_live', lhs=lhs.live_indices or [], rhs=rhs.live_indices or []
         )
         src_keep = as_namedtuple(
-            'src_keep', lhs=lhs.keep_indices or [],
-                        rhs=rhs.keep_indices or []
+            'src_keep', lhs=lhs.keep_indices or [], rhs=rhs.keep_indices or []
         )
         src_kron = as_namedtuple(
             'src_kron', lhs=lhs.kron_indices or [], rhs=rhs.kron_indices or []
         )
-        print(f'src_live: {src_live}')
-        print(f'src_keep: {src_keep}')
-        print(f'src_kron: {src_kron}')
-        
+
         '''deduce survived indices'''
         live = ordered_union(src_live.lhs, src_live.rhs)
         keep = ordered_union(src_keep.lhs, src_keep.rhs)
@@ -322,27 +311,20 @@ class TypeDeducer(RewritingTranscriber):
                 shape.append(lhs_shape[i])
             else:
                 shape.append(rhs_shape[i])
-        '''
-        # TODO: we can also just leave the anonymous indices for internal use?
-        # set ellipsis back in l/rhs live + keep AND live_indices
-        def _restore_ell(indices, ell_indices):
-            print(f'indices: {indices}')
-            print(f'ell_indices: {ell_indices}')
-            i = indices.index(ell_indices[0])
-            return [*indices[:i],
-                    P.ellipsis(),
-                    *indices[i+len(ell_indices):]]
-        if ell_indices is not None:
-            lhs.live_indices = _restore_ell(lhs.live_indices, ell_indices)
-            lhs.keep_indices = _restore_ell(lhs.keep_indices, ell_indices)
-            rhs.live_indices = _restore_ell(rhs.live_indices, ell_indices)
-            rhs.keep_indices = _restore_ell(rhs.keep_indices, ell_indices)
-            live_indices = _restore_ell(live_indices, ell_indices)
-        '''
         return live_indices, keep_indices, kron_indices, tuple(shape)
-    # TODO ellipsis in tran, abstract_dest
+
     @as_payload
     def tran(self, src: P.Numeric, indices: P.indices, **kwargs):
+        # replace ellipsis by anonymous indices
+        num_ell = max(
+            len(src.shape) - len(src.live_indices),
+            len(src.shape) - len(indices.live_indices),
+        )
+        ell_ind = [AbstractIndex() for i in range(num_ell + 1)]
+        src.live_indices = _repl_ellipsis(src.live_indices, ell_ind)
+        src.keep_indices = _repl_ellipsis(src.keep_indices, ell_ind)
+        indices.live_indices = _repl_ellipsis(indices.live_indices, ell_ind)
+        indices.keep_indices = _repl_ellipsis(indices.keep_indices, ell_ind)
         return (
             indices.live_indices,
             indices.keep_indices,
