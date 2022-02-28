@@ -20,15 +20,6 @@ def _add_attr(node, **kwargs):
     return node
 
 
-def _repl_ellipsis(indices, ell_indices):
-    '''Replace ellipsis primitive by indices.'''
-    if indices:
-        for i, idx in enumerate(indices):
-            if isinstance(idx,  P.ellipsis):
-                return [*indices[:i], *ell_indices, *indices[i + 1:]]
-    return indices
-
-
 class TypeDeducer(RewritingTranscriber):
     '''Analyzes which of the indices survive in a tensor operations and does
     AST rewrite to replace certain operations with specialized Einstein
@@ -145,7 +136,7 @@ class TypeDeducer(RewritingTranscriber):
 
     @as_payload
     def ellipsis(self, **payload):
-        return [P.ellipsis()], [P.ellipsis()], [], None
+        return None, None, None, None
 
     @as_payload
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
@@ -221,16 +212,6 @@ class TypeDeducer(RewritingTranscriber):
         ╚═════╬══════╝     ║
               ╚════════════╝
         '''
-        # replace ellipsis by anonymous indices
-        num_ell = max(
-            len(lhs.shape) - len(lhs.live_indices),
-            len(rhs.shape) - len(rhs.live_indices),
-        )
-        ell_indices = [AbstractIndex() for i in range(num_ell + 1)]
-        lhs.live_indices = _repl_ellipsis(lhs.live_indices, ell_indices)
-        lhs.keep_indices = _repl_ellipsis(lhs.keep_indices, ell_indices)
-        rhs.live_indices = _repl_ellipsis(rhs.live_indices, ell_indices)
-        rhs.keep_indices = _repl_ellipsis(rhs.keep_indices, ell_indices)
 
         # indices marked as keep on either side should stay
         src_live = as_namedtuple(
@@ -316,16 +297,6 @@ class TypeDeducer(RewritingTranscriber):
 
     @as_payload
     def tran(self, src: P.Numeric, indices: P.indices, **kwargs):
-        # replace ellipsis by anonymous indices
-        num_ell = max(
-            len(src.shape) - len(src.live_indices),
-            len(src.shape) - len(indices.live_indices),
-        )
-        ell_ind = [AbstractIndex() for i in range(num_ell + 1)]
-        src.live_indices = _repl_ellipsis(src.live_indices, ell_ind)
-        src.keep_indices = _repl_ellipsis(src.keep_indices, ell_ind)
-        indices.live_indices = _repl_ellipsis(indices.live_indices, ell_ind)
-        indices.keep_indices = _repl_ellipsis(indices.keep_indices, ell_ind)
         return (
             indices.live_indices,
             indices.keep_indices,
