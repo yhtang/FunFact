@@ -31,6 +31,9 @@ class EinopCompiler(TranscribeInterpreter):
     def tensor(self, decl: AbstractTensor, **kwargs):
         return []
 
+    def ellipsis(self, **kwargs):
+        return []
+
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
         return []
 

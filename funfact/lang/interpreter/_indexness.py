@@ -43,6 +43,10 @@ class IndexnessAnalyzer(TranscribeInterpreter):
         return False
 
     @as_payload
+    def ellipsis(self, **payload):
+        return False
+
+    @as_payload
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
         return False
 

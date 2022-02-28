@@ -27,6 +27,10 @@ class ASCIIRenderer(TranscribeInterpreter):
         return str(decl.symbol)
 
     @as_payload
+    def ellipsis(self, **payload):
+        return '...'
+
+    @as_payload
     def index(self, item, bound, kron, **kwargs):
         if bound:
             return f'~{str(item.symbol)}'

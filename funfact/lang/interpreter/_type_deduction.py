@@ -135,6 +135,10 @@ class TypeDeducer(RewritingTranscriber):
         return None, None, None, decl.shape
 
     @as_payload
+    def ellipsis(self, **payload):
+        return None, None, None, None
+
+    @as_payload
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):
         return (
             [item],
@@ -208,6 +212,7 @@ class TypeDeducer(RewritingTranscriber):
         ╚═════╬══════╝     ║
               ╚════════════╝
         '''
+
         # indices marked as keep on either side should stay
         src_live = as_namedtuple(
             'src_live', lhs=lhs.live_indices or [], rhs=rhs.live_indices or []
@@ -288,7 +293,6 @@ class TypeDeducer(RewritingTranscriber):
                 shape.append(lhs_shape[i])
             else:
                 shape.append(rhs_shape[i])
-
         return live_indices, keep_indices, kron_indices, tuple(shape)
 
     @as_payload

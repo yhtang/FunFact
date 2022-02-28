@@ -21,6 +21,9 @@ class Evaluator(ROOFInterpreter):
     def tensor(self, decl, data, **kwargs):
         return data
 
+    def ellipsis(self, **kwargs):
+        return None
+
     def index(self, item, bound, kron, **kwargs):
         return None
 

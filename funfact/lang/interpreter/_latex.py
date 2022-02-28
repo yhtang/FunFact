@@ -45,6 +45,9 @@ class LatexRenderer(ROOFInterpreter):
     def tensor(self, decl, **kwargs):
         return decl._repr_tex_()
 
+    def ellipsis(self, **kwargs):
+        return r'\dots'
+
     def index(self, item, bound, kron, **kwargs):
         if bound:
             accent = r'\widetilde'
