@@ -37,6 +37,9 @@ class Vectorizer(TranscribeInterpreter):
     def literal(self, value: LiteralValue, **kwargs):
         return []
 
+    def ellipsis(self, **kwargs):
+        return []
+
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
         return []
 
