@@ -95,7 +95,7 @@ class ROOFInterpreter(ABC):
     @abstractmethod
     def ellipsis(self, **payload):
         pass
- 
+
     @abstractmethod
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **payload):
         pass

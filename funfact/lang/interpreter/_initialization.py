@@ -50,7 +50,7 @@ class LeafInitializer(TranscribeInterpreter):
             else:
                 ini = ab.broadcast_to(ini, shape)
             return ab.set_optimizable(ini, optimizable=optimizable)
-    
+
     def ellipsis(self, **kwargs):
         return []
 

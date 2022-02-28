@@ -56,7 +56,7 @@ class Primitives:
     @primitive(precedence=0)
     def tensor(decl: AbstractTensor):
         '''an abstract tensor'''
-    
+
     @primitive(precedence=0)
     def ellipsis():
         '''an ellipsis'''

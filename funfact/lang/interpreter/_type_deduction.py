@@ -22,9 +22,10 @@ def _add_attr(node, **kwargs):
 
 def _repl_ellipsis(indices, ell_indices):
     '''Replace ellipsis primitive by indices.'''
-    for i, idx in enumerate(indices):
-        if isinstance(idx,  P.ellipsis):
-            return [*indices[:i], *ell_indices, *indices[i + 1:]]
+    if indices:
+        for i, idx in enumerate(indices):
+            if isinstance(idx,  P.ellipsis):
+                return [*indices[:i], *ell_indices, *indices[i + 1:]]
     return indices
 
 
