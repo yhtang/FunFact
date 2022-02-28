@@ -135,8 +135,7 @@ class EinopCompiler(TranscribeInterpreter):
     def tran(self, src: P.Numeric, indices: P.indices, live_indices, **kwargs):
         return as_namedtuple(
             'transpec',
-            in_idx=src.live_indices,
-            out_idx=indices.live_indices
+            order=[src.live_indices.index(i) for i in indices.live_indices]
         )
 
     def abstract_dest(self, src: P.Numeric, indices: P.indices, **kwargs):

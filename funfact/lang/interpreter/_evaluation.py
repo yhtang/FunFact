@@ -45,7 +45,7 @@ class Evaluator(ROOFInterpreter):
 
     def tran(self, src, indices, transpec, **kwargs):
         return ab.transpose(
-            src, [transpec.in_idx.index(i) for i in transpec.out_idx]
+            src, transpec.order
         )
 
     def abstract_dest(self, src, indices, **kwargs):
