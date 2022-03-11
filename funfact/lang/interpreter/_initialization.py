@@ -47,7 +47,8 @@ class LeafInitializer(TranscribeInterpreter):
                     f'shape {shape_param}.'
                 )
             if optimizable:
-                ini = ab.tile(ini, [s // d for s, d in zip(shape_param, ini.shape)])
+                ini = ab.tile(ini, [s // d for s, d in
+                              zip(shape_param, ini.shape)])
             else:
                 ini = ab.broadcast_to(ini, shape_param)
             return ab.set_optimizable(ini, optimizable=optimizable)
