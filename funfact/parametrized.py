@@ -32,7 +32,7 @@ class Generator:
             self.generator = generator
             self.n = n
             self.append = append
-        
+
         def __call__(self, params):
             def _get_instance(i):
                 return params[..., i] if self.append else params[i, ...]
@@ -49,19 +49,43 @@ class Generator:
         return type(self)(shape_param, generator)
 
 
-def _gen_rotation(theta):
-    return ab.tensor([[ab.cos(theta), -ab.sin(theta)],
-                      [ab.sin(theta), ab.cos(theta)]])
+def givens_rotation(i, j, n):
+    '''Generate an nxn parametrized Givens rotation with the rotation acting
+    on the [(i,j), (i,j)] submatrix.
 
+    Args
+        i: int:
+            first row/column index for Givens rotation
+        j: int:
+            second row/column index for Givens rotation
+        n: int:
+            size of rotation matrix.
+    '''
+    def _gen_rotation(theta):
+        rot = ab.eye(n, n)
+        # rot = rot.at[i, i].set(ab.cos(theta[0]))
+        # rot = rot.at[i, j].set(-ab.sin(theta[0]))
+        # rot = rot.at[j, j].set(ab.cos(theta[0]))
+        # rot = rot.at[j, i].set(ab.sin(theta[0]))
+        rot[i, i] = ab.cos(theta)
+        rot[i, j] = -ab.sin(theta)
+        rot[j, i] = ab.sin(theta)
+        rot[j, j] = ab.cos(theta)
+        return rot
 
-# TODO: make it nxn on i,j?
-def givens_rotation():
+    '''
+    def _gen_rotation(theta):
+        return ab.vstack(
+            [ab.hstack([ab.cos(theta), -ab.sin(theta)]),
+             ab.hstack([ab.sin(theta), ab.cos(theta)])]
+    )
+    '''
+
     return TsrEx(
         P.parametrized_tensor(
             ParametrizedAbstractTensor(
-                2, 2, symbol='G', initializer=None, optimizable=True,
+                n, n, symbol='G', initializer=None, optimizable=True,
                 generator=Generator((1,), _gen_rotation)
             )
         )
     )
-        

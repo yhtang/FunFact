@@ -13,7 +13,7 @@ from .context import is_grad_on, enable_grad
 from . import initializers
 from . import conditions
 from .lang._semiring import minplus, logsumexp, viterbi
-from . import generators
+from . import parametrized
 
 __all__ = [
     'use',
@@ -38,7 +38,7 @@ __all__ = [
     'minplus',
     'logsumexp',
     'viterbi',
-    'generators'
+    'parametrized'
 ]
 
 
