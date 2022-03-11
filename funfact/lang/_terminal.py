@@ -257,17 +257,17 @@ class ParametrizedAbstractTensor(AbstractTensor):
         tensor.
     '''
     def __init__(self, *shape, symbol=None, initializer=None, optimizable=True,
-                 generator=None):
+                 generator=None, **kwargs):
         super().__init__(*shape, symbol=symbol, initializer=initializer,
                          optimizable=optimizable, prefer=None)
         self.generator = generator
 
     def vectorize(self, n, append):
         '''Extend dimensionality by one.'''
-        vectorized = super().vectorize(n, append)
         if self.generator is None:
             generator = self.generator
         else:
             generator = self.generator.vectorize(n, append)
+        vectorized = super().vectorize(n, append)
         vectorized.generator = generator
         return vectorized

@@ -6,6 +6,7 @@ from funfact.lang._tsrex import TsrEx
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import ParametrizedAbstractTensor
 
+
 class Generator:
     ''' A generator can generate a tensor from a set of parameters.
 
@@ -26,21 +27,26 @@ class Generator:
     def shape_param(self):
         return self._shape_param
 
-    def vectorize(self, n, append: bool = True):
-        '''Vectorize to n replicas.'''
-
-        def wrapper(params):
-            '''Vectorized generator.'''
+    class VectorizedGenerator:
+        def __init__(self, generator, n, append: bool = True):
+            self.generator = generator
+            self.n = n
+            self.append = append
+        
+        def __call__(self, params):
             def _get_instance(i):
-                return params[..., i] if append else params[i, ...]
-            axis = -1 if append else 0
+                return params[..., i] if self.append else params[i, ...]
+            axis = -1 if self.append else 0
             return ab.stack(
-                [self._gen(_get_instance(i)) for i in range(n)], axis
+                [self.generator(_get_instance(i)) for i in range(self.n)], axis
             )
 
-        self._generator = wrapper
-        self._shape_param = (*self._shape_param, n) if append else \
-                            (n, *self._shape_param)
+    def vectorize(self, n, append: bool = True):
+        '''Vectorize to n replicas.'''
+        shape_param = (*self._shape_param, n) if append else \
+                      (n, *self._shape_param)
+        generator = Generator.VectorizedGenerator(self, n, append)
+        return type(self)(shape_param, generator)
 
 
 def _gen_rotation(theta):
@@ -54,7 +60,7 @@ def givens_rotation():
         P.parametrized_tensor(
             ParametrizedAbstractTensor(
                 2, 2, symbol='G', initializer=None, optimizable=True,
-                generator=Generator(1, _gen_rotation)
+                generator=Generator((1,), _gen_rotation)
             )
         )
     )
