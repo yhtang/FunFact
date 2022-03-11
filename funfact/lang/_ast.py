@@ -4,7 +4,9 @@ from dataclasses import make_dataclass
 import inspect
 from numbers import Real
 from typing import Optional, Union, Tuple
-from ._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from ._terminal import (
+    AbstractIndex, AbstractTensor, LiteralValue, ParametrizedAbstractTensor
+)
 
 
 class _ASNode:
@@ -52,6 +54,10 @@ class Primitives:
     @primitive(precedence=0)
     def literal(value: LiteralValue):
         '''a literal value'''
+
+    @primitive(precedence=0)
+    def parametrized_tensor(decl: ParametrizedAbstractTensor):
+        '''a parametrized tensor'''
 
     @primitive(precedence=0)
     def tensor(decl: AbstractTensor):

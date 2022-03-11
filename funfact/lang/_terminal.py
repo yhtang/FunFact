@@ -140,7 +140,7 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
     '''An abstract tensor is a symbolic representation of a multidimensional
     array and is convenient for specifying **tensor expressions**. At
     construction, it does not allocate memory nor populate elements, but rather
-    just record the shape, the method of initializerization, and other related
+    just record the shape, the method of initialization, and other related
     properties for a tensor. This is in contrast to the behavior of common
     linear algebra libraries, where multidimensional arrays are 'eager' in
     allocating memory and creating the data.
@@ -227,3 +227,47 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
             return fr'\boldsymbol{{{letter}}}^{{({number})}}'
         else:
             return fr'\boldsymbol{{{letter}}}'
+
+
+class ParametrizedAbstractTensor(AbstractTensor):
+    '''A parametrized abstract tensor is a symbolic representation of a
+    multidimensional array that depends on some parameters. The tensor
+    representation can be generated from the parameters.
+
+    Parameters
+    ----------
+    shape: int...:
+        A sequence of integers specifying the shape of the tensor.
+        Can be either a variable number of arguments or an iterable like a list
+        or tuple.
+
+    symbol (str):
+        An alphanumeric symbol representing the abstract tensor
+
+    initializer (callable):
+        Initialization distribution for parameters or concrete values for
+        parameters.
+
+    optimizable (boolean):
+        True/False flag indicating of the abstract tensor can be optimized.
+
+    generator (callable):
+        Generates tensor representation from parameters. A generator has a few
+        properties: `size` of the tensor, `nparams` required to generate the
+        tensor.
+    '''
+    def __init__(self, *shape, symbol=None, initializer=None, optimizable=True,
+                 generator=None):
+        super().__init__(*shape, symbol=symbol, initializer=initializer,
+                         optimizable=optimizable, prefer=None)
+        self.generator = generator
+
+    def vectorize(self, n, append):
+        '''Extend dimensionality by one.'''
+        vectorized = super().vectorize(n, append)
+        if self.generator is None:
+            generator = self.generator
+        else:
+            generator = self.generator.vectorize(n, append)
+        vectorized.generator = generator
+        return vectorized

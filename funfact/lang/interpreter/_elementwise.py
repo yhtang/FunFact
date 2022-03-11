@@ -14,6 +14,9 @@ def _sliced_size(sli, sz):
 
 
 class ElementwiseEvaluator(Evaluator):
+    def parametrized_tensor(self, decl, data, slices, **kwargs):
+        return decl.generator(data)[slices]
+
     def tensor(self, decl, data, slices, **kwargs):
         return data[slices]
 

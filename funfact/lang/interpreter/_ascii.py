@@ -23,6 +23,10 @@ class ASCIIRenderer(TranscribeInterpreter):
         return str(value)
 
     @as_payload
+    def parametrized_tensor(self, decl, **kwargs):
+        return str(decl.symbol)
+
+    @as_payload
     def tensor(self, decl, **kwargs):
         return str(decl.symbol)
 

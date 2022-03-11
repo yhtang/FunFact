@@ -35,6 +35,9 @@ class SlicingPropagator(TranscribeInterpreter):
     def literal(self, value: LiteralValue, **kwargs):
         pass
 
+    def parametrized_tensor(self, decl, **kwargs):
+        pass
+
     def tensor(self, decl: AbstractTensor, **kwargs):
         pass
 

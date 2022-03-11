@@ -9,7 +9,9 @@ from ._base import (
     RewritingTranscriber,
 )
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import (
+    AbstractIndex, AbstractTensor, LiteralValue, ParametrizedAbstractTensor
+)
 from funfact.util.iterable import as_namedtuple
 from funfact.util.set import ordered_intersect, ordered_union, ordered_setminus
 
@@ -131,12 +133,16 @@ class TypeDeducer(RewritingTranscriber):
         return None, None, None, ()
 
     @as_payload
+    def parametrized_tensor(self, decl: ParametrizedAbstractTensor, **kwargs):
+        return None, None, None, decl.shape
+
+    @as_payload
     def tensor(self, decl: AbstractTensor, **kwargs):
         return None, None, None, decl.shape
 
     @as_payload
     def ellipsis(self, **payload):
-        return None, None, None, None
+        return [P.ellipsis()], [], [], None
 
     @as_payload
     def index(self, item: AbstractIndex, bound: bool, kron: bool, **kwargs):

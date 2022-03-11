@@ -3,7 +3,9 @@
 import dataclasses
 from typing import Optional
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import (
+    AbstractIndex, AbstractTensor, LiteralValue, ParametrizedAbstractTensor
+)
 from ._base import _as_payload, TranscribeInterpreter
 
 
@@ -42,6 +44,10 @@ class Vectorizer(TranscribeInterpreter):
 
     def index(self, item: AbstractIndex, bound: bool, **kwargs):
         return []
+
+    @_as_payload('decl')
+    def parametrized_tensor(self, decl: ParametrizedAbstractTensor, **kwargs):
+        return decl.vectorize(self.replicas, self.append)
 
     @_as_payload('decl')
     def tensor(self, decl: AbstractTensor, **kwargs):
