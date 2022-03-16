@@ -54,7 +54,7 @@ class Generator:
         return type(self)(generator, *shape_of_params)
 
 
-def planar_rotation(i, j, n):
+def planar_rotation(i, j, n, initializer=None, optimizable=True):
     '''Generate an n x n planar rotation parameterized by a single rotation
     angle with the rotation acting on the [(i,j), (i,j)] submatrix nof the
     n x n identity matrix.
@@ -66,6 +66,10 @@ def planar_rotation(i, j, n):
             second row/column index for Givens rotation
         n: int:
             size of rotation matrix.
+        initializer (callable):
+            Initialization distribution
+        optimizable (boolean):
+            True/False flag indicating if a tensor leaf should be optimized.
     '''
 
     if not (isinstance(n, numbers.Integral) and n > 0):
@@ -109,7 +113,7 @@ def planar_rotation(i, j, n):
         P.parametrized_tensor(
             ParametrizedAbstractTensor(
                 Generator(_gen_rotation, 1), n, n, symbol=symbol_str,
-                initializer=None, optimizable=True
+                initializer=initializer, optimizable=optimizable
             )
         )
     )
