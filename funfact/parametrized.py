@@ -68,6 +68,22 @@ def planar_rotation(i, j, n):
             size of rotation matrix.
     '''
 
+    if not (isinstance(n, numbers.Integral) and n > 0):
+        raise RuntimeError(
+                "Shape of the planar rotation must be a positive integer, "
+                f"got {n}."
+                )
+
+    def _check_rc(idx):
+        if not (isinstance(idx, numbers.Integral) and idx < n and idx >= 0):
+            raise RuntimeError(
+                f"Row/column index must be between [0, {n}], "
+                f"got {idx}."
+            )
+
+    _check_rc(i)
+    _check_rc(j)
+
     min_idx = min(i, j)
     max_idx = max(i, j)
 
@@ -88,10 +104,11 @@ def planar_rotation(i, j, n):
         p = np.argsort(p)
         return rot[p, :][:, p]
 
+    symbol_str = 'G_' + str(min_idx) + str(max_idx) + str(n)
     return TsrEx(
         P.parametrized_tensor(
             ParametrizedAbstractTensor(
-                Generator(_gen_rotation, 1), n, n, symbol='G',
+                Generator(_gen_rotation, 1), n, n, symbol=symbol_str,
                 initializer=None, optimizable=True
             )
         )
