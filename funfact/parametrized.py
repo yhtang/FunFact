@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import numpy as np
+import numbers
 from typing import Callable
 from funfact import active_backend as ab
 from funfact.lang._tsrex import TsrEx
@@ -11,21 +13,23 @@ class Generator:
     ''' A generator can generate a tensor from a set of parameters.
 
     Args:
-        shape_param: Tuple(Int):
+        shape_of_params: int...:
             Shape of the parameters to generate tensor.
         generator: Callable:
             Function to generate tensor from parameters.
     '''
-    def __init__(self, shape_param, generator: Callable):
-        self._shape_param = shape_param
+    def __init__(self, generator: Callable, *shape_of_params):
+        for n in shape_of_params:
+            if not (isinstance(n, numbers.Integral) and n > 0):
+                raise RuntimeError(
+                    "Shape of the parameters must be a positive integer, "
+                    f"got {n}."
+                )
+        self.shape_of_params = tuple(map(int, shape_of_params))
         self._generator = generator
 
-    def __call__(self, param):
-        return self._generator(param)
-
-    @property
-    def shape_param(self):
-        return self._shape_param
+    def __call__(self, params, slices=None):
+        return self._generator(params, slices=slices)
 
     class VectorizedGenerator:
         def __init__(self, generator, n, append: bool = True):
@@ -33,27 +37,29 @@ class Generator:
             self.n = n
             self.append = append
 
-        def __call__(self, params):
+        def __call__(self, params, slices=None):
             def _get_instance(i):
                 return params[..., i] if self.append else params[i, ...]
             axis = -1 if self.append else 0
             return ab.stack(
-                [self.generator(_get_instance(i)) for i in range(self.n)], axis
+                [self.generator(_get_instance(i), slices=slices) for i in
+                 range(self.n)], axis
             )
 
     def vectorize(self, n, append: bool = True):
         '''Vectorize to n replicas.'''
-        shape_param = (*self._shape_param, n) if append else \
-                      (n, *self._shape_param)
+        shape_of_params = (*self.shape_of_params, n) if append else \
+                          (n, *self.shape_of_params)
         generator = Generator.VectorizedGenerator(self, n, append)
-        return type(self)(shape_param, generator)
+        return type(self)(generator, *shape_of_params)
 
 
-def givens_rotation(i, j, n):
-    '''Generate an nxn parametrized Givens rotation with the rotation acting
-    on the [(i,j), (i,j)] submatrix.
+def planar_rotation(i, j, n):
+    '''Generate an n x n planar rotation parameterized by a single rotation
+    angle with the rotation acting on the [(i,j), (i,j)] submatrix nof the
+    n x n identity matrix.
 
-    Args
+    Args:
         i: int:
             first row/column index for Givens rotation
         j: int:
@@ -61,31 +67,32 @@ def givens_rotation(i, j, n):
         n: int:
             size of rotation matrix.
     '''
-    def _gen_rotation(theta):
-        rot = ab.eye(n, n)
-        # rot = rot.at[i, i].set(ab.cos(theta[0]))
-        # rot = rot.at[i, j].set(-ab.sin(theta[0]))
-        # rot = rot.at[j, j].set(ab.cos(theta[0]))
-        # rot = rot.at[j, i].set(ab.sin(theta[0]))
-        rot[i, i] = ab.cos(theta)
-        rot[i, j] = -ab.sin(theta)
-        rot[j, i] = ab.sin(theta)
-        rot[j, j] = ab.cos(theta)
-        return rot
 
-    '''
-    def _gen_rotation(theta):
-        return ab.vstack(
+    min_idx = min(i, j)
+    max_idx = max(i, j)
+
+    def _gen_rotation(theta, slices=None):
+        if slices is not None:
+            raise TypeError
+        rot22 = ab.vstack(
             [ab.hstack([ab.cos(theta), -ab.sin(theta)]),
              ab.hstack([ab.sin(theta), ab.cos(theta)])]
-    )
-    '''
+        )
+        rot = ab.vstack(
+            [ab.hstack([rot22, ab.zeros([2, n-2])]),
+             ab.hstack([ab.zeros([n-2, 2]), ab.eye(n-2, n-2)])]
+        )
+        p = list(range(-1, n-1))
+        p[0] = min_idx + 0.5
+        p[1] = max_idx - 0.5
+        p = np.argsort(p)
+        return rot[p, :][:, p]
 
     return TsrEx(
         P.parametrized_tensor(
             ParametrizedAbstractTensor(
-                n, n, symbol='G', initializer=None, optimizable=True,
-                generator=Generator((1,), _gen_rotation)
+                Generator(_gen_rotation, 1), n, n, symbol='G',
+                initializer=None, optimizable=True
             )
         )
     )

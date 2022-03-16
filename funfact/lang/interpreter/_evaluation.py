@@ -18,7 +18,7 @@ class Evaluator(ROOFInterpreter):
     def literal(self, value, **kwargs):
         return ab.tensor(value.raw)
 
-    def parametrized_tensor(self, decl, data,  **kwargs):
+    def parametrized_tensor(self, decl, data, **kwargs):
         return decl.generator(data)
 
     def tensor(self, decl, data, **kwargs):

@@ -15,49 +15,7 @@ class LeafInitializer(TranscribeInterpreter):
         self.dtype = dtype or ab.float32
         super().__init__()
 
-    def abstract_index_notation(self, tensor, indices, **kwargs):
-        return []
-
-    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
-        return []
-
-    def literal(self, value, **kwargs):
-        return []
-
-    @_as_payload('data')
-    def parametrized_tensor(self, decl, **kwargs):
-        initializer, optimizable, shape_param = (
-            decl.initializer, decl.optimizable, decl.generator.shape_param
-        )
-        if initializer is None:
-            initializer = Normal(dtype=self.dtype)
-        elif isinstance(initializer, type):
-            '''got an initializer class'''
-            initializer = initializer(dtype=self.dtype)
-        try:
-            return ab.set_optimizable(initializer(shape_param), optimizable)
-        except TypeError:
-            # If optimizable, slice for each instance must be independent.
-            # Otherwise, slices can share a view into the original tensor.
-            ini = ab.tensor(initializer, dtype=self.dtype)
-            if np.any(np.remainder(shape_param, ini.shape) != 0):
-                raise ValueError(
-                    f'Concrete initializer of shape {ini.shape} cannot be '
-                    f'broadcasted to initialize parameters of tensor of '
-                    f'shape {shape_param}.'
-                )
-            if optimizable:
-                ini = ab.tile(ini, [s // d for s, d in
-                              zip(shape_param, ini.shape)])
-            else:
-                ini = ab.broadcast_to(ini, shape_param)
-            return ab.set_optimizable(ini, optimizable=optimizable)
-
-    @_as_payload('data')
-    def tensor(self, decl, **kwargs):
-        initializer, optimizable, shape = (
-            decl.initializer, decl.optimizable, decl.shape
-        )
+    def _initialize_data(self, initializer, optimizable, shape):
         if initializer is None:
             initializer = Normal(dtype=self.dtype)
         elif isinstance(initializer, type):
@@ -79,6 +37,29 @@ class LeafInitializer(TranscribeInterpreter):
             else:
                 ini = ab.broadcast_to(ini, shape)
             return ab.set_optimizable(ini, optimizable=optimizable)
+
+    def abstract_index_notation(self, tensor, indices, **kwargs):
+        return []
+
+    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
+        return []
+
+    def literal(self, value, **kwargs):
+        return []
+
+    @_as_payload('data')
+    def parametrized_tensor(self, decl, **kwargs):
+        initializer, optimizable, shape_of_params = (
+            decl.initializer, decl.optimizable, decl.generator.shape_of_params
+        )
+        return self._initialize_data(initializer, optimizable, shape_of_params)
+
+    @_as_payload('data')
+    def tensor(self, decl, **kwargs):
+        initializer, optimizable, shape = (
+            decl.initializer, decl.optimizable, decl.shape
+        )
+        return self._initialize_data(initializer, optimizable, shape)
 
     def ellipsis(self, **kwargs):
         return []

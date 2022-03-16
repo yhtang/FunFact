@@ -184,9 +184,10 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         self.optimizable = optimizable
         self.prefer = prefer
 
-    def vectorize(self, n, append):
-        '''Extend dimensionality by one.'''
-        shape = (*self._shape, n) if append else (n, *self._shape)
+    def _vectorize_shape(self, n, append):
+        return (*self._shape, n) if append else (n, *self._shape)
+
+    def _vectorize_initializer(self, append):
         if self.initializer is None:
             initializer = self.initializer
         elif callable(self.initializer):
@@ -194,7 +195,16 @@ class AbstractTensor(Identifiable, LaTexReprMixin):
         else:
             initializer = self.initializer[..., None] if append else \
                           self.initializer[None, ...]
-        prefer = vmap(self.prefer, append) if self.prefer else None
+        return initializer
+
+    def _vectorize_prefer(self, append):
+        return vmap(self.prefer, append) if self.prefer else None
+
+    def vectorize(self, n, append):
+        '''Extend dimensionality by one.'''
+        shape = self._vectorize_shape(n, append)
+        initializer = self._vectorize_initializer(append)
+        prefer = self._vectorize_prefer(append)
         return type(self)(
             *shape, initializer=initializer, optimizable=self.optimizable,
             prefer=prefer
@@ -234,40 +244,46 @@ class ParametrizedAbstractTensor(AbstractTensor):
     multidimensional array that depends on some parameters. The tensor
     representation can be generated from the parameters.
 
-    Parameters
-    ----------
-    shape: int...:
-        A sequence of integers specifying the shape of the tensor.
-        Can be either a variable number of arguments or an iterable like a list
-        or tuple.
+    Args:
+        generator (callable):
+            Generates the tensor representation from the parameters. A
+            generator can be called with the parameters to return the tensor
+            and has a property `shape_of_params`.
 
-    symbol (str):
-        An alphanumeric symbol representing the abstract tensor
+        shape: int...:
+            A sequence of integers specifying the shape of the tensor.
+            Can be either a variable number of arguments or an iterable like a
+            list or tuple.
 
-    initializer (callable):
-        Initialization distribution for parameters or concrete values for
-        parameters.
+        symbol (str):
+            An alphanumeric symbol representing the abstract tensor
 
-    optimizable (boolean):
-        True/False flag indicating of the abstract tensor can be optimized.
+        initializer (callable):
+            Initialization distribution for parameters or concrete values for
+            parameters.
 
-    generator (callable):
-        Generates tensor representation from parameters. A generator has a few
-        properties: `size` of the tensor, `nparams` required to generate the
-        tensor.
+        optimizable (boolean):
+            True/False flag indicating of the abstract tensor can be optimized.
     '''
-    def __init__(self, *shape, symbol=None, initializer=None, optimizable=True,
-                 generator=None, **kwargs):
+    def __init__(self, generator, *shape, symbol=None, initializer=None,
+                 optimizable=True, **kwargs):
         super().__init__(*shape, symbol=symbol, initializer=initializer,
                          optimizable=optimizable, prefer=None)
         self.generator = generator
 
-    def vectorize(self, n, append):
-        '''Extend dimensionality by one.'''
+    def _vectorize_generator(self, n, append):
         if self.generator is None:
             generator = self.generator
         else:
             generator = self.generator.vectorize(n, append)
-        vectorized = super().vectorize(n, append)
-        vectorized.generator = generator
-        return vectorized
+        return generator
+
+    def vectorize(self, n, append):
+        '''Extend dimensionality by one.'''
+        generator = self._vectorize_generator(n, append)
+        shape = self._vectorize_shape(n, append)
+        initializer = self._vectorize_initializer(append)
+        return type(self)(
+            generator, *shape, initializer=initializer,
+            optimizable=self.optimizable, prefer=None
+        )
