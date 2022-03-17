@@ -51,7 +51,7 @@ setup(
             'mkdocs-material==8.1.9',
             'mkdocs-literate-nav==0.4.1',
             'mkdocs-section-index==0.3.2',
-            'mkdocs-jupyter==0.20.0',
+            'mkdocs-jupyter==0.20.1',
             'mkdocstrings==0.17.0',
         ],
         'devel': [
