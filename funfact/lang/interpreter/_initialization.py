@@ -15,20 +15,7 @@ class LeafInitializer(TranscribeInterpreter):
         self.dtype = dtype or ab.float32
         super().__init__()
 
-    def abstract_index_notation(self, tensor, indices, **kwargs):
-        return []
-
-    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
-        return []
-
-    def literal(self, value, **kwargs):
-        return []
-
-    @_as_payload('data')
-    def tensor(self, decl, **kwargs):
-        initializer, optimizable, shape = (
-            decl.initializer, decl.optimizable, decl.shape
-        )
+    def _initialize_data(self, initializer, optimizable, shape):
         if initializer is None:
             initializer = Normal(dtype=self.dtype)
         elif isinstance(initializer, type):
@@ -50,6 +37,29 @@ class LeafInitializer(TranscribeInterpreter):
             else:
                 ini = ab.broadcast_to(ini, shape)
             return ab.set_optimizable(ini, optimizable=optimizable)
+
+    def abstract_index_notation(self, tensor, indices, **kwargs):
+        return []
+
+    def abstract_binary(self, lhs, rhs, precedence, operator, **kwargs):
+        return []
+
+    def literal(self, value, **kwargs):
+        return []
+
+    @_as_payload('data')
+    def parametrized_tensor(self, decl, **kwargs):
+        initializer, optimizable, shape_of_params = (
+            decl.initializer, decl.optimizable, decl.generator.shape_of_params
+        )
+        return self._initialize_data(initializer, optimizable, shape_of_params)
+
+    @_as_payload('data')
+    def tensor(self, decl, **kwargs):
+        initializer, optimizable, shape = (
+            decl.initializer, decl.optimizable, decl.shape
+        )
+        return self._initialize_data(initializer, optimizable, shape)
 
     def ellipsis(self, **kwargs):
         return []

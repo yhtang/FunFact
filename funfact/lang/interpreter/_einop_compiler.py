@@ -3,7 +3,9 @@
 from typing import Optional, Tuple
 import numpy as np
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import (
+    AbstractIndex, AbstractTensor, LiteralValue, ParametrizedAbstractTensor
+)
 from funfact.util.iterable import as_namedtuple
 from ._base import _as_payload, TranscribeInterpreter
 
@@ -26,6 +28,9 @@ class EinopCompiler(TranscribeInterpreter):
         raise NotImplementedError()
 
     def literal(self, value: LiteralValue, **kwargs):
+        return []
+
+    def parametrized_tensor(self, decl: ParametrizedAbstractTensor, **kwargs):
         return []
 
     def tensor(self, decl: AbstractTensor, **kwargs):

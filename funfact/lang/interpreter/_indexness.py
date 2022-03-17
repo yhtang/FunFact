@@ -6,7 +6,9 @@ from ._base import (
     TranscribeInterpreter
 )
 from funfact.lang._ast import Primitives as P
-from funfact.lang._terminal import AbstractIndex, AbstractTensor, LiteralValue
+from funfact.lang._terminal import (
+    AbstractIndex, AbstractTensor, LiteralValue, ParametrizedAbstractTensor
+)
 
 
 class IndexnessAnalyzer(TranscribeInterpreter):
@@ -36,6 +38,10 @@ class IndexnessAnalyzer(TranscribeInterpreter):
 
     @as_payload
     def literal(self, value: LiteralValue, **kwargs):
+        return False
+
+    @as_payload
+    def parametrized_tensor(self, decl: ParametrizedAbstractTensor, **kwargs):
         return False
 
     @as_payload

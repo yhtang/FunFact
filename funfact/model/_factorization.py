@@ -105,7 +105,8 @@ class Factorization:
         return self._NodeView(
             'data',
             list(unique(dfs_filter(
-                lambda n: n.name == 'tensor' and n.decl.optimizable,
+                lambda n: n.name in ['tensor', 'parametrized_tensor'] and
+                n.decl.optimizable,
                 self.tsrex.root
             )))
         )
@@ -113,8 +114,8 @@ class Factorization:
     @factors.setter
     def factors(self, tensors):
         for i, n in enumerate(unique(
-            dfs_filter(lambda n: n.name == 'tensor' and
-                       n.decl.optimizable, self.tsrex.root)
+            dfs_filter(lambda n: n.name in ['tensor', 'parametrized_tensor']
+                       and n.decl.optimizable, self.tsrex.root)
         )):
             n.data = tensors[i]
 

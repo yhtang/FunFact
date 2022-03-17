@@ -42,6 +42,9 @@ class LatexRenderer(ROOFInterpreter):
     def literal(self, value, **kwargs):
         return value._repr_tex_()
 
+    def parametrized_tensor(self, decl, **kwargs):
+        return decl._repr_tex_()
+
     def tensor(self, decl, **kwargs):
         return decl._repr_tex_()
 
