@@ -251,7 +251,7 @@ class SyntaxOverloadMixin:
 
     @_as_tsrex
     def __pow__(self, rhs):
-        return _binary(_as_node(self), _as_node(rhs), 3, 'float_power')
+        return _binary(_as_node(self), _as_node(rhs), 3, 'power')
 
     @_as_tsrex
     def __and__(self, rhs):
@@ -279,7 +279,7 @@ class SyntaxOverloadMixin:
 
     @_as_tsrex
     def __rpow__(self, lhs):
-        return _binary(_as_node(lhs), _as_node(self), 3, 'float_power')
+        return _binary(_as_node(lhs), _as_node(self), 3, 'power')
 
     @_as_tsrex
     def __rand__(self, lhs):
