@@ -87,6 +87,10 @@ def sum(a, axis=None):
         return torch.sum(a)
 
 
+def power(input, exponent):
+    return torch.pow(input, exponent)
+
+
 def reshape(a, newshape, order='C'):
     if order == 'C':
         return torch.reshape(a, (*newshape,))
