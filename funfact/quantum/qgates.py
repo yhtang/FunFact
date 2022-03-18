@@ -25,6 +25,7 @@ class Gate(ABC):
         '''A gate has a label.'''
         pass
 
+
 class OneQubitGate(Gate):
     '''A gate acting on exactly one qubit.'''
     def __init__(self, qubit: int):
@@ -40,6 +41,10 @@ class OneQubitRotationGate(OneQubitGate):
     def __init__(self, qubit: int, theta: Real):
         super().__init__(qubit)
         self.theta = theta
+
+    def _generator(theta):
+        '''Generates'''
+        pass
 
 
 class RotationX(OneQubitRotationGate):
