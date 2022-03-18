@@ -56,7 +56,8 @@ class Adam(Optimizer):
     def step(self, grad):
         for i, g in enumerate(grad):
             self.M[i] = self.beta1 * self.M[i] + (1 - self.beta1) * g
-            self.V[i] = self.beta2 * self.V[i] + (1 - self.beta2) * g * g
+            self.V[i] = self.beta2 * self.V[i] + \
+                (1 - self.beta2) * g * ab.conj(g)
             mhat = self.M[i] / (1 - self.beta1)
             vhat = self.V[i] / (1 - self.beta2)
             self.X[i] -= self.lr * mhat * ab.reciprocal(ab.sqrt(
@@ -97,7 +98,7 @@ class RMSprop(Optimizer):
                 g += self.weight_decay * x
         for i, g in enumerate(grad):
             self.V[i] = self.alpha * self.V[i] + \
-                        (1 - self.alpha) * g * g
+                        (1 - self.alpha) * g * ab.conj(g)
             vhat = self.V[i] / (1 - self.alpha)
             if self.centered:
                 self.G[i] = self.alpha * self.G[i] + \
