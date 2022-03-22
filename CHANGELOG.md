@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1a1 (2022-03-18)
+
+- Add parametrized tensors.
+
 ## 1.0.1 (2022-02-28)
 
 - Bug fixes: #217, #210.
