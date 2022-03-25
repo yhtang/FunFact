@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import tqdm
 from funfact.backend import active_backend as ab
-from ._base import GradientDescentState, GradientDescentPlugin
+from ._base import GradientDescentState
 
 
 def gradient_descent(g, optimizer, max_steps, exit_condition, plugins):

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import dill
-from ._base import GradientDescentState, GradientDescentPlugin
+from ._base import GradientDescentPlugin
 
 
 def gradient_descent_plugin(every=None, at=None, trigger=None):

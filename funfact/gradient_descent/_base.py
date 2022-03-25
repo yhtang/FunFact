@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Optional, List, Callable
+from typing import Callable
 from dataclasses import dataclass
 from funfact.backend import active_backend as ab
 
@@ -17,7 +17,6 @@ class GradientDescentPlugin:
     name: str
     trigger: Callable
     action: Callable
-
 
     @staticmethod
     def on_step(every, at):

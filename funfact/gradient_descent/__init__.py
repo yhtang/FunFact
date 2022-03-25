@@ -4,6 +4,13 @@ from ._base import GradientDescentState, GradientDescentPlugin
 from ._driver import gradient_descent
 from ._plugins import (
     gradient_descent_plugin,
-    snapshot,
     walltime
 )
+
+__all__ = [
+    'GradientDescentState',
+    'GradientDescentPlugin',
+    'gradient_descent',
+    'gradient_descent_plugin',
+    'walltime',
+]

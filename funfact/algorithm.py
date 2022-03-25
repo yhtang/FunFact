@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-import tqdm
 import funfact.optim
 import funfact.loss
 from funfact import Factorization
