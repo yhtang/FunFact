@@ -27,20 +27,6 @@ def gradient_descent_plugin(every=None, at=None, trigger=None):
     return wrapper
 
 
-def snapshot(fac, to, every=1, at=None):
-
-    return GradientDescentPlugin(
-        name='snapshot',
-        trigger=GradientDescentPlugin.on_step(every, at),
-        action=lambda state: to.append(
-            dict(
-                step=state.step,
-                model=dill.loads(dill.dumps(fac))
-            )
-        )
-    )
-
-
 def walltime(to, every=1, at=None):
 
     return GradientDescentPlugin(
