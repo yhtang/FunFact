@@ -29,8 +29,8 @@ import funfact; print('FunFact', funfact.__version__)
 ## Contributing Code
 
 The most recommended way to contribute is to fork the [main
-repository](https://github.com/yhtang/FunFact), then submit a \"pull
-request\" following the procedure below:
+repository](https://github.com/yhtang/FunFact), then submit a **pull
+request** following the procedure below:
 
 1.  [Fork](https://docs.github.com/en/github/getting-started-with-github/fork-a-repo)
     the project repository.
@@ -38,7 +38,7 @@ request\" following the procedure below:
 3.  [Setting up the development
     environment](#setting-up-the-development-environment)
 4.  Create a branch for development via
-    `git checkout -b feature/<feature-name> master` (replace
+    `git checkout -b contrib/<feature-name> master` (replace
     `feature-name` with the actual name of the feature).
 5.  Make changes on the feature branch
 6.  Test the changes with [Quality assurance
@@ -50,15 +50,30 @@ request\" following the procedure below:
 
 ### Setting up the development environment
 
-First create a Python virtual environment containing all dependencies
-for development:
+To create a Python virtual environment containing all dependencies
+for development, execute the following commands in the project's root directory:
 
 ```bash
 virtualenv venv
 source venv/bin/activate
 pip install flake8  # for lint a.k.a. code style check
-python setup.py develop
+pip install -e .
 ```
+
+To enable JAX/PyTorch backends, replace the last line above with
+
+=== "JAX"
+
+    ```
+    pip install -e .[jax]
+    ```
+
+=== "PyTorch"
+
+    ```
+    pip install -e .[torch]
+    ```
+
 
 ### Python code style
 

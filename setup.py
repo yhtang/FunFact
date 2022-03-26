@@ -53,6 +53,7 @@ setup(
             'mkdocs-section-index==0.3.2',
             'mkdocs-jupyter==0.20.1',
             'mkdocstrings==0.17.0',
+            'jinja2==3.0.3',  # https://github.com/mkdocs/mkdocs/issues/2799
         ],
         'devel': [
             'expectexception>=0.1.1',
