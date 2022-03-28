@@ -68,7 +68,7 @@ def factorize(
             that data type is used.
 
         penalty_weight (float) : Weight of penalties relative to loss.
-        
+
         plugins (list):
             Additional methods to be inserted into the gradient descent
             loop.
