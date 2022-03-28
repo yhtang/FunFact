@@ -63,3 +63,18 @@ def test_broadcast():
     with pytest.raises(ValueError):
         x = tensor('x', 5, 3, initializer=np.ones((3, 3)))
         x = x | LeafInitializer()
+
+
+def test_repeated_factors():
+    class Distribution:
+        def __init__(self, dtype):
+            self.dtype = dtype
+
+        def __call__(self, shape):
+            return np.random.randn(*shape).astype(self.dtype)
+
+    ini = LeafInitializer()
+    tsrex = tensor('x', 3, 3, initializer=Distribution)
+    x1 = tsrex | ini
+    x2 = tsrex | ini
+    assert np.allclose(x1.root.data, x2.root.data)
