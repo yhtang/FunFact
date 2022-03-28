@@ -188,7 +188,7 @@ def factorize(
     '''run the gradient descent loop'''
     gradient_descent(
         lambda: loss_and_grad(fac, target), opt, max_steps, exit_condition,
-        plugins=[
+        plugins=plugins + [
             save_best,
             convergence_check
         ]
