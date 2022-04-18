@@ -14,6 +14,7 @@ from . import initializers
 from . import conditions
 from .lang._semiring import minplus, logsumexp, viterbi
 from . import parametrized
+from .gradient_descent import gradient_descent_plugin
 
 __all__ = [
     'use',
@@ -38,11 +39,12 @@ __all__ = [
     'minplus',
     'logsumexp',
     'viterbi',
-    'parametrized'
+    'parametrized',
+    'gradient_descent_plugin'
 ]
 
 
-__version__ = '1.0.1'
+__version__ = '1.0.3'
 __author__ = '''Yu-Hang "Maxin" Tang, Daan Camps, Elizaveta Rebrova'''
 __maintainer__ = 'Yu-Hang "Maxin" Tang'
 __email__ = 'Tang.Maxin@gmail.com'

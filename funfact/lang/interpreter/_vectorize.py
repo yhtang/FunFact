@@ -18,6 +18,7 @@ class Vectorizer(TranscribeInterpreter):
         self.replicas = replicas
         self.vec_index = dataclasses.replace(vec_index, bound=True)
         self.append = append
+        self.cache = {}
 
     def _vectorize(self, *indices):
         if self.append:
@@ -47,11 +48,19 @@ class Vectorizer(TranscribeInterpreter):
 
     @_as_payload('decl')
     def parametrized_tensor(self, decl: ParametrizedAbstractTensor, **kwargs):
-        return decl.vectorize(self.replicas, self.append)
+        try:
+            return self.cache[decl]
+        except KeyError:
+            self.cache[decl] = v = decl.vectorize(self.replicas, self.append)
+            return v
 
     @_as_payload('decl')
     def tensor(self, decl: AbstractTensor, **kwargs):
-        return decl.vectorize(self.replicas, self.append)
+        try:
+            return self.cache[decl]
+        except KeyError:
+            self.cache[decl] = v = decl.vectorize(self.replicas, self.append)
+            return v
 
     @_as_payload('items')
     def indices(self, items: AbstractIndex, **kwargs):

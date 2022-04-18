@@ -13,7 +13,7 @@ class LeafInitializer(TranscribeInterpreter):
 
     def __init__(self, dtype=None):
         self.dtype = dtype or ab.float32
-        super().__init__()
+        self.cache = {}
 
     def _initialize_data(self, initializer, optimizable, shape):
         if initializer is None:
@@ -49,17 +49,24 @@ class LeafInitializer(TranscribeInterpreter):
 
     @_as_payload('data')
     def parametrized_tensor(self, decl, **kwargs):
-        initializer, optimizable, shape_of_params = (
-            decl.initializer, decl.optimizable, decl.generator.shape_of_params
-        )
-        return self._initialize_data(initializer, optimizable, shape_of_params)
+        try:
+            return self.cache[decl]
+        except KeyError:
+            self.cache[decl] = t = self._initialize_data(
+                decl.initializer, decl.optimizable,
+                decl.generator.shape_of_params
+            )
+            return t
 
     @_as_payload('data')
     def tensor(self, decl, **kwargs):
-        initializer, optimizable, shape = (
-            decl.initializer, decl.optimizable, decl.shape
-        )
-        return self._initialize_data(initializer, optimizable, shape)
+        try:
+            return self.cache[decl]
+        except KeyError:
+            self.cache[decl] = t = self._initialize_data(
+                decl.initializer, decl.optimizable, decl.shape
+            )
+            return t
 
     def ellipsis(self, **kwargs):
         return []

@@ -1,18 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-import tqdm
 import funfact.optim
 import funfact.loss
 from funfact import Factorization
 from funfact.backend import active_backend as ab
 from funfact.vectorization import view
+from funfact.gradient_descent import (
+    gradient_descent,
+    gradient_descent_plugin,
+    GradientDescentState,
+)
 
 
 def factorize(
     tsrex, target, optimizer='Adam', loss='MSE', lr=0.1, tol=1e-6,
     max_steps=10000, vec_size=1, vec_axis=0, stop_by='first', returns='best',
-    checkpoint_freq=50, dtype=None, penalty_weight=1.0
+    checkpoint_freq=50, dtype=None, penalty_weight=1.0, plugins=[]
 ):
     '''Factorize a target tensor using the given tensor expression. The
     solution is found by minimizing the loss function between the original and
@@ -65,6 +69,10 @@ def factorize(
 
         penalty_weight (float) : Weight of penalties relative to loss.
 
+        plugins (list):
+            Additional methods to be inserted into the gradient descent
+            loop.
+
     Returns:
         *:
             - If `returns == 'best'`, return a factorization object of type
@@ -75,6 +83,7 @@ def factorize(
             that represents all the solutions.
     '''
 
+    '''process arguments'''
     assert vec_axis in [0, -1], "Vectorization axis must be either 0 or -1."
     append = True if vec_axis == -1 else False
 
@@ -144,34 +153,52 @@ def factorize(
     )):
         raise RuntimeError(f'Invalid argument value for returns: {returns}')
 
-    # bookkeeping
+    '''define plugin for saving the best factorization model'''
     best_factors = [np.zeros_like(ab.to_numpy(x)) for x in fac.factors]
     best_loss = np.ones(vec_size) * np.inf
+
+    @gradient_descent_plugin(every=checkpoint_freq)
+    def save_best(state: GradientDescentState, best_loss=best_loss):
+        # TODO: use external validation set
+        validation_loss = ab.to_numpy(
+            loss_and_penalty(fac, target, sum_vec=False)
+        )
+        better = np.flatnonzero(validation_loss < best_loss)
+        best_loss = np.minimum(best_loss, validation_loss)
+        for b, o in zip(best_factors, fac.factors):
+            if append:
+                b[..., better] = ab.to_numpy(o[..., better])
+            else:
+                b[better, ...] = ab.to_numpy(o[better, ...])
+
+    '''define plugin for convergence test'''
     converged = np.zeros(vec_size, dtype=np.bool_)
 
-    for step in tqdm.trange(max_steps):
-        _, grad = loss_and_grad(fac, target)
-        with ab.no_grad():
-            opt.step(grad)
+    @gradient_descent_plugin(every=checkpoint_freq)
+    def convergence_check(state: GradientDescentState, converged=converged):
+        # TODO: use external validation set
+        validation_loss = ab.to_numpy(
+            loss_and_penalty(fac, target, sum_vec=False)
+        )
+        converged |= np.where(validation_loss < tol, True, False)
 
-            if step % checkpoint_freq == 0:
-                # update best factorization
-                curr_loss = ab.to_numpy(
-                    loss_and_penalty(fac, target, sum_vec=False)
-                )
-                better = np.flatnonzero(curr_loss < best_loss)
-                best_loss = np.minimum(best_loss, curr_loss)
-                for b, o in zip(best_factors, fac.factors):
-                    if append:
-                        b[..., better] = ab.to_numpy(o[..., better])
-                    else:
-                        b[better, ...] = ab.to_numpy(o[better, ...])
+    '''define early-exit conditions'''
+    def exit_condition(state: GradientDescentState):
+        if stop_by is not None:
+            return np.count_nonzero(converged) >= stop_by
+        else:
+            return False
 
-                converged |= np.where(curr_loss < tol, True, False)
-                if stop_by is not None:
-                    if np.count_nonzero(converged) >= stop_by:
-                        break
+    '''run the gradient descent loop'''
+    gradient_descent(
+        lambda: loss_and_grad(fac, target), opt, max_steps, exit_condition,
+        plugins=plugins + [
+            save_best,
+            convergence_check
+        ]
+    )
 
+    '''collect results'''
     best_factors = [ab.tensor(x) for x in best_factors]
 
     if returns == 'best':
