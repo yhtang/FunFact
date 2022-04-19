@@ -134,11 +134,13 @@ class KLDivergence(Loss):
         return ab.multiply(target, ab.log(ab.divide(target, model)))
 
 
-class GlobalPhaseMSE(MatrixLoss):
+class PhaseInvariantMSE(MatrixLoss):
     '''MSE loss for matrices agnostic to global phase.'''
     def _loss(self, model, target):
-        return ab.abs(ab.transpose(model.conj(), axes=(1, 0)) @ target) - \
-               ab.eye(model.shape[0], target.shape[1])
+        return ab.square(ab.abs(
+            ab.transpose(model.conj(), axes=(1, 0)) @ target) -
+            ab.eye(model.shape[0], target.shape[1])
+        )
 
 
 mse = MSE()
