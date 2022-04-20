@@ -82,6 +82,39 @@ class Loss(ABC):
             return _loss
 
 
+class MatrixLoss(Loss):
+    '''Base class for FunFact loss functions for matrices (2D tensors).'''
+    def __call__(
+        self, model, target, sum_vec=True, vectorized_along_last=False
+    ):
+        if target.ndim != 2:
+            raise RuntimeError(f'Target is not a matrix, has {target.ndim} '
+                               'dimensions.')
+        if model.ndim == 3:  # vectorized model
+            if vectorized_along_last:
+                loss = ab.stack(
+                    [self._loss(model[..., i], target) for i in
+                     range(model.shape[-1])]
+                )
+            else:
+                loss = ab.stack(
+                    [self._loss(model[i, ...], target) for i in
+                     range(model.shape[0])]
+                )
+            data_axis = (1, 2)
+        if model.ndim == 2:  # non-vectorized model
+            loss = self._loss(model, target)
+            data_axis = (0, 1)
+        if self.reduction == 'mean':
+            loss = loss.mean(axis=data_axis)
+        if self.reduction == 'sum':
+            loss = ab.sum(loss, axis=data_axis)
+        if sum_vec:
+            return ab.sum(loss)
+        else:
+            return loss
+
+
 class MSE(Loss):
     '''Mean-Squared Error (MSE) loss.'''
     def _loss(self, model, target):
@@ -99,6 +132,15 @@ class KLDivergence(Loss):
     '''KL Divergence loss.'''
     def _loss(self, model, target):
         return ab.multiply(target, ab.log(ab.divide(target, model)))
+
+
+class PhaseInvariantMSE(MatrixLoss):
+    '''MSE loss for matrices agnostic to global phase.'''
+    def _loss(self, model, target):
+        return ab.square(ab.abs(
+            ab.transpose(model.conj(), axes=(1, 0)) @ target) -
+            ab.eye(model.shape[0], target.shape[1])
+        )
 
 
 mse = MSE()
