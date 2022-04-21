@@ -9,28 +9,31 @@ from funfact.parametrized import Generator
 from funfact.lang._tsrex import TsrEx, tensor
 from funfact.lang._ast import Primitives as P
 from funfact.lang._terminal import ParametrizedAbstractTensor
-from funfact.lang._special import eye
-from ._special import proj0, proj1
+from funfact.lang._special import eye, proj0, proj1
 from funfact.conditions import Unitary
-# TODO: how to handle dtype? Should always be complex!
+from funfact.util.integral import check_bounded_integral
 
 
 class Gate(ABC):
-    '''A common base class for all gate objects.'''
+    '''A common abstract base class for all gate objects.'''
     def __init__(self, qubits: List[Integral]):
-        '''A gate stores the minimum and maximum qubits it acts on.'''
-        for i, q in enumerate(qubits):
-            if not (isinstance(q, Integral) and q >= 0):
-                raise RuntimeError(
-                    f"Qubit indices must be non-negative integers, got {q} for"
-                    f" entry {i}."
-                )
-        qubits.sort()
-        self._qubits = qubits
+        '''A gate stores the minimum and maximum index of thequbits it acts
+        on.
+
+        Args:
+            qubits: List[Integral]:
+                The zero-based minimum and maximum indices of the qubits that
+                the gate acts on.
+        Returns:
+            self:
+                A Gate object.
+        '''
+        check_bounded_integral(qubits, minv=0)
+        self._qubits = tuple(sorted(qubits))
 
     @abstractmethod
-    def to_tensor(self):
-        '''A gate can be converted to a tensor, either parametrized or not.'''
+    def to_tsrex(self):
+        '''Tensor expression representation of the gate.'''
         pass
 
     @abstractmethod
@@ -40,38 +43,52 @@ class Gate(ABC):
 
     @property
     def qubits(self):
+        '''The minimum and maximum indices of the qubits that the gate acts
+        on.'''
         return self._qubits
 
 
 class OneQubitGate(Gate):
     '''Abstract base class for gates acting on exactly one qubit.'''
     def __init__(self, qubit: Integral):
-        if not (isinstance(qubit, Integral)):
-            raise RuntimeError(
-                f"Qubit index of one qubit gate must be integer, got {qubit}."
-            )
+        '''
+        Args:
+            qubit: integer
+                The zero-based index of the qubit the gate acts on.
+        '''
+        check_bounded_integral(qubit)
         super().__init__(list((qubit,)))
 
 
 class OneQubitUnitary(OneQubitGate):
     '''A dense one qubit unitary gate.'''
-    def __init__(self, qubit: int, initializer=None):
+    def __init__(self, qubit: Integral, label=None, initializer=None):
+        '''
+        Args:
+            qubit: integer
+               The zero-based index of the qubit the gate acts on.
+            label: string
+                Label of the quantum gate.
+            initializer
+                Initialization distribution
+        '''
         self._initializer = initializer
+        self._label = label
         super().__init__(qubit)
 
-    def to_tensor(self):
+    def to_tsrex(self):
         return tensor(
             self.label, 2, 2, initializer=self._initializer, prefer=Unitary()
         )
 
     @property
     def label(self):
-        return 'Q_1'
+        return self._label if self._label else 'Q_1'
 
 
 class PauliX(OneQubitGate):
     '''A one qubit Pauli-X gate.'''
-    def to_tensor(self):
+    def to_tsrex(self):
         return tensor(self.label, np.array([[0, 1], [1, 0]]))
 
     @property
@@ -81,7 +98,7 @@ class PauliX(OneQubitGate):
 
 class PauliY(OneQubitGate):
     '''A one qubit Pauli-Y gate.'''
-    def to_tensor(self):
+    def to_tsrex(self):
         return tensor(self.label, np.array([[0, -1j], [1j, 0]]))
 
     @property
@@ -91,7 +108,7 @@ class PauliY(OneQubitGate):
 
 class PauliZ(OneQubitGate):
     '''A one qubit Pauli-Z gate.'''
-    def to_tensor(self):
+    def to_tsrex(self):
         return tensor(self.label, np.array([[1, 0], [0, -1]]))
 
     @property
@@ -102,6 +119,15 @@ class PauliZ(OneQubitGate):
 class OneQubitRotationGate(OneQubitGate):
     '''A common base class for all one qubit Pauli rotations.'''
     def __init__(self, qubit, initializer=None, optimizable=None):
+        '''
+        Args:
+            qubit: integer
+               The zero-based index of the qubit the gate acts on.
+            initializer:
+                Initialization distribution
+            optimizable:
+                Flag indicating whether this gate is optimized or not.
+        '''
         super().__init__(qubit)
         self.initializer = initializer
         self.optimizable = optimizable
@@ -110,7 +136,7 @@ class OneQubitRotationGate(OneQubitGate):
         '''Generates the rotation matrix.'''
         pass
 
-    def to_tensor(self):
+    def to_tsrex(self):
         return TsrEx(
             P.parametrized_tensor(
                 ParametrizedAbstractTensor(
@@ -163,6 +189,13 @@ class RotationZ(OneQubitRotationGate):
 class ControlledOneQubitGate(Gate):
     '''Abstract base class for one qubit gate with one control qubit.'''
     def __init__(self, control: Integral, target: Integral):
+        '''
+        Args:
+            control: integer
+               The zero-based index of the control qubit of the gate.
+            target: integer
+               The zero-based index of the target qubit of the gate.
+        '''
         if (control == target):
             raise RuntimeError(
                 f'control and target qubit must differ, got {control} and '
@@ -172,7 +205,7 @@ class ControlledOneQubitGate(Gate):
         self._target = target
         super().__init__([control, target])
 
-    def to_tensor(self):
+    def to_tsrex(self):
         if self._control < self._target:
             return (
                     proj0() &
@@ -180,13 +213,13 @@ class ControlledOneQubitGate(Gate):
                    ) + (
                     proj1() &
                     eye(2**(self._target - self._control - 1)) &
-                    self._gate.to_tensor()
+                    self._gate.to_tsrex()
                    )
         return (
                 eye(2**(self._control - self._target)) &
                 proj0()
                ) + (
-                self._gate.to_tensor() &
+                self._gate.to_tsrex() &
                 eye(2**(self._control - self._target - 1)) &
                 proj1()
                )
@@ -205,21 +238,27 @@ class CX(ControlledOneQubitGate):
 
 class TwoQubitUnitary(Gate):
     '''A dense two qubit unitary gate.'''
-    def __init__(self, qubit, initializer=None):
-        '''The two qubit unitary acts on two consecutive qubits:
-        qubit, qubit + 1.'''
-        if not (isinstance(qubit, Integral) and qubit >= 0):
-            raise RuntimeError(
-                f"Qubit index must be non-negative integer, got {qubit}."
-                )
+    def __init__(self, qubit: Integral, label=None, initializer=None):
+        '''
+        Args:
+            qubit: integer
+                zero-based index of the minimum qubit index of this gate. The
+                gate acts no qubit, qubit + 1
+            label: string
+                Label of the quantum gate.
+            initializer
+                Initialization distribution
+        '''
+        check_bounded_integral(qubit, 0)
         self._initializer = initializer
+        self._label = label
         super().__init__([qubit, qubit+1])
 
-    def to_tensor(self):
+    def to_tsrex(self):
         return tensor(
             self.label, 4, 4, initializer=self._initializer, prefer=Unitary()
         )
 
     @property
     def label(self):
-        return 'Q_2'
+        return self._label if self._label else 'Q_2'
