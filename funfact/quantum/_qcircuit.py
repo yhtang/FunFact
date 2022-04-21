@@ -7,21 +7,15 @@ from funfact.util.integral import check_bounded_integral
 
 class Circuit():
     '''A class to create FunFact quantum circuits.'''
-    def __init__(self, nbqubits: Integral, offset=0):
+    def __init__(self, nbqubits: Integral):
         '''
         Args:
             nbqubits: int
                 The number of qubits (or size) of this quantum circuit. The
                 qubit indices will range by default from 0 to nbqubits-1.
-            offset: int
-                The offset on the qubits of this circuit. This optional
-                argument modifies the range of qubits of this circuit to
-                [0, self._nbqubits-1] + self._offset
         '''
         check_bounded_integral(nbqubits, minv=1)
-        check_bounded_integral(offset, minv=0)
         self._nbqubits = nbqubits
-        self._offset = offset
         self._qgates = []
 
     @property
@@ -31,7 +25,7 @@ class Circuit():
 
     @property
     def qubits(self):
-        return [self._offset, self._nbqubits - 1 + self._offset]
+        return [0, self._nbqubits - 1]
 
     def append(self, qobject):
         '''Add a quantum object at the end of this circuit.'''
