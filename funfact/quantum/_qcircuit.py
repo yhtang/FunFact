@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from numbers import Integral
 from funfact.lang._special import eye
-from funfact.util.integral import check_bounded_integral
+from ._qgates import _PlacedGate
 
 
 class Circuit():
@@ -14,7 +14,6 @@ class Circuit():
                 The number of qubits (or size) of this quantum circuit. The
                 qubit indices will range by default from 0 to nbqubits-1.
         '''
-        check_bounded_integral(nbqubits, minv=1)
         self._nbqubits = nbqubits
         self._qgates = []
 
@@ -27,9 +26,12 @@ class Circuit():
     def qubits(self):
         return [0, self._nbqubits - 1]
 
-    def append(self, qobject):
+    def append(self, qobject, at=None):
         '''Add a quantum object at the end of this circuit.'''
-        self._qgates.append(qobject)
+        if isinstance(qobject, _PlacedGate):
+            self._qgates.append(qobject)
+        elif at:
+            self._qgates.append(qobject @ at)
 
     def to_tsrex(self):
         '''Generate a tensor expression for the circuit.
@@ -40,14 +42,15 @@ class Circuit():
         '''
         tsrex = eye(2**self._nbqubits)
         for i, g in enumerate(self._qgates):
-            if g.qubits[-1] >= self.nbqubits:
+            qubits = sorted(g.qubits)
+            if qubits[-1] >= self.nbqubits:
                 raise RuntimeError(
-                    f"Gate {i} acts on qubit {g.qubits[-1]}, which is out of "
+                    f"Gate {i} acts on qubit {qubits[-1]}, which is out of "
                     f"bounds for circuit with {self.nbqubits} qubits."
                 )
             tsrex = (
-                eye(2**g.qubits[0]) &
+                eye(2**qubits[0]) &
                 g.to_tsrex() &
-                eye(2**(self.nbqubits - g.qubits[-1] - 1))
+                eye(2**(self.nbqubits - qubits[-1] - 1))
             ) @ tsrex
         return tsrex
