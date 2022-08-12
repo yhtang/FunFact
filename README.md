@@ -73,7 +73,7 @@ tsrex = (a[i, ~r] * b[j, r]) * c[k, r]; tsrex
 Find rank-2 approximation:
 
 ``` py
->>> fac = ff.factorize(tsrex, T, max_steps=1000, nvec=8, penalty_weight=10)
+>>> fac = ff.factorize(tsrex, T, max_steps=1000, vec_size=8, penalty_weight=10)
 >>> fac.factors
 100%|██████████| 1000/1000 [00:03<00:00, 304.00it/s]
 <'data' fields of tensors a, b, c>

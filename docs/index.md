@@ -83,7 +83,7 @@
     === "in"
     
         ``` py
-        fac = ff.factorize(tsrex, T, max_steps=1000, nvec=8, penalty_weight=10)
+        fac = ff.factorize(tsrex, T, max_steps=1000, vec_size=8, penalty_weight=10)
         fac.factors
         ```
     
