@@ -13,8 +13,10 @@
 !!! example "Install from pip"
 
     ``` bash 
-    pip install -U funfact
+    pip install -U  "funfact[torch]"
     ```
+    **Note:** this installs FunFact with the PyTorch autograd backend. See the [installation page](../pages/installation/) for more installation options.
+
 
 !!! example "Package import"
 

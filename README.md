@@ -8,13 +8,38 @@
 
 [FunFact](https://github.com/yhtang/FunFact.git) is a Python package that aims to simplify the design of matrix and tensor factorization algorithms. It features a powerful programming interface that augments the NumPy API with Einstein notations for writing concise tensor expressions. Given an arbitrary forward calculation scheme, the package will solve the corresponding inverse problem using stochastic gradient descent, automatic differentiation, and multi-replica vectorization. Its application areas include quantum circuit synthesis, tensor decomposition, and neural network compression. It is GPU- and parallelization-ready thanks to modern numerical linear algebra backends such as JAX/TensorFlow and PyTorch.
 
+## Installation
+
+There are two default options to install FunFact:
+
+* install released versions from [PyPI](https://pypi.org/project/funfact/):
+  ```bash 
+  pip install -U funfact
+  ```
+* install the latest version from source:
+  ```bash
+  git clone https://github.com/yhtang/FunFact.git
+  cd FunFact/
+  python setup.py install
+  ```
+
+The default installation of FunFact installs the NumPy backend, which **only supports forward calculations**. The NumPy backend doesn't support automatic differentiation and is not able to optimize tensor expressions for methods such as funfact.factorize.
+
+In order to factorize tensor data by a tensor expression, two autograd backends
+are provided:
+
+* use the JAX backend:
+  ```bash
+  pip install "funfact[jax]"
+  ```
+* use the PyTorch backend:
+  ```bash
+  pip install "funfact[torch]"
+  ```
+
+Running the command as above will trigger default installalation of the respective packages. We refer to the [installation page](https://funfact.readthedocs.io/en/latest/pages/installation/) for more details on installation options.
+
 ## Quick start example: semi-nonnegative CP decomposition
-
-Install from pip:
-
-``` bash 
-pip install -U funfact
-```
 
 Package import:
 
