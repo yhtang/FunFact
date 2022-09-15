@@ -28,11 +28,11 @@ factorization model as starting point for the optimization process. For more
 complicated tensor factorizations, the chances of success can be drastically
 improved by optimizing multiple random initializations simultaneously.
 This process is called *vectorization* in FunFact and the `factorize` algorithm
-can be used on a vectorized model  by specifying the `nvec` keyword integer
+can be used on a vectorized model  by specifying the `vec_size` keyword integer
 argument.
 
 ```py
-fac = ff.factorize(tsrex, target, nvec=64)
+fac = ff.factorize(tsrex, target, vec_size=64)
 ```
 
 The code above will run 64 randomly initialized models in parallel until
@@ -47,14 +47,14 @@ arguments for the `factorize` algorithm:
 stops:
     * `first`: the iteration stops as soon as one instance satisfies the
     convergence criterion.
-    * int $n \in [1, \mathrm{nvec}]$: the iteration stops as soon as `n` instances
+    * int $n \in [1, \mathrm{vec_size}]$: the iteration stops as soon as `n` instances
     satisfy the convergence criterion.
     * `None`: always run the iteration until `max_steps`.
 The default is `first`.
 
 - `returns=...` specifies what output is returned:
     * `best`: only the best instance is returned as a factorization model
-    * `all` or int $n \in [1, \mathrm{nvec}]$: returns a list of all of or the best `n` instances
+    * `all` or int $n \in [1, \mathrm{vec_size}]$: returns a list of all of or the best `n` instances
     as a list of factorization models sorted in ascending order by loss.
 The default is `best`.
 
@@ -67,7 +67,7 @@ An example use case is:
 
 ```py
 fac = ff.factorize(tsrex, target, 
-                   nvec=64, 
+                   vec_size=64, 
                    append=False, 
                    stop_by=None, 
                    returns=8

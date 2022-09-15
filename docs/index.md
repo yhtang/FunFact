@@ -13,8 +13,10 @@
 !!! example "Install from pip"
 
     ``` bash 
-    pip install -U funfact
+    pip install -U  "funfact[torch]"
     ```
+    **Note:** this installs FunFact with the PyTorch autograd backend. See the [installation page](../pages/installation/) for more installation options.
+
 
 !!! example "Package import"
 
@@ -81,7 +83,7 @@
     === "in"
     
         ``` py
-        fac = ff.factorize(tsrex, T, max_steps=1000, nvec=8, penalty_weight=10)
+        fac = ff.factorize(tsrex, T, max_steps=1000, vec_size=8, penalty_weight=10)
         fac.factors
         ```
     

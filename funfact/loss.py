@@ -143,6 +143,17 @@ class PhaseInvariantMSE(MatrixLoss):
         )
 
 
+class PhaseInvariantL1(MatrixLoss):
+    '''L1 loss for matrices agnostic to global phase.'''
+    def _loss(self, model, target):
+        return ab.abs(ab.abs(
+            ab.transpose(model.conj(), axes=(1, 0)) @ target) -
+            ab.eye(model.shape[0], target.shape[1])
+        )
+
+
 mse = MSE()
 l1 = L1()
 kl_divergence = KLDivergence()
+phase_invariant_mse = PhaseInvariantMSE()
+phase_invariant_l1 = PhaseInvariantL1()
