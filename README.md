@@ -10,34 +10,22 @@
 
 ## Installation
 
-There are two default options to install FunFact:
-
-* install released versions from [PyPI](https://pypi.org/project/funfact/):
-  ```bash 
-  pip install -U funfact
-  ```
-* install the latest version from source:
-  ```bash
-  git clone https://github.com/yhtang/FunFact.git
-  cd FunFact/
-  python setup.py install
-  ```
-
-The default installation of FunFact installs the NumPy backend, which **only supports forward calculations**. The NumPy backend doesn't support automatic differentiation and is not able to optimize tensor expressions for methods such as funfact.factorize.
-
-In order to factorize tensor data by a tensor expression, two autograd backends
-are provided:
-
-* use the JAX backend:
+* To use FunFact with the JAX backend:
   ```bash
   pip install "funfact[jax]"
   ```
-* use the PyTorch backend:
+* To use FunFact with the PyTorch backend:
   ```bash
   pip install "funfact[torch]"
   ```
 
-Running the command as above will trigger default installalation of the respective packages. We refer to the [installation page](https://funfact.readthedocs.io/en/latest/pages/installation/) for more details on installation options.
+Running the command as above will install the version of the respective packages hosted on PyPI. Please refer to the [installation page](https://funfact.readthedocs.io/en/latest/pages/installation/) for more details on installation options.
+
+FunFact can also be installed with the NumPy backend, which **only supports forward calculations**. The NumPy backend doesn't support automatic differentiation and is not able to optimize tensor expressions for methods such as `funfact.factorize`.
+
+```bash 
+pip install -U funfact  # does not install JAX or PyTorch
+```
 
 ## Quick start example: semi-nonnegative CP decomposition
 
